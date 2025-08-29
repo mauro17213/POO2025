@@ -1,0 +1,1249 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .ui-selectonemenu-items-wrapper,
+            .ui-autocomplete-panel
+            {
+                width:350px !important;
+            }
+            .ui-autocomplete-panel .ui-autocomplete-list
+            {
+                overflow: auto !important;
+                height: 200px !important;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+
+        </style>
+        <center>
+            <h:form id="frmSolicitudes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gsSolicitudBean.modulo.descripcion}">#{gsSolicitudBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Desde"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{gsSolicitudBean.paramConsulta.parametroConsulta1}" style="width: 115px;" pattern="yyyy-MM-dd">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                        <p:spacer width="70"/>                        
+                        <p:outputLabel value="Hasta"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{gsSolicitudBean.paramConsulta.parametroConsulta2}" style="width: 115px;" pattern="yyyy-MM-dd">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gsSolicitudBean.accionListar}" title="Refrescar" ajax="false" actionListener="PF('tablaWidget').filter()" icon="ui-icon-refresh"/>                       
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gsSolicitudBean.lazyRegistro}" paginator="true" rows="#{gsSolicitudBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gsSolicitudBean.accionAdicional2}" title="Gestionar" actionListener="#{gsSolicitudBean.gestionar(obj.id)}" icon="ui-icon-script"/>
+                        <p:commandButton rendered="#{gsSolicitudBean.accionVer}" title="Ver" actionListener="#{gsSolicitudBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{gsSolicitudBean.accionEditar}" title="Editar" actionListener="#{gsSolicitudBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{gsSolicitudBean.accionBorrar}" title="Borrar" action="#{gsSolicitudBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gsSolicitudBean.accionAdicional3}" title="Reasignar" actionListener="#{gsSolicitudBean.crearReasignacion(obj.id)}" icon="ui-icon-transfer-e-w"/>
+                    </p:column>
+
+                    <p:column headerText="Dias Vencimiento" styleClass="#{obj.colorVencimiento}" sortBy="#{obj.fechaHoraCrea}" style="text-align: center; max-width: 90px">
+                        <h:outputText value="#{obj.diasVencimiento}" title="#{obj.fechaHoraCrea}"/>
+                    </p:column>
+
+                    <p:column headerText="Solicitud" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Solicitud" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo" filterBy="#{obj.tipo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Afiliacion" itemValue="1" />
+                                <f:selectItem itemLabel="Autorización" itemValue="10" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Documento" filterBy="#{obj.gsAfiliado.documentoTipo}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gsSolicitudBean.listaTiposDocumento}" var="tipo" itemValue="#{tipo.valor}" 
+                                               itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.documentoTipo}"/>
+                    </p:column>
+
+                    <p:column headerText="Documento" filterBy="#{obj.gsAfiliado.documentoNumero}" sortBy="#{obj.gsAfiliado.documentoNumero}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.documentoNumero}"/>  
+                    </p:column>
+
+                    <p:column headerText="Primer Nombre" sortBy="#{obj.gsAfiliado.primerNombre}" filterBy="#{obj.gsAfiliado.primerNombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Primer Nombre" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.primerNombre}" title="#{obj.gsAfiliado.primerNombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Seguindo Nombre" sortBy="#{obj.gsAfiliado.segundoNombre}" filterBy="#{obj.gsAfiliado.segundoNombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Segundo Nombre" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.segundoNombre}" title="#{obj.gsAfiliado.segundoNombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Primer Apellido" sortBy="#{obj.gsAfiliado.primerApellido}" filterBy="#{obj.gsAfiliado.primerApellido}">
+                        <f:facet name="filter">
+                            <p:inputText label="Primer Apellido" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.primerApellido}" title="#{obj.gsAfiliado.primerApellido}"/>
+                    </p:column>
+
+                    <p:column headerText="Seguindo Apellido" sortBy="#{obj.gsAfiliado.segundoApellido}" filterBy="#{obj.gsAfiliado.segundoApellido}">
+                        <f:facet name="filter">
+                            <p:inputText label="Segundo Apellido" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsAfiliado.segundoApellido}" title="#{obj.gsAfiliado.segundoApellido}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" sortBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Registrado" itemValue="0" />
+                                <f:selectItem itemLabel="En Gestión" itemValue="1" />
+                                <f:selectItem itemLabel="Resuelto" itemValue="2" />
+                                <f:selectItem itemLabel="No Tramitado" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Responsable" filterBy="#{obj.usuario.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Responsable" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuario.usuarioNombre})"/>
+                    </p:column>
+
+                    <p:column headerText="Zona" filterBy="#{obj.gsZona.id}" visible="true">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin Asiganar" itemValue="**" />
+                                <f:selectItems value="#{gsSolicitudBean.listaZonas}" var="zona" itemValue="#{zona.id}" itemLabel="#{zona.nombre}" itemDescription="#{zona.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.gsZona.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}"> 
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="F.H. Atiende" sortBy="#{obj.fechaHoraAtiende}"> 
+                        <h:outputText value="#{obj.fechaHoraAtiende}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="F.H. Finaliza" sortBy="#{obj.fechaHoraFinaliza}"> 
+                        <h:outputText value="#{obj.fechaHoraFinaliza}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog id="dialogoVer" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Ver</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gsSolicitudBean.objeto.gsAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gsSolicitudBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmVer">
+                        <p:panel id="pAfiliado" header="Afiliado" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPersona">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Documento"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoTipo}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Documento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoNumero}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombres"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.nombres}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Apellidos" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.apellidos}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.fechaNacimiento}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Sexo" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.sexo}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Residencia" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.residenciaUbicacion.id)}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.residenciaDireccion}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Atención" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.atencionUbicacion.id)}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pSolicitud" header="Solicitud" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelSolicitud">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Solicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Solicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.tipoStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.estadoStr}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Creación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Asignado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuario.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Atiende" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraAtiende}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Atendió" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuarioAtiende}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Finaliza" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraFinaliza}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Finalizó" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuarioFinaliza}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Zona" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsZona.nombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Trámite Interno" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.tramiteInterno}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Observación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.observacion}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción Cierre" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.descripcion}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pContacto" header="Contacto" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelContacto">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Notificación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.notificacionStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Teléfono"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoTelefono}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Correo" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoCorreoElectronico}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Ceular" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoCelular}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pAdjunto" header="Adjuntos" style="margin-bottom:10px;">
+                            <p:dataTable  id="tablaAdjuntos" var="adjunto" value="#{gsSolicitudBean.objeto.listaGsAdjuntos}" widgetVar="tablaWidgetAdjuntos" scrollable="true" emptyMessage="No se encontraron registros">                                                           
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{adjunto.tipoStr}" />
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.nombre}" />
+                                </p:column>
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>                                  
+                                    <p:commandButton action="#{gsSolicitudBean.descargarAdjunto(adjunto)}"
+                                                     icon="ui-icon-arrowthickstop-1-s" styleClass="btn-primary" title="Descargar anexo"
+                                                     ajax="false" process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pGestion" header="Gestiones" style="margin-bottom:10px;">
+                            <p:dataTable id="tablaGestiones" var="gestion" value="#{gsSolicitudBean.objeto.listaGsGestiones}" widgetVar="tablaWidgetGestiones" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{gestion.estadoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{gestion.usuario.usuarioNombre})"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{gestion.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{gestion.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Editar</b>
+                </header>
+                <h:form id="frmAuditoriaEditar" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gsSolicitudBean.objeto.gsAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gsSolicitudBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmEditar">
+                        <p:panel id="pAfiliadoEditar" header="Afiliado" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPersonaEditar">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Documento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoTipo}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Documento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoNumero}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombres" style="font-weight:bold"  />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.primerNombre} #{gsSolicitudBean.objeto.gsAfiliado.segundoNombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Apellidos" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.primerApellido} #{gsSolicitudBean.objeto.gsAfiliado.segundoApellido}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.fechaNacimiento}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Sexo"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.sexo}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Residencia" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.residenciaUbicacion.id)}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.residenciaDireccion}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Atención" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.atencionUbicacion.id)}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pSolicitudEditar" header="Solicitud" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelSolicitudEditar">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Solicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreEditar" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreEditar" value="#{gsSolicitudBean.objeto.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Solicitud" for="tipoSolicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="tipoSolicitud" value="#{gsSolicitudBean.objeto.tipo}" filter="true" required="true" requiredMessage="El Tipo: Este campo es obligatorio">
+                                            <f:selectItem itemLabel=" -- " itemValue="0" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Afiliación " itemValue="1" />
+                                            <f:selectItem itemLabel=" Desafiliación " itemValue="2" />
+                                            <f:selectItem itemLabel=" Actualización de datos " itemValue="3" />
+                                            <f:selectItem itemLabel=" Portabilidad " itemValue="4" />
+                                            <f:selectItem itemLabel=" Movilidad " itemValue="5" />
+                                            <f:selectItem itemLabel=" Incapacidad " itemValue="6" />
+                                            <f:selectItem itemLabel=" Registro Empleador " itemValue="7" />
+                                            <f:selectItem itemLabel=" Autorización " itemValue="10" />
+                                            <f:selectItem itemLabel=" Mipres " itemValue="11" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" for="estadoSolicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="estadoSolicitud" value="#{gsSolicitudBean.objeto.estado}" filter="true" required="true" requiredMessage="El Tipo: Este campo es obligatorio">
+                                            <f:selectItem itemLabel=" Registrado " itemValue="0" />
+                                            <f:selectItem itemLabel=" En Gestión " itemValue="1" />
+                                            <f:selectItem itemLabel=" Resuelto " itemValue="2" />
+                                            <f:selectItem itemLabel=" No Tramitado " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Creación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Asignado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuario.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Atiende" for="fechaHoraAtiende"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaHoraAtiende" label="Fecha Hora Atiende" pattern="yyyy-MM-dd HH:mm:ss" showTime="true" locale="es"
+                                                      value="#{gsSolicitudBean.objeto.fechaHoraAtiende}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha Atiende :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Atendió" for="usuarioAtiende" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="usuarioAtiende" value="#{gsSolicitudBean.objeto.usuarioAtiende}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Finaliza" for="fechaHoraFinaliza" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaHoraFinaliza" label="Fecha Hora Finaliza" pattern="yyyy-MM-dd HH:mm:ss" showTime="true" locale="es"
+                                                      value="#{gsSolicitudBean.objeto.fechaHoraFinaliza}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha Finaliza :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Finalizó" for="usuarioFinaliza" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="usuarioFinaliza" value="#{gsSolicitudBean.objeto.usuarioFinaliza}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Zona"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsZona.nombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Trámite Interno" for="tramiteInterno" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="tramiteInterno" value="#{gsSolicitudBean.objeto.tramiteInterno}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="observacion" value="#{gsSolicitudBean.objeto.observacion}" style="width: 90%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción Cierre" for="descripcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="descripcion" value="#{gsSolicitudBean.objeto.descripcion}" style="width: 90%" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pContacto" header="Contacto" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelContacto" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Notificación" for="notificacion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="notificacion" value="#{gsSolicitudBean.objeto.notificacion}" filter="true" required="true" requiredMessage="La Notificación: Este campo es obligatorio">
+                                            <f:selectItem itemLabel=" Ninguna " itemValue="0" />
+                                            <f:selectItem itemLabel=" Correo " itemValue="1" />
+                                            <f:selectItem itemLabel=" SMS " itemValue="2" />
+                                            <f:selectItem itemLabel=" Correo - SMS " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Teléfono" for="contactoTelefono" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText id="contactoTelefono" value="#{gsSolicitudBean.objeto.contactoTelefono}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Correo" for="contactoCorreoElectronico" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="contactoCorreoElectronico" value="#{gsSolicitudBean.objeto.contactoCorreoElectronico}" style="width: 90%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Celular" for="contactoCelular" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="contactoCelular" value="#{gsSolicitudBean.objeto.contactoCelular}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pAdjunto" header="Adjuntos" style="margin-bottom:10px;">
+                            <p:dataTable  id="tablaAdjuntos" var="adjunto" value="#{gsSolicitudBean.objeto.listaGsAdjuntos}" widgetVar="tablaWidgetAdjuntos" scrollable="true" emptyMessage="No se encontraron registros">                                                           
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{adjunto.tipoStr}" />
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.nombre}" />
+                                </p:column>
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>                                  
+                                    <p:commandButton action="#{gsSolicitudBean.descargarAdjunto(adjunto)}"
+                                                     icon="ui-icon-arrowthickstop-1-s" styleClass="btn-primary" title="Descargar anexo"
+                                                     ajax="false" process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pGestion" header="Gestiones" style="margin-bottom:10px;">
+                            <p:dataTable id="tablaGestiones" var="gestion" value="#{gsSolicitudBean.objeto.listaGsGestiones}" widgetVar="tablaWidgetGestiones" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{gestion.estadoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{gestion.usuario.usuarioNombre})"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{gestion.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{gestion.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:remoteCommand name="modificarRemote" action="#{gsSolicitudBean.modificar()}"  />
+                                            <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditar').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog id="dialogoGestionar" widgetVar="dialogoGestionar" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Gestionar</b>
+                </header>
+                <h:form id="frmAuditoriaGestionar" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gsSolicitudBean.objeto.gsAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gsSolicitudBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmGestionar">
+                        <p:panel id="pAfiliado" header="Afiliado" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPersona" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Documento"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoTipo}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Documento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.documentoNumero}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombres" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.primerNombre} #{gsSolicitudBean.objeto.gsAfiliado.segundoNombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.primerApellido} #{gsSolicitudBean.objeto.gsAfiliado.segundoApellido}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.fechaNacimiento}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Sexo" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsAfiliado.sexo}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Residencia" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.residenciaUbicacion.id)}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.residenciaDireccion}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Lugar Atención" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.atencionUbicacion.id)}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pSolicitud" header="Solicitud" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelSolicitud">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Solicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Solicitud" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.tipoStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.estadoStr}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Creación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Asignado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuario.nombre}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Atiende" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraAtiende}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Atendió" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuarioAtiende}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hora Finaliza" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.fechaHoraFinaliza}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Finalizó" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.usuarioFinaliza}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Zona" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.gsZona.nombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Trámite Interno" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.tramiteInterno}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Observación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.observacion}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción Cierre" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.descripcion}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pContacto" header="Contacto" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelContacto">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Notificación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.notificacionStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Teléfono"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoTelefono}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Correo" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoCorreoElectronico}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Ceular" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{gsSolicitudBean.objeto.contactoCelular}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pAdjunto" header="Adjuntos" style="margin-bottom:10px;">
+                            <p:dataTable  id="tablaAdjuntos" var="adjunto" value="#{gsSolicitudBean.objeto.listaGsAdjuntos}" widgetVar="tablaWidgetAdjuntos" scrollable="true" emptyMessage="No se encontraron registros">                                                           
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{adjunto.tipoStr}" />
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.nombre}" />
+                                </p:column>
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>                                  
+                                    <p:commandButton action="#{gsSolicitudBean.descargarAdjunto(adjunto)}"
+                                                     icon="ui-icon-arrowthickstop-1-s" styleClass="btn-primary" title="Descargar anexo"
+                                                     ajax="false" process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pGestion" header="Gestiones" style="margin-bottom:10px;">
+                            <p:commandButton rendered="#{gsSolicitudBean.accionCrear}" title="Crear" actionListener="#{gsSolicitudBean.crear()}" icon="ui-icon-document"/>
+                            <p:toolbar>
+                                <f:facet name="left" >
+
+                                </f:facet>
+                                <f:facet name="right">
+                                    <p:commandButton rendered="#{gsSolicitudBean.accionAdicional2}" title="Crear Gestión" actionListener="#{gsSolicitudBean.crearGestion()}" icon="ui-icon-document"/>
+                                </f:facet>
+                            </p:toolbar>
+                            <p:dataTable id="tablaGestiones" var="gestion" value="#{gsSolicitudBean.objeto.listaGsGestiones}" widgetVar="tablaWidgetGestiones" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{gestion.estadoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{gestion.usuario.usuarioNombre})"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{gestion.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{gestion.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionar').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Crear Gestion"  widgetVar="dialogoCrearGestion" appendTo="@(body)" position="center" width="80%" modal="true" style="max-height: 270px">
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrearGestion">
+                        <p:panelGrid id="panelCrearGestion" >
+                            <p:row>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="Estado" for="estado" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:selectOneMenu id="estado" label="Estado" value="#{gsSolicitudBean.gsGestion.estado}" required="true" >                                    
+                                        <p:ajax listener="#{gsSolicitudBean.cargarMensajes}" update="mensajeRespuestaTexto, mensajeRespuesta" />
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="En Gestión" itemValue="1" />
+                                        <f:selectItem itemLabel="Resuelto (CIERRE)" itemValue="2" />
+                                        <f:selectItem itemLabel="No Tramitado (CIERRE)" itemValue="3" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row> 	
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:inputTextarea id="descripcion" label="Descripción" value="#{gsSolicitudBean.gsGestion.descripcion}" cols="70" maxlength="1024" required="true" style="width: 90%"/>
+                                </p:column>
+                            </p:row>
+                            <p:row> 	
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel id="mensajeRespuestaTexto" value="Mensaje de Respuesta" for="mensajeRespuesta" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:selectOneMenu id="mensajeRespuesta" label="Mensaje de Respuesta" value="#{gsSolicitudBean.gsMensaje}" converter="gsMensajeConverterGsSolicitud" required="#{gsSolicitudBean.obligatorioPorCierre}" >                                    
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{gsSolicitudBean.listaMensajes}" var="mens" itemValue="#{mens}" itemLabel="#{mens.nombre}" itemDescription="#{mens.mensajeLargo}"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:remoteCommand name="guardarGestionRemote" action="#{gsSolicitudBean.guardarGestion()}"  />
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarGestionRemote()" validateClient="true"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearGestion').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Reasignar"  widgetVar="dialogoReasignar" appendTo="@(body)" position="center" width="62%" modal="true" >
+                <p:scrollPanel mode="native">
+                    <h:form id="frmReasignar">
+                        <p:panelGrid id="panelReasignar">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Solicitud - Tipo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.id} - #{gsSolicitudBean.objeto.tipoStr}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Zona" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsZona.nombre}" />
+                                </p:column>
+                            </p:row>
+                            <p:row> 	
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Usuario" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.usuario.usuarioNombre}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Zona" for="zona" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="zona" label="Zona" value="#{gsSolicitudBean.objeto.gsZona.id}" required="true" >                                    
+                                        <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{gsSolicitudBean.listaZonas}" var="zona" itemValue="#{zona.id}" itemLabel="#{zona.nombre}" itemDescription="#{zona.descripcion}"/>
+                                    </p:selectOneMenu > 
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarReasignacionRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarReasignacionRemote" action="#{gsSolicitudBean.guardarReasignacion()}" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoReasignar').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+            <!-- descripciones afiliado genericas -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" class="modal-no-scroll" minHeight="50" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:35%;">           
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.nombres}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.apellidos}" />
+                                </p:column>
+                            </p:row>
+                            <p:row> 
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.documentoTipo}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.documentoNumero}" />
+                                </p:column>
+                            </p:row>
+                            <p:row> 
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.objeto.gsAfiliado.residenciaDireccion}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Ubicación" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gsSolicitudBean.getUbicacionRecursiva(gsSolicitudBean.objeto.gsAfiliado.residenciaUbicacion.id)}" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

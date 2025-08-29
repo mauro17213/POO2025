@@ -1,0 +1,359 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <!-- Listar -->
+            <h:form id="frmSedes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gnSedeBean.modulo.descripcion}">#{gnSedeBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gnSedeBean.accionListar}" title="Refrescar" class="btn-icono" ajax="false" actionListener="#{gnSedeBean.refrescar()}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{gnSedeBean.accionCrear}" title="Crear" class="btn-icono" actionListener="#{gnSedeBean.crear()}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gnSedeBean.lazySedes}" paginator="true" rows="#{gnSedeBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true" draggableRows="false">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gnSedeBean.accionVer}" title="Ver" class="btn-icono" actionListener="#{gnSedeBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{gnSedeBean.accionEditar}" title="Editar" class="btn-icono" actionListener="#{gnSedeBean.editar(obj.id)}" icon="pi pi-pencil"/>
+
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Empresa" filterBy="#{obj.gnEmpresaId.razonSocial}">
+                        <f:facet name="filter">
+                            <p:inputText label="Empresa" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gnEmpresaId.razonSocial}"/>
+                    </p:column>
+
+                    <p:column headerText="Ubicación" filterBy="#{obj.gnUbicacionId.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Ubicación" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gnUbicacionId.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo" filterBy="#{obj.maeTipoId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gnSedeBean.listaTiposSede}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1" />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:7%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-close" style="left:7%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gnSedeBean.getAuditoria(gnSedeBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panel id="pVer" header="Datos Sede" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelVer">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Empresa" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.gnEmpresaId.razonSocial}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Ubicación" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.gnUbicacionId.nombre}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.nombre}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.descripcion}" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.direccion}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.telefono}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.activoStr}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{gnSedeBean.objeto.maeTipoValor}"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!--Acciones-->
+                    <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>     
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gnSedeBean.getAuditoria(gnSedeBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmCrear">
+                    <p:panel id="pCrear" header="Datos Sede" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelCrear">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Empresa" for="empresaCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="empresaCrear" value="#{gnSedeBean.objeto.gnEmpresaId.id}" filter="true" required="true" requiredMessage="Empresa : Este campo es obligatorio" style="width: 100%" >
+                                        <f:selectItem value="#{null}" noSelectionOption="true" />
+                                        <c:forEach items="#{gnSedeBean.conexion.empresas}" var="emp">
+                                            <c:if test="#{emp.id == 1}">
+                                                <f:selectItem itemValue="#{emp.id}" itemLabel="#{emp.razonSocial}" />
+                                            </c:if>
+                                        </c:forEach>
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Ubicación" for="ubicacionCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:autoComplete id="ubicacionCrear" dropdown="false" value="#{gnSedeBean.objeto.gnUbicacionId}" style="width:99%" completeMethod="#{gnSedeBean.completarUbicacion}"
+                                                    var="ubica" itemLabel="#{gnSedeBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterSede" forceSelection="true"  > 
+                                    </p:autoComplete>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" for="nombreCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="nombreCrear" value="#{gnSedeBean.objeto.nombre}" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" for="descripcionCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputTextarea id="descripcionCrear" value="#{gnSedeBean.objeto.descripcion}" rows="5" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Dirección" for="direccionCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="direccionCrear" value="#{gnSedeBean.objeto.direccion}" required="true" requiredMessage="Dirección : Este campo es obligatorio" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Teléfono" for="telefonoCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputMask id="telefonoCrear" value="#{gnSedeBean.objeto.telefono}" mask="(999) 999-9999" validateMask="true" required="true" requiredMessage="Teléfono : Este campo es obligatorio" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" for="activoCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputSwitch id="activoCrear" value="#{gnSedeBean.objeto.activo}" onLabel="Sí" offLabel="No" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo" for="tipoCrear" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="tipoCrear" label="Tipo" value="#{gnSedeBean.objeto.maeTipoId}" required="true" requiredMessage="El tipo : Este campo es obligatorio" style="width: 100%" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                        <f:selectItems value="#{gnSedeBean.listaTiposSede}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!--Acciones-->
+                    <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{gnSedeBean.guardar}" update="frmCrear"/>
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gnSedeBean.getAuditoria(gnSedeBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:panel id="pEditar" header="Datos Sede" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelEditar" >
+
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Empresa" for="empresaEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="empresaEditar" value="#{gnSedeBean.objeto.gnEmpresaId.id}" filter="true" required="true" requiredMessage="Empresa : Este campo es obligatorio" style="width: 100%" >
+                                        <f:selectItem value="#{null}" noSelectionOption="true" />
+                                        <c:forEach items="#{gnSedeBean.conexion.empresas}" var="emp">
+                                            <c:if test="#{emp.id == 1}">
+                                                <f:selectItem itemValue="#{emp.id}" itemLabel="#{emp.razonSocial}" />
+                                            </c:if>
+                                        </c:forEach>
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Ubicación" for="ubicacionEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:autoComplete id="ubicacionEditar" dropdown="false" value="#{gnSedeBean.objeto.gnUbicacionId}"  completeMethod="#{gnSedeBean.completarUbicacion}"
+                                                    var="ubica" itemLabel="#{gnSedeBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterSede" forceSelection="true"  > 
+                                    </p:autoComplete>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" for="nombreEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="nombreEditar" value="#{gnSedeBean.objeto.nombre}" required="true" requiredMessage="El nombre: Este campo es obligatorio" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" for="descripcionEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputTextarea id="descripcionEditar" value="#{gnSedeBean.objeto.descripcion}" rows="5" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Dirección" for="direccionEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="direccionEditar" value="#{gnSedeBean.objeto.direccion}" required="true" requiredMessage="Dirección : Este campo es obligatorio" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Teléfono" for="telefonoEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputMask id="telefonoEditar" value="#{gnSedeBean.objeto.telefono}" mask="(999) 999-9999" validateMask="true" required="true" requiredMessage="Teléfono : Este campo es obligatorio" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" for="activoEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputSwitch id="activoEditar" value="#{gnSedeBean.objeto.activo}" onLabel="Sí" offLabel="No" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo" for="tipoEditar" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="tipoEditar" label="Tipo" value="#{gnSedeBean.objeto.maeTipoId}" required="true" requiredMessage="El tipo : Este campo es obligatorio" style="width: 100%" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                        <f:selectItems value="#{gnSedeBean.listaTiposSede}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!--Acciones-->
+                    <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" class="btn-icono" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" class="btn-icono" action ="#{gnSedeBean.modificar}" update="frmEditar"/>
+                                    <p:commandButton value="Salir" type="button" class="btn-icono"  onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

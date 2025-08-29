@@ -1,0 +1,195 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputStylesheet name="css/rips.css"/>
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                .responsive_input, .responsive_input input {
+                    width: 90%
+                }
+                
+                .tabla_altura_fija_cm .ui-datatable-table {
+                    min-height: 100px;
+                }
+            </style>
+            <h:form id="frmCargaMasiva">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{finCargaBean.modulo.descripcion}">#{finCargaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{finCargaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{finCargaBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{finCargaBean.accionCrear}" title="Crear Adjunto" ajax="true" actionListener="#{finCargaBean.crear}" icon="ui-icon-circle-arrow-n"/>
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" value="#{finCargaBean.lazyFinCargas}" paginator="true" rows="#{finCargaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="140%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton icon="ui-icon-arrowstop-1-s"
+                                         title="Descargar archivo original" 
+                                         action="#{finCargaBean.descargarArchivoCarga(obj)}" 
+                                         ajax="false" 
+                                         process="@this"/>
+                        
+                        <p:commandButton icon="pi pi-cloud-download"
+                                         title="Descargar resultados" 
+                                         action="#{finCargaBean.descargarArchivoRespuestaCarga(obj)}" 
+                                         rendered="#{obj.respExiste}"
+                                         ajax="false" 
+                                         process="@this"/>
+                        
+                        <p:commandButton  title="Cancelar Carga"  rendered="#{finCargaBean.validarEstadoCargaProcesando(obj.estado)}" action="#{finCargaBean.guardarCancelar(obj.id)}" icon="ui-icon-circle-arrow-w">
+                            <p:confirm header="Confirmación" message="Está seguro que desea cancelar la carga masiva?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        
+                    </p:column>
+
+                    <p:column headerText="Id Carga" sortBy="#{obj.id}" filterBy="#{obj.id}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputNumber thousandSeparator="" decimalSeparator="" decimalPlaces="0"   maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" styleClass="responsive_input" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+
+                    <p:column headerText="Nombre Archivo" sortBy="#{obj.archivo}" filterBy="#{obj.archivo}" style="text-align: center;" width="200">
+                        <f:facet name="filter">
+                            <p:inputText label="Archivo" maxlength="128" style="width: 90%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.archivo}" title="#{obj.archivo}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado del Proceso" sortBy="#{obj.estado}" filterBy="#{obj.estado}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="En Cola" itemValue="0" />
+                                <f:selectItem itemLabel="En Proceso" itemValue="1" />
+                                <f:selectItem itemLabel="Procesado" itemValue="2" />
+                                <f:selectItem itemLabel="Cancelado" itemValue="3" />   
+                                <f:selectItem itemLabel="Fallido" itemValue="4" />  
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                    </p:column> 
+                    <!-- nuevos campos -->
+                    <p:column headerText="Registros" sortBy="#{obj.registros}" style="text-align: center;">
+                        <h:outputText value="#{obj.registros}" title="#{obj.registros}"/> de 
+                        <h:outputText value="#{obj.registrosPendientes}" title="#{obj.registrosPendientes}"/>
+                    </p:column>
+                    <p:column headerText="Exitosos" sortBy="#{obj.exitosos}" style="text-align: center;">
+                        <h:outputText value="#{obj.exitosos}" title="#{obj.exitosos}"/>
+                    </p:column>
+                    <p:column headerText="Fallidos" sortBy="#{obj.fallidos}" style="text-align: center;">
+                        <h:outputText value="#{obj.fallidos}" title="#{obj.fallidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Inicio" sortBy="#{obj.fechaHoraInicio}" style="text-align: center;">
+                        <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fin" sortBy="#{obj.fechaHoraFin}" style="text-align: center;">
+                        <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario responsable" sortBy="#{obj.usuarioCrea}" filterBy="#{obj.usuarioCrea}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario responsable" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            
+       <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" modal="true" width="50%" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrearAdjunto" >
+                        
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                 <p:row>
+                                    <p:column>
+                                      <p:fileUpload id="cargarDocumento"
+                                              label="Agregar Carga"  mode="advanced" dragDropSupport="false" 
+                                              listener="#{finCargaBean.eventoAdicionarAdjunto}"
+                                              uploadLabel="Crear Carga" 
+                                              cancelLabel="Cancelar"
+                                              invalidFileMessage="Tipo inválido de archivo, el formato debe ser (.txt)."  
+                                              fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                              sizeLimit="10000000" fileLimit="1" allowTypes="/(\.|\/)(txt|TXT)$/" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearAdjunto').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                        
+                        
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <script type="javascript">
+                $(document).ready(function ()
+                {
+                $(function ()
+                {
+                PF('tablaWidgetIPS').filter();
+                });
+                });
+            </script>
+
+        </center>
+
+    </ui:define>
+
+</ui:composition>

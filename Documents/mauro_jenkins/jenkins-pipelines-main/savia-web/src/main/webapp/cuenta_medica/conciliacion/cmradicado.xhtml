@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <html xmlns="http://www.w3.org/1999/xhtml"
+          xmlns:h="http://xmlns.jcp.org/jsf/html">
+        <center>
+             <style>
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            
+        </style>
+            <p:panel header="CmRadicado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                <f:facet name="header">
+                    <h:outputLabel value="Ver CmRadicado"></h:outputLabel>
+                </f:facet>
+                <p:panelGrid  columns="4"
+                              layout="grid" >
+                    <p:row>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="IdCmRadicado"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.id}"/>
+                        </p:column>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="Tipo Relación"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.tipoRelacionStr}"/>
+                        </p:column>
+                    </p:row>
+
+                    <p:row>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="Tipo Transacción"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.tipoTransaccionStr}"/>
+                        </p:column>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="Estado"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.estadoStr}"/>
+                        </p:column>
+                    </p:row>
+               
+                    <p:row>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="Usuario Crea"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.usuarioCrea}"/>
+                        </p:column>
+                        <p:column styleClass="ui-widget-header ui-g-3">
+                            <p:outputLabel value="Fecha Creación"  style="font-weight:bold"/>
+                        </p:column>
+                        <p:column styleClass=" ui-g-3" >
+                            <p:outputLabel value="#{cmEnviosGlosaBean.cmRadicado.fechaHoraCrea}"/>
+                        </p:column>
+                    </p:row>                  
+                </p:panelGrid>
+            </p:panel>
+        </center>
+    </html>
+</ui:composition>

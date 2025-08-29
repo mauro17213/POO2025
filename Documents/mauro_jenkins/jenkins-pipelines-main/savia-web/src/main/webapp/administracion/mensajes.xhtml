@@ -1,0 +1,355 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/administracion.css"/>     
+        <center>
+            <h:form id="frmMensajes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gnMensajeBean.modulo.descripcion}">#{gnMensajeBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gnMensajeBean.accionListar}" title="Refrescar"  class="btn-icono" ajax="false" actionListener="#{gnMensajeBean.refrescar()}"  icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{gnMensajeBean.accionCrear}" title="Crear"  class="btn-icono" actionListener="#{gnMensajeBean.crear()}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gnMensajeBean.lazyMensajes}" paginator="true" rows="#{gnMensajeBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gnMensajeBean.accionVer}" title="Ver" class="btn-icono" actionListener="#{gnMensajeBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{gnMensajeBean.accionEditar}" title="Editar" class="btn-icono" actionListener="#{gnMensajeBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{gnMensajeBean.accionBorrar}" title="Borrar" class="btn-icono"  action="#{gnMensajeBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" class="btn-icono" icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha Desde" sortBy="#{obj.fechaDesde}">
+                        <h:outputText value="#{obj.fechaDesde}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Hasta" sortBy="#{obj.fechaHasta}">
+                        <h:outputText value="#{obj.fechaHasta}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Prioridad" filterBy="#{obj.prioridad}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Urgente " itemValue="0" />
+                                <f:selectItem itemLabel=" Alta " itemValue="1" />
+                                <f:selectItem itemLabel=" Media " itemValue="2" />
+                                <f:selectItem itemLabel=" Baja " itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.prioridadStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Exposición" filterBy="#{obj.exposicion}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Interna " itemValue="0" />
+                                <f:selectItem itemLabel=" Externa " itemValue="1" />
+                                <f:selectItem itemLabel=" Ambas " itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.exposicionStr}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:7%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono" styleClass="ui-confirmdialog-no" icon="pi pi-times" style="left:7%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" position="center"  width="90%" dynamic="true" style="max-height:65%">
+                <p:scrollPanel mode="native" style="height: 450px">
+                    <h:form id="frmVer">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pVer" header="Información mensaje" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVer">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnMensajeBean.objeto.nombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea label="Descripción" value="#{gnMensajeBean.objeto.descripcon}" cols="150" rows="4" maxlength="512" readonly="true" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Desde" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnMensajeBean.objeto.fechaDesde}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hasta" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnMensajeBean.objeto.fechaHasta}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Prioridad" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnMensajeBean.objeto.prioridadStr}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Exposición" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnMensajeBean.objeto.exposicionStr}" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+
+                            <p:panelGrid columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:outputLabel value="Contenido" style="font-weight:bold"/>
+                                <p:textEditor secure="false" toolbarVisible="false" value="#{gnMensajeBean.objeto.texto}"  widgetVar="editor1" readonly="true">
+                                </p:textEditor>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" class="btn-icono"  onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmCrear">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pCrear" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelCrear">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreCrear" label="Nombre" value="#{gnMensajeBean.objeto.nombre}"  maxlength="64" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionCrear" label="Descripción" value="#{gnMensajeBean.objeto.descripcon}" cols="150" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Desde" for="fechaDesdeCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaDesdeCrear" label="Fecha Desde" pattern="yyyy-MM-dd" showTime="true" locale="es"
+                                                      value="#{gnMensajeBean.objeto.fechaDesde}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha Desde :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecaha Hasta" for="fechaHastarear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaHastarear" label="Fecha Hasta" pattern="yyyy-MM-dd" showTime="true" locale="es"
+                                                      value="#{gnMensajeBean.objeto.fechaHasta}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha fechaHasta :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Prioridad" for="prioridadCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="prioridadCrear" label="Prioridad" value="#{gnMensajeBean.objeto.prioridad}" required="true" requiredMessage="Proridad: Este campo es obligatorio." style="width:100px;">                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Urgente " itemValue="0" />
+                                            <f:selectItem itemLabel=" Alta " itemValue="1" />
+                                            <f:selectItem itemLabel=" Media " itemValue="2" />
+                                            <f:selectItem itemLabel=" Baja " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Exposición" for="exposicionCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="exposicionCrear" label="Ámbito" value="#{gnMensajeBean.objeto.exposicion}" required="true" requiredMessage="Exposición: Este campo es obligatorio." style="width:100px;">                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Interna " itemValue="0" />
+                                            <f:selectItem itemLabel=" Externa " itemValue="1" />
+                                            <f:selectItem itemLabel=" Ambas " itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+
+                            <p:panelGrid columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:textEditor id="contenidoCrear" secure="false" value="#{gnMensajeBean.objeto.texto}" widgetVar="editor1" required="true" requiredMessage="El contenido: Este campo es obligatorio"  height="500px">
+                                </p:textEditor>
+                            </p:panelGrid>
+
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{gnMensajeBean.guardar}" update="frmCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" style="left:25%"/>
+                        </p:confirmDialog>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Editar -->
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height:90%;">
+                <p:scrollPanel mode="native" style="height: 450px">
+                    <h:form id="frmEditar">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pEditar" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditar" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreEditar" label="Nombre" value="#{gnMensajeBean.objeto.nombre}"   maxlength="64" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionEditar" label="Descripción" value="#{gnMensajeBean.objeto.descripcon}" cols="150" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Desde" for="fechaDesdeEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaDesdeEditar" label="Fecha Desde" pattern="yyyy-MM-dd" showTime="true" locale="es"
+                                                      value="#{gnMensajeBean.objeto.fechaDesde}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha Desde :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Hasta" for="fechaHastarear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:datePicker id="fechaHastarear" label="Fecha Hasta" pattern="yyyy-MM-dd" showTime="true" locale="es"
+                                                      value="#{gnMensajeBean.objeto.fechaHasta}" yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha fechaHasta :  Este campo es obligatorio en Solicitud">
+                                        </p:datePicker>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Prioridad" for="prioridadEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="prioridadEditar" label="Prioridad" value="#{gnMensajeBean.objeto.prioridad}" required="true" requiredMessage="Proridad: Este campo es obligatorio." style="width:100px;">                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Urgente " itemValue="0" />
+                                            <f:selectItem itemLabel=" Alta " itemValue="1" />
+                                            <f:selectItem itemLabel=" Media " itemValue="2" />
+                                            <f:selectItem itemLabel=" Baja " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Exposición" for="exposicionEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="exposicionEditar" label="Ámbito" value="#{gnMensajeBean.objeto.exposicion}" required="true" requiredMessage="Exposición: Este campo es obligatorio." style="width:100px;">                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Interna " itemValue="0" />
+                                            <f:selectItem itemLabel=" Externa " itemValue="1" />
+                                            <f:selectItem itemLabel=" Ambas " itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-12">
+                                        <p:outputLabel value="Contenido" for="contenidoEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-12">
+                                        <p:textEditor id="contenidoEditar" secure="false" value="#{gnMensajeBean.objeto.texto}"  widgetVar="editor1" required="true" style="color: black " requiredMessage="El contenido: Este campo es obligatorio">
+                                        </p:textEditor>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesEditar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Modificar" type="button" class="btn-icono"  onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action ="#{gnMensajeBean.modificar}" update="frmEditar"/>
+                                        <p:commandButton value="Cancelar" type="button" class="btn-icono" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" class="btn-icono" icon="pi pi-check" style="left:7%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" class="btn-icono"  icon="pi pi-times" style="left:7%"/>
+                        </p:confirmDialog>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

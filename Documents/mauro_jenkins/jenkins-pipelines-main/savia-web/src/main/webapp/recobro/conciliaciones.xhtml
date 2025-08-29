@@ -1,0 +1,1466 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <!-- Listar -->
+            <h:form id="frmConciliaciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{recobroConciliacionBean.modulo.descripcion}">#{recobroConciliacionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionListar}" title="Refrescar" class="btn-icono" ajax="true" actionListener="#{recobroConciliacionBean.listar}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionCrear}" title="Crear" class="btn-icono" actionListener="#{recobroConciliacionBean.crear}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{recobroConciliacionBean.lazyRcoConciliaciones}" rowKey="#{obj.id}"
+                             rows="#{recobroConciliacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionVer}" title="Ver" class="btn-icono"  actionListener="#{recobroConciliacionBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional1 and recobroConciliacionBean.validarEstado(obj.estado)}" title="Gestionar" actionListener="#{recobroConciliacionBean.ventanaGestionar(obj.id)}" icon="pi pi-clipboard"/>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional2 and recobroConciliacionBean.validarEstadoFinalizacion(obj.estado)}" title="Adjuntos" class="btn-icono"  actionListener="#{recobroConciliacionBean.consultarAdjuntos(obj.id)}" icon="pi pi-folder-open"/>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional3 and recobroConciliacionBean.validarEstadoEnvioCorreo(obj.estado) }" title="Enviar Correo" actionListener="#{recobroConciliacionBean.crearCorreo(obj.id)}" icon="pi pi-envelope"/>
+                        <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional4 and recobroConciliacionBean.validarEstadoGenerarActa(obj.estado) and recobroConciliacionBean.validarTotalGestiones(obj.id) }" title="Generar Acta" actionListener="#{recobroConciliacionBean.crearActaConciliacion(obj.id)}" icon="pi pi-download"/>
+                        
+                    </p:column>
+                    <p:column headerText="Id" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputNumber label="Id" decimalPlaces="0" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" style="text-align: center">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Pendiente Soporte " itemValue="0"/>
+                                <f:selectItem itemLabel=" Notificación Prestador " itemValue="1"/>
+                                <f:selectItem itemLabel=" En conciliación " itemValue="2"/>
+                                <f:selectItem itemLabel=" Finalizado " itemValue="3"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                    </p:column>
+                    <p:column headerText="Prestador" filterBy="#{obj.cntPresadoresSedesId.nombreSede}">
+                        <f:facet name="filter">
+                            <p:inputText label="Prestador" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.cntPresadoresSedesId.nombreSede}"/>
+                    </p:column>
+                    <p:column headerText="F.H. Inicio" sortBy="#{obj.fechaInicio}">                        
+                        <h:outputText value="#{obj.fechaInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="F.H. Fin" sortBy="#{obj.fechaFin}">                        
+                        <h:outputText value="#{obj.fechaFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                   
+                    
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes"  icon="pi pi-check" style="left:3%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono" styleClass="ui-confirmdialog-no"  icon="pi pi-times" style="left:3%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="90%" height="90%">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{recobroConciliacionBean.getAuditoria(recobroConciliacionBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panel id="pInformacionVer" header="Información" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelVer">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" style="font-weight:bold"  />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.nombre}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Estado" style="font-weight:bold"  />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.estadoStr}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <h:outputText value="#{recobroConciliacionBean.objeto.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <h:outputText value="#{recobroConciliacionBean.objeto.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Valor Total Conciliación" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <h:outputText value="#{recobroConciliacionBean.objeto.valorTotalConciliado}" >
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Prestador -->
+                    <p:panel id="pPrestadorVer" header="PRESTADOR" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelPrestadorVer">
+                            <p:row>
+                                <p:column class="ui-g-2">   
+                                    <p:outputLabel style="font-weight:bold" value="Tipo Documento" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Número Documento" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.numeroDocumento}" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Razón Social"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Departamento"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.obtenerDepartamento(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Municipio"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.obtenerMunicipio(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Dirección" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.direccion}" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Código Habilitación" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.codigoHabilitacionSede}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel style="font-weight:bold" value="Nombre Sede" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.nombreSede}" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Contrato -->
+                    <p:panel id="pContratroVer" header="CONTRATO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelContratroVer">
+                            <p:row>
+                                <p:column class="ui-g-2">   
+                                    <p:outputLabel style="font-weight:bold" value="Número Contrato" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.numeroContrato}"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- descripción -->
+                    <p:panel id="pnlDescripcionVer" header="Descripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelDescripcionVer">
+                             <p:row>
+                                <p:column class="ui-g-12" style="display:grid">
+                                    <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objeto.descripcion}" counter="display1DescripcionVer" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" readonly="true"/>
+                                    <br/>
+                                    <h:outputText id="display1DescripcionVer" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- factura detalle -->
+                    <p:panel id="pFacturaDetalles" header="Detalles" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:toolbar>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{recobroConciliacionBean.accionVer}" title="Refrescar" icon="ui-icon-refresh" onclick="PF('tableFacturaDetalles').filter()"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable id="tablaDetalleFactura" widgetVar="tableFacturaDetalles" var="objetoFacturaDetalle" value="#{recobroConciliacionBean.lazyRcoFacturasDetalles}" rowKey="#{objetoFacturaDetalle.id}"
+                                         rows="#{recobroConciliacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros"
+                                         scrollable="true"
+                                         rowIndexVar="rowIndex"
+                                         scrollWidth="100%"
+                                         style="font-size:11px;">
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton actionListener="#{recobroConciliacionBean.verDetalledeDetalleFactura(objetoFacturaDetalle.id)}" title="Ver Detalle de la Factura" class="btn-icono" icon="pi pi-search" />
+                                <p:commandButton rendered="#{recobroConciliacionBean.validarGestion(objetoFacturaDetalle.id)}" actionListener="#{recobroConciliacionBean.verConciliacionGestion(objetoFacturaDetalle.id)}" title="Ver Conciliación Gestion" class="btn-icono" icon="pi pi-eye" />
+                            </p:column>
+                            <p:column headerText="Número factura" filterBy="#{objetoFacturaDetalle.rcoFacturasId.numeroFacturado}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Detalle factura" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.rcoFacturasId.numeroFacturado}" />
+                            </p:column>
+                            <p:column headerText="Detalle factura" filterBy="#{objetoFacturaDetalle.cmDetalleId.id}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Detalle factura" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.cmDetalleId.id}" />
+                            </p:column>
+                            <p:column headerText="Nombre prestador" filterBy="#{objetoFacturaDetalle.cntPrestadoresSedesId.nombreSede}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre prestador" maxlength="16" style="width: 95%;"/>
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.cntPrestadoresSedesId.nombreSede}" />
+                            </p:column>
+                            
+                            <p:column headerText="Observación recobro">
+                                <h:outputText value="#{objetoFacturaDetalle.observacionDetalle}" />
+                            </p:column>
+                            <p:column headerText="Causal Recobro" filterBy="#{objetoFacturaDetalle.causalRecobro}" >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu  style="width: 88%;">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Porcentaje Facturado" itemValue="#{false}" ></f:selectItem>
+                                        <f:selectItem itemLabel="Total Facturado" itemValue="#{true}"></f:selectItem>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.causalRecobroStr}"/>
+                            </p:column>
+                            <p:column headerText="Estado Conciliación" filterBy="#{objetoFacturaDetalle.estadoConciliacion}" >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu  style="width: 88%;">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="No Conciliado" itemValue="#{false}" ></f:selectItem>
+                                        <f:selectItem itemLabel="Conciliado" itemValue="#{true}"></f:selectItem>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.estadoConciliacionStr}"/>
+                            </p:column>
+                            <p:column headerText="Tipo servicio" filterBy="#{objetoFacturaDetalle.tipoServicio}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Tipo servicio" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.tipoServicio}" />
+                            </p:column>
+                            <p:column headerText="Tipo documento" filterBy="#{objetoFacturaDetalle.maeTipoDocumentoId}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu style="width: 80%;">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{recobroConciliacionBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.maeTipoDocumentoCodigo}" />
+                            </p:column>
+                            <p:column headerText="Documento" filterBy="#{objetoFacturaDetalle.documento}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Documento" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.documento}" />
+                            </p:column>
+                            <p:column headerText="Nombre afiliado" filterBy="#{objetoFacturaDetalle.nombreCompleto}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre afiliado" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.nombreCompleto}" />
+                            </p:column>
+                            <p:column headerText="Codigo tecnologia" filterBy="#{objetoFacturaDetalle.maServicioCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Codigo tecnologia" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.maServicioCodigo}" />
+                            </p:column>
+                            <p:column headerText="Tecnologia" filterBy="#{objetoFacturaDetalle.maServicioValor}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Tecnologia" maxlength="16" style="width: 95%;" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.maServicioValor}" />
+                            </p:column>
+                            <p:column  headerText="Valor Total Recobro" sortBy="#{objetoFacturaDetalle.valorTotalRecobro}" width="100" style="text-align: center;">
+                                <f:facet name="filter">
+                                    <p:inputText label="Valor Total Recobro" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tableFacturaDetalles').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objetoFacturaDetalle.valorTotalRecobro}" title="#{objetoFacturaDetalle.valorTotalRecobro}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column> 
+                            <p:column headerText="Observacion">
+                                <h:outputText value="#{objetoFacturaDetalle.observacionNombreCorto}" />
+                                <p:commandButton rendered="#{objetoFacturaDetalle.observacion.length() > 20 }" actionListener="#{recobroConciliacionBean.mostrarMensajeGeneral(objetoFacturaDetalle.observacion)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Prestacion" sortBy="#{objetoFacturaDetalle.fechaHoraPrestacion}" width="100" style="text-align: center;">
+                                <h:outputText value="#{objetoFacturaDetalle.fechaHoraPrestacion}" />
+                            </p:column>
+                            <p:column headerText="Concepto contable" >
+                                <h:outputText value="#{objetoFacturaDetalle.conceptoContable}" />
+                            </p:column>
+                            <p:column headerText="Diagnostico" >
+                                <h:outputText value="#{objetoFacturaDetalle.maDiagnostico}" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="80%">
+                <h:form id="frmCrear">
+                    <p:panel id="pInformacionCrear" header="Información" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelCrear">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:inputText id="nombre" label="Nombre" value="#{recobroConciliacionBean.objeto.nombre}" maxlength="128" required="false" requiredMessage="El nombre: Este campo es obligatorio" style="width: 100%"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaInicio" value="#{recobroConciliacionBean.objeto.fechaInicio}" readonlyInput="true" showOn="button" navigator="true" pattern="yyyy-MM-dd" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio" style="width: 100%">
+                                        <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd" timeZone="America/Bogota" />
+                                        <p:ajax event="dateSelect" update="fechaInicio"/>
+                                    </p:calendar>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Fin" for="fechaFin" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaFin" value="#{recobroConciliacionBean.objeto.fechaFin}" readonlyInput="true" showOn="button" navigator="true" pattern="yyyy-MM-dd" maxlength="10" required="false" requiredMessage="Fecha Fin: Este campo es obligatorio" style="width: 100%">
+                                        <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd" timeZone="America/Bogota" />
+                                        <p:ajax event="dateSelect" update="fechaFin"/>
+                                    </p:calendar>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Prestador -->
+                    <p:panel id="pPrestadorCrear" header="PRESTADOR" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" ajax="true" action="#{recobroConciliacionBean.consultarPrestador()}" icon="ui-icon-home" title="Agregar IPS solicita"/>
+                            </div>
+                            <p:panelGrid id="panelPrestadorCrear">
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                        <p:outputLabel style="font-weight:bold" value="Tipo Documento" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Número Documento" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.numeroDocumento}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Razón Social"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.razonSocial}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Departamento"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.obtenerDepartamento(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Municipio"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.obtenerMunicipio(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Dirección" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.direccion}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Código Habilitación" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.codigoHabilitacionSede}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Nombre Sede" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.nombreSede}" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                    </p:panel>
+                    <!-- Contrato -->
+                    <p:panel id="pContratroCrear" header="CONTRATO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <div align="right"> 
+                            <p:commandButton immediate="true" ajax="true" action="#{recobroConciliacionBean.consultarContratos()}" icon="ui-icon-script" title="Agregar Contrato"/>
+                        </div>
+                        <p:panelGrid id="panelContratroCrear">
+                            <p:row>
+                                <p:column class="ui-g-2">   
+                                    <p:outputLabel style="font-weight:bold" value="Número Contrato" />
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recobroConciliacionBean.objeto.numeroContrato}"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="pnlDescripcionCrear" header="Descripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelDescripcionCrear">
+                            <p:row>
+                                <p:column class="ui-g-12" style="display:grid">
+                                    <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objeto.descripcion}" counter="display1DescripcionCrear" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="false" requiredMessage="Descripción: Este campo es obligatorio"/>
+                                    <br/>
+                                    <h:outputText id="display1DescripcionCrear" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{recobroConciliacionBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Gestionar -->
+            <p:dialog header="Gestionar" widgetVar="dialogoGestionar" appendTo="@(body)" modal="true" position="center" width="90%" height="90%" dynamic="true" >
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{recobroConciliacionBean.getAuditoria(recobroConciliacionBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmGestionar">
+                        <p:panel id="pInformacionGestionar" header="Información" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGestionar">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" style="font-weight:bold"  />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.nombre}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" style="font-weight:bold"  />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.estadoStr}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{recobroConciliacionBean.objeto.fechaInicio}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{recobroConciliacionBean.objeto.fechaFin}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Valor Total Conciliación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{recobroConciliacionBean.objeto.valorTotalConciliado}" >
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Prestador -->
+                        <p:panel id="pPrestadorGestionar" header="PRESTADOR" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelPrestadorGestionar">
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                        <p:outputLabel style="font-weight:bold" value="Tipo Documento" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Número Documento" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.numeroDocumento}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Razón Social"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.cntPrestador.razonSocial}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Departamento"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.obtenerDepartamento(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Municipio"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.obtenerMunicipio(recobroConciliacionBean.objeto.cntPresadoresSedesId.ubicacionId)}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Dirección" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.direccion}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Código Habilitación" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.codigoHabilitacionSede}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel style="font-weight:bold" value="Nombre Sede" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.cntPresadoresSedesId.nombreSede}" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Contrato -->
+                        <p:panel id="pContratroVer" header="CONTRATO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelContratroGestionar">
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                        <p:outputLabel style="font-weight:bold" value="Número Contrato" />
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objeto.numeroContrato}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- descripción -->
+                        <p:panel id="pnlDescripcionVer" header="Descripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelDescripcionGestionar">
+                                 <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objeto.descripcion}" counter="display1DescripcionGestionar" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" readonly="true"/>
+                                        <br/>
+                                        <h:outputText id="display1DescripcionGestionar" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- factura detalle -->
+                        <p:panel id="pFacturaDetalles" header="Detalles" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:toolbar>
+                                <f:facet name="right">
+                                    <p:commandButton rendered="#{recobroConciliacionBean.accionVer}" title="Refrescar" icon="ui-icon-refresh" onclick="PF('tableFacturaDetallesG').filter()"/>
+                                </f:facet>
+                            </p:toolbar>
+                            <p:dataTable id="tablaDetalleFacturaG" widgetVar="tableFacturaDetallesG" var="objetoFacturaDetalle" value="#{recobroConciliacionBean.lazyRcoFacturasDetalles}" rowKey="#{objetoFacturaDetalle.id}"
+                                             rows="#{recobroConciliacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage="No se encontraron registros"
+                                             scrollable="true"
+                                             rowIndexVar="rowIndex"
+                                             scrollWidth="100%"
+                                             style="font-size:11px;">
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>
+                                    <p:commandButton actionListener="#{recobroConciliacionBean.verDetalledeDetalleFactura(objetoFacturaDetalle.id)}" title="Ver Detalle de la Factura" class="btn-icono" icon="pi pi-search" />
+                                    <p:commandButton rendered="#{recobroConciliacionBean.validarSiTieneGestiones(objetoFacturaDetalle.id)}" actionListener="#{recobroConciliacionBean.crearConciliacionGestion(objetoFacturaDetalle)}" title="Crear Conciliacion Gestión" class="btn-icono" icon="pi pi-file"/>
+                                    <p:commandButton rendered="#{recobroConciliacionBean.validarGestion(objetoFacturaDetalle.id)}" actionListener="#{recobroConciliacionBean.verConciliacionGestion(objetoFacturaDetalle.id)}" title="Ver Conciliación Gestion" class="btn-icono" icon="pi pi-eye" />
+                                </p:column>
+                                <p:column headerText="Número factura" filterBy="#{objetoFacturaDetalle.rcoFacturasId.numeroFacturado}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Número factura" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.rcoFacturasId.numeroFacturado}" />
+                                </p:column>
+                                <p:column headerText="Detalle factura" filterBy="#{objetoFacturaDetalle.cmDetalleId.id}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Detalle factura" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.cmDetalleId.id}" />
+                                </p:column>
+                                <p:column headerText="Nombre prestador" filterBy="#{objetoFacturaDetalle.cntPrestadoresSedesId.nombreSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre prestador" maxlength="16" style="width: 95%;"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.cntPrestadoresSedesId.nombreSede}" />
+                                </p:column>
+
+                                <p:column headerText="Observación recobro" filterBy="#{objetoFacturaDetalle.observacionDetalle}">
+                                    <f:facet name="filter">
+                                            <p:inputText label="Observación recobro" maxlength="16" style="width: 95%;" onchange="PF('tableFacturaDetallesG').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.observacionDetalle}" />
+                                </p:column>
+                                <p:column headerText="Causal Recobro" filterBy="#{objetoFacturaDetalle.causalRecobro}" >
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu  style="width: 88%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Porcentaje Facturado" itemValue="#{false}" ></f:selectItem>
+                                            <f:selectItem itemLabel="Total Facturado" itemValue="#{true}"></f:selectItem>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.causalRecobroStr}"/>
+                                </p:column>
+                                <p:column headerText="Estado Conciliación" filterBy="#{objetoFacturaDetalle.estadoConciliacion}" >
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu  style="width: 88%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="No Conciliado" itemValue="#{false}" ></f:selectItem>
+                                            <f:selectItem itemLabel="Conciliado" itemValue="#{true}"></f:selectItem>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.estadoConciliacionStr}"/>
+                                </p:column>
+                                <p:column headerText="Tipo servicio" filterBy="#{objetoFacturaDetalle.tipoServicio}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tipo servicio" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.tipoServicio}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento" filterBy="#{objetoFacturaDetalle.maeTipoDocumentoId}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{recobroConciliacionBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.maeTipoDocumentoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Documento" filterBy="#{objetoFacturaDetalle.documento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.documento}" />
+                                </p:column>
+                                <p:column headerText="Nombre afiliado" filterBy="#{objetoFacturaDetalle.nombreCompleto}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre afiliado" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.nombreCompleto}" />
+                                </p:column>
+                                <p:column headerText="Codigo tecnologia" filterBy="#{objetoFacturaDetalle.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Codigo tecnologia" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.maServicioCodigo}" />
+                                </p:column>
+                                <p:column headerText="Tecnologia" filterBy="#{objetoFacturaDetalle.maServicioValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tecnologia" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.maServicioValor}" />
+                                </p:column>
+                                <p:column  headerText="Valor Total Recobro" sortBy="#{objetoFacturaDetalle.valorTotalRecobro}" width="100" style="text-align: center;">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Valor Total Recobro" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }"  onchange="PF('tableFacturaDetallesG').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.valorTotalRecobro}" title="#{objetoFacturaDetalle.valorTotalRecobro}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column> 
+                                <p:column headerText="Observacion" filterBy="#{objetoFacturaDetalle.observacion}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Observacion" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.observacionNombreCorto}" />
+                                    <p:commandButton rendered="#{objetoFacturaDetalle.observacion.length() > 20 }" actionListener="#{recobroConciliacionBean.mostrarMensajeGeneral(objetoFacturaDetalle.observacion)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora Prestacion" sortBy="#{objetoFacturaDetalle.fechaHoraPrestacion}" width="100" style="text-align: center;">
+                                    <h:outputText value="#{objetoFacturaDetalle.fechaHoraPrestacion}" />
+                                </p:column>
+                                <p:column headerText="Concepto contable" filterBy="#{objetoFacturaDetalle.conceptoContable}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Concepto contable" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.conceptoContable}" />
+                                </p:column>
+                                <p:column headerText="Diagnostico" filterBy="#{objetoFacturaDetalle.maDiagnostico}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Diagnostico" maxlength="16" style="width: 95%;" />
+                                    </f:facet>
+                                    <h:outputText value="#{objetoFacturaDetalle.maDiagnostico}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionar').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>                        
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- consultar adjuntos -->
+            <p:dialog header="Adjuntos" widgetVar="dialogoAdjuntos" appendTo="@(body)" position="center" modal="true" width="80%" height="50vh" style="max-height:90vh;" class="responsivefix">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmAdjuntos" style="width: 99%;table-layout: fixed;margin-left: -2px;">
+                        <p:toolbar>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional2}" title="Nuevo" ajax="false" actionListener="#{recobroConciliacionBean.crearAdjunto}" icon="ui-icon-document"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="adj" value="#{recobroConciliacionBean.listaAdjuntos}" paginator="true" rows="5" 
+                                    emptyMessage="No se encontraron registros"
+                                    currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                    paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                    rowsPerPageTemplate="5,10,30,50,100" id="tablaAdjunto"
+                                    widgetVar="tablaAdjuntosWidget"
+                                    style="font-size:11px;"
+                                    scrollable="true"
+                                    rowKey="#{adj.id}" reflow="true">
+                            <p:column style="text-align: center;">
+                               <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional2}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                    <p:fileDownload value="#{recobroConciliacionBean.descargarAdjunto(adj)}" />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column headerText="Fecha Hora">
+                                <h:outputText value="#{adj.fechaHoraCrea}"/>
+                            </p:column>
+                            <p:column headerText="Tipo">
+                                <h:outputText value="#{adj.tipoStr}"/>
+                            </p:column>
+                            <p:column headerText="Archivo">
+                                <h:outputText value="#{adj.archivo}"/>
+                            </p:column>                 
+                        </p:dataTable>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- crear adjunto-->
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" position="center" width="90%"   modal="true" style="max-height:60%;">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmCrearAdjunto" >
+                        <p:panel id="pnlSubir" header="Datos afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelCrearAdjunto" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:outputLabel value="Tipo" style="font-weight:bold"/> 
+                                <p:selectOneMenu id="somTipo" value="#{recobroConciliacionBean.objetoAdjunto.tipo}" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Acta" itemValue="0" />
+                                    <f:selectItem itemLabel="Conciliación" itemValue="1" />
+                                    <f:selectItem itemLabel="Adjuntos" itemValue="2" />
+                                    <p:ajax event="change" update="somTipo"/>
+                                </p:selectOneMenu>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnluplad" header="Datos afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAdjuntoU" columns="1" class="footerUpload">
+                                <f:facet name="footer">
+                                    <p:fileUpload id="cargarDocumento" label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                          fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                          invalidFileMessage="Tipo inválido de archivo"
+                                          multiple="false"
+                                          listener="#{recobroConciliacionBean.cargarAdjunto}" mode="advanced" dragDropSupport="false"
+                                          required="true" requiredMessage="Se debe agregar un Documento."
+                                          sizeLimit="10000000" invalidSizeMessage="El tamaño máximo permitido es 10MB." fileLimit="1" allowTypes="/(\.|\/)(pdf|PDF)$/" /> 
+                                </f:facet>
+                            </p:panelGrid>
+                        </p:panel>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Pantalla Enviar Correo -->
+            <p:dialog header="Enviar Correo" widgetVar="dialogoEnviarCorreo" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmEnviarCorreo">
+                        <p:panel id="pnlInformacionEmailCrear" header="Informacion" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEnvioCorreo" >
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                         <p:outputLabel value="Correo Electrónico" for="correo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:inputText id="correo" value="#{recobroConciliacionBean.email}" label="Correo Electrónico" style="width:100%" required="true" requiredMessage="El Correo Electrónico: Este campo es obligatorio" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                         <p:outputLabel value="Asunto" for="asunto" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:inputText id="asunto"  value="#{recobroConciliacionBean.asuntoCorreo}" maxlength="128" style="width:100%" required="true" requiredMessage="El asunto: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlMensajeCrear" header="Mensaje" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelMensajeCrear">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.mensajeCorreo}" counter="display1MensajeCrear" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Mensaje: Este campo es obligatorio"/>
+                                        <br/>
+                                        <h:outputText id="display1MensajeCrear" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Enviar" type="button" onclick="enviarCorreoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="enviarCorreoRemote" action ="#{recobroConciliacionBean.enviarCorreo}" update="frmEnviarCorreo"/>
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoEnviarCorreo').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Pantalla Acta Conciliacion -->
+            <p:dialog header="Acta Conciliaci'on" widgetVar="dialogoActaConciliacion" appendTo="@(body)" modal="true"  width="90%" height="90%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmActaConciliacion">
+                        <p:panel id="pnlInformacionActaConciliacion" header="Informacion" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelActaConciliacion" >
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                        <p:outputLabel value="Area" for="area" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="area" value="#{recobroConciliacionBean.objetoRcoActa.area}" maxlength="128" style="width:100%" required="true" requiredMessage="El area: Este campo es obligatorio" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">   
+                                         <p:outputLabel value="Asunto" for="asunto" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="asunto"  value="#{recobroConciliacionBean.objetoRcoActa.asunto}" maxlength="128" style="width:100%" required="true" requiredMessage="El asunto: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                         <p:outputLabel value="Lugar" for="lugar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="lugar"  value="#{recobroConciliacionBean.objetoRcoActa.lugar}" maxlength="128" style="width:100%" required="true" requiredMessage="El lugar: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlOrdenDia" header="Orden del Dia" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelOrdenDia">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoRcoActa.orderDelDia}" counter="display1OrdenDia" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Orden del Dia: Este campo es obligatorio"/>
+                                        <br/>
+                                        <h:outputText id="display1OrdenDia" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pAsistenteVer" header="Asistentes" style="margin-bottom:10px;"  toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton rendered="#{anticipoBean.accionAdicional4}" immediate="true" action="#{recobroConciliacionBean.ventanaAsistente()}" icon="pi pi-user-plus" title="Agregar Asistente"/>
+                            </div>
+                            <p:dataTable var="objAsistente" value="#{recobroConciliacionBean.objetoRcoActa.listaRcoActaAsistente}" paginator="true" rows="5" 
+                                    emptyMessage="No se encontraron registros"
+                                    currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                    paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                    rowsPerPageTemplate="5,10,30,50,100" id="tablaAsistenteAdjuntoVer"
+                                    widgetVar="listaAsistenteVer"
+                                    style="font-size:11px;"
+                                    scrollable="true"
+                                    rowKey="#{objAsistente.id}" reflow="true">
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>
+                                    <p:commandButton  title="Borrar" immediate="true" action="#{recobroConciliacionBean.borrarAsistente(objAsistente.nombre)}" icon="pi pi-trash">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{objAsistente.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{objAsistente.cargo}" />
+                                </p:column>
+                                <p:column headerText="Observacion">
+                                    <h:outputText value="#{objAsistente.observacionNombreCorto}" />
+                                    <p:commandButton rendered="#{objAsistente.observaciones.length() > 20 }" actionListener="#{recobroConciliacionBean.mostrarMensajeGeneral(objAsistente.observaciones)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>
+                                </p:column>  
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="pnlDesarrolloReuniónActa" header="Desarrollo Reunión" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelDesarrolloReuniónActa">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoRcoActa.desarrolloReunion}" counter="display1DesarrolloReuniónActa" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="El Desarrollo Reunión: Este campo es obligatorio"/>
+                                        <br/>
+                                        <h:outputText id="display1DesarrolloReuniónActa" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlObservacionesActa" header="Observaciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacionesActa">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoRcoActa.observaciones}" counter="display1ObservacionesActa" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Observaciones: Este campo es obligatorio"/>
+                                        <br/>
+                                        <h:outputText id="display1ObservacionesActa" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton rendered="#{recobroConciliacionBean.accionAdicional4}" title="Descagar Acta" onclick="PrimeFaces.monitorDownload(start, stop);"  icon="pi pi-download" ajax="true" update="frmActaConciliacion">
+                                                <p:fileDownload value="#{recobroConciliacionBean.generarReporte(obj.id)}" />
+                                            </p:commandButton>
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoActaConciliacion').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Pantalla Acta Conciliacion -->
+            <p:dialog header="Crear Asistente" widgetVar="dialogoActaAsistente" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmActaAsistente">
+                        <p:panel id="pnlInformacionActaAsistente" header="Informacion" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelActaAsistente" >
+                                <p:row>
+                                    <p:column class="ui-g-2">   
+                                        <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombre" value="#{recobroConciliacionBean.objetoRcoActaAsistente.nombre}" maxlength="128" style="width:100%" required="true" requiredMessage="El Nombre: Este campo es obligatorio" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">   
+                                         <p:outputLabel value="Cargo" for="cargo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="cargo"  value="#{recobroConciliacionBean.objetoRcoActaAsistente.cargo}" maxlength="128" style="width:100%" required="true" requiredMessage="El Cargo: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlObservacionesAsistente" header="Observaciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacionesAsistente">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoRcoActaAsistente.observaciones}" counter="display1ObservacionesAsistente" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="false" requiredMessage="Observaciones: Este campo es obligatorio"/>
+                                        <br/>
+                                        <h:outputText id="display1ObservacionesAsistente" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarAsistenteRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarAsistenteRemote" action ="#{recobroConciliacionBean.guardarAsistente}" update="frmActaAsistente"/>
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoActaAsistente').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Detalle de la factura -->
+            <p:dialog header="Ver Detalle Factura" widgetVar="dialogoVerFacturaAuditada" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmVerFacturaAuditada">
+                        <!-- Gestionar Detalle Factura-->
+                        <p:panel id="pGestionarDetalleFactura" header="Datos Detalle Factura" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGestionarDetalleFactura" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Detalle Factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoFacturaDetalle.cmDetalleId.id}" style="width: 95%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Aplica recobro" for="aplicaRecobro" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputSwitch id="aplicaRecobro" onLabel="Sí" offLabel="No" value="#{recobroConciliacionBean.objetoFacturaDetalle.aplicaRecobro}" disabled="true" >
+                                        </p:inputSwitch>
+                                    </p:column>  
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Causal recobro" for="causalRecobro" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputSwitch id="causalRecobro" onLabel="Total Facturado" offLabel="Porcentaje Facturado" value="#{recobroConciliacionBean.objetoFacturaDetalle.causalRecobro}"  style="width: 95%" disabled="true">
+                                        </p:inputSwitch>
+                                    </p:column> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Valor Facturado"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText  value="#{recobroConciliacionBean.objetoFacturaDetalle.valorFacturado}" >
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column> 
+                                </p:row>
+                                <p:row> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Valor pagado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{recobroConciliacionBean.objetoFacturaDetalle.valorTotalRecobro}" >
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4" />
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Valor restante" for="valorRestanteRecobro" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText id="valorRestanteRecobro" value="#{recobroConciliacionBean.objetoFacturaDetalle.valorRestanteRecobro}" >
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4" />
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Código tecnología " style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoFacturaDetalle.maServicioCodigo}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tecnologia" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoFacturaDetalle.maServicioValor}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha hora prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText value="#{recobroConciliacionBean.objetoFacturaDetalle.fechaHoraPrestacion}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Concepto contrable" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoFacturaDetalle.conceptoContable}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Diagnostico" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <h:outputText  value="#{recobroConciliacionBean.objetoFacturaDetalle.maDiagnostico}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Usuario Audita" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoFacturaDetalle.usuarioModifica}" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid id="panelAccionVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerFacturaAuditada').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver conciliacion gestion -->
+            <p:dialog header="Ver Gestion" widgetVar="dialogoVerConciliacionGestion" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmVerConciliacionGestion">
+                        <!-- Gestionar Detalle Factura-->
+                        <p:panel id="pGestionarDetalleFactura" header="Datos Detalle Factura" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGestionarDetalleFactura" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Gestión" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoConciliacionGestion.id}" style="width: 95%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Acuerdo Recobro" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoConciliacionGestion.acuerdoRecobroStr}" style="width: 95%"/>
+                                    </p:column>  
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado Recobro" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{recobroConciliacionBean.objetoConciliacionGestion.estadoProcesoStr}" style="width: 95%"/>
+                                    </p:column>
+                                </p:row>
+                               
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlObservacioConciliacionGestion" header="Observacion Recobro" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacioConciliacionGestion">
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoConciliacionGestion.observacion}" counter="display1ObservacioConciliacionGestion" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" readonly="true"/>
+                                        <br/>
+                                        <h:outputText id="display1ObservacioConciliacionGestion" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid id="panelAccionVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerConciliacionGestion').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Crear conciliacion gestion-->
+            <p:dialog header="Crear" widgetVar="dialogoCrearConciliacionGestion" appendTo="@(body)" modal="true" width="80%">
+                <h:form id="frmCrearConciliacionGestion">
+                    <p:panel id="pInformacionConciliacionGestionCrear" header="Información" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelCrearConciliacionGestion">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                        <p:outputLabel value="Acuerdo Recobro" for="acuerdoRecobro" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:selectOneMenu id="acuerdoRecobro" value="#{recobroConciliacionBean.objetoConciliacionGestion.acuerdoRecobro}" style="width: 100%;" required="true" requiredMessage="Observación Recobro: Este campo es obligatorio">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" No acuerdo recobro " itemValue="0"/>
+                                        <f:selectItem itemLabel=" Si acuerdo recobro  " itemValue="1"/>
+                                        <f:selectItem itemLabel=" No corresponde recobro " itemValue="2"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="pnlDescripcionConciliacionGestionCrear" header="Observación Recobro" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelDescripcionConciliacionGestionCrear">
+                            <p:row>
+                                <p:column class="ui-g-12" style="display:grid">
+                                    <p:inputTextarea rows="5" cols="155" value="#{recobroConciliacionBean.objetoConciliacionGestion.observacion}" counter="display1DescripcionConciliacionGestionCrear" maxlength="2048" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Observación Recobro: Este campo es obligatorio"/>
+                                    <br/>
+                                    <h:outputText id="display1DescripcionConciliacionGestionCrear" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarConciliacionGestionRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarConciliacionGestionRemote" action ="#{recobroConciliacionBean.guardarConciliacionGestion}" update="frmCrearConciliacionGestion"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoCrearConciliacionGestion').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Lista Contrato -->
+            <p:dialog header="Consultar Contrato (ÚNICO)" widgetVar="dialogoContratoLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 550px;">
+                    <h:form id="frmContratoLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{recobroConciliacionBean.accionCrear}" title="Refrescar" actionListener="#{recobroConciliacionBean.refrescarContratos()}" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:dataTable id="tablaContratoLista" widgetVar="tablaWidgetContratoLista" var="objetoContrato" value="#{recobroConciliacionBean.lazyContratos}" rowKey="#{objetoContrato.id}"
+                                     rows="#{recobroConciliacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" 
+                                     emptyMessage= "No se encontro un prestador con los servicios seleccionados contratados" selectionMode="single">
+                            <p:ajax event="rowSelect" listener="#{recobroConciliacionBean.onRowSelectContrato}"/>
+                            <p:column headerText="Numero Contrato" sortBy="#{objetoContrato.id}">
+                                <h:outputText value="#{objetoContrato.id}"/>
+                            </p:column>
+                            <p:column headerText="Contrato" sortBy="#{objetoContrato.contrato}" filterBy="#{objetoContrato.contrato}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaWidgetContratoLista').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objetoContrato.contrato}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Inicial" sortBy="#{objetoContrato.fechaInicio}" >
+                                <h:outputText value="#{objetoContrato.fechaInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Final" sortBy="#{objetoContrato.fechaFin}">
+                                <h:outputText value="#{objetoContrato.fechaFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="NIT" sortBy="#{objetoContrato.cntPrestador.numeroDocumento}" filterBy="#{objetoContrato.cntPrestador.numeroDocumento}">
+                                <f:facet name="filter">
+                                    <p:inputText label="NIT" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidgetContratoLista').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objetoContrato.cntPrestador.numeroDocumento}"/>
+                            </p:column>
+                            <p:column headerText="Razón Social" sortBy="#{objetoContrato.cntPrestador.razonSocial}" filterBy="#{objetoContrato.cntPrestador.razonSocial}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Razón Social" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidgetContratoLista').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objetoContrato.cntPrestador.razonSocial}"/>
+                            </p:column>
+                            <p:column headerText="Valor" sortBy="#{objetoContrato.valor}">
+                                <p:outputLabel value="#{objetoContrato.valor}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </p:outputLabel>
+                            </p:column>           
+                        </p:dataTable>                    
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--Lista Sedes-->
+            <p:dialog header="Consultar Prestador" widgetVar="dialogoIpsLista" appendTo="@(body)" position="center" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 520px; padding-bottom: 0px !important;" >
+                    <h:form id="frmIpsLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{recobroConciliacionBean.accionCrear}" title="Refrescar" actionListener="#{recobroConciliacionBean.refrescarPrestador()}" oncomplete="PF('tablaWidgetIps').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelIpsLista" style="height:auto;" columns="1">
+                            <p:dataTable id="tablaRegistrosIps" widgetVar="tablaWidgetIps" var="objPrestador" value="#{recobroConciliacionBean.lazyPrestadores}" rowKey="#{objPrestador.id}"
+                                         rows="#{recobroConciliacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{recobroConciliacionBean.onRowSelectPrestador}"/>
+                                <p:column headerText="Código Habilitación" filterBy="#{objPrestador.codigoHabilitacionSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Habilitación" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Documento" filterBy="#{objPrestador.cntPrestador.maeTipoDocumentoId}" style="width: 20%;">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{recobroConciliacionBean.listaTipoDocumentoEmpresa}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Número Documento" filterBy="#{objPrestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Número Documento" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón Social" filterBy="#{objPrestador.cntPrestador.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Razón Social" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.razonSocial}"/>
+                                </p:column>                                    
+                                <p:column headerText="Nombre Sede" filterBy="#{objPrestador.nombreSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre Sede" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Departamento">
+                                    <h:outputText value="#{recobroConciliacionBean.obtenerDepartamento(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Municipio" filterBy="#{objPrestador.ubicacion.id}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()" style="width: 95%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{recobroConciliacionBean.listaCiudades}" var="tipoUbi" itemValue="#{tipoUbi.id}" itemLabel="#{tipoUbi.descripcion}" itemDescription="#{tipoUbi.descripcion}"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{recobroConciliacionBean.obtenerMunicipio(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Dirección" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Observacion Completa -->
+            <p:dialog header="Observación" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:150px;font-size:20px" >
+                    <h:form id="frmObservacion" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{recobroConciliacionBean.mensajeGeneral}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

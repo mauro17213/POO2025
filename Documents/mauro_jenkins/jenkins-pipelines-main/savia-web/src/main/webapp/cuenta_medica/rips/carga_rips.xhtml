@@ -1,0 +1,1413 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputStylesheet name="css/rips.css"/>
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                .responsive_input, .responsive_input input {
+                    width: 90%
+                }
+            </style>
+            <h:form id="frmRipsCargas" >
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmRipsCargaBean.modulo.descripcion}" style="text-align: left;display: inherit;padding-left: 10px;margin-bottom: 3px;margin-top: 3px;">#{cmRipsCargaBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>
+                        <p:outputLabel value="Desde" for="fechaInicio" style="font-weight:bold"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fechaInicio"
+                                    locale="es"
+                                    autocomplete="off"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd HH:mm"
+                                    maxlength="10"
+                                    style="max-width: 100px"
+                                    value="#{cmRipsCargaBean.paramConsulta.parametroConsulta1}">
+                            <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                        </p:calendar>
+                        <p:spacer width="80"/>
+                        <p:outputLabel value="Hasta" for="fechaFin" style="font-weight:bold"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fechaFin" autocomplete="off"
+                                    locale="es"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd HH:mm"
+                                    maxlength="10"
+                                    style="width: 100px"
+                                    value="#{cmRipsCargaBean.paramConsulta.parametroConsulta2}">
+                            <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionCrear}" title="Crear" actionListener="#{cmRipsCargaBean.crear}" icon="ui-icon-document"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmRipsCargaBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionAdicional3 || cmRipsCargaBean.accionAdicional6}" title="Ver Devoluciones" actionListener="#{cmRipsCargaBean.verDevoluciones}" icon="ui-icon-clipboard"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cmRipsCargaBean.lazyCmRips}" paginator="true" rows="#{cmRipsCargaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget" scrollable="true"
+                             scrollWidth="150%"
+                             style="font-size:11px;"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionVer and (obj.estado eq 1 or obj.estado eq 13 )}" title="Ver Errores de Estructura" actionListener="#{cmRipsCargaBean.verErroresEstructura(obj.id)}" icon="ui-icon ui-icon-disk"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionVer and (obj.estado eq 4 or obj.estado eq 5 or obj.estado eq 6)}" title="Ver Sucesos" actionListener="#{cmRipsCargaBean.verSucesos(obj.id)}" icon="ui-icon ui-icon-script"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionVer and (obj.estado eq 4 or obj.estado eq 7)}" title="Ver" actionListener="#{cmRipsCargaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionAdicional2 and (obj.estado eq 4)}" title="Gestionar" actionListener="#{cmRipsCargaBean.gestionar(obj.id)}" icon="ui-icon-document"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionEditar and (obj.estado eq 4)}" title="Editar" actionListener="#{cmRipsCargaBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionVer}" title="Ver adjuntos" actionListener="#{cmRipsCargaBean.verAdjuntos(obj.id)}" icon="ui-icon-circle-arrow-s"/>
+                        <p:commandButton rendered="#{cmRipsCargaBean.accionAdicional5}" title="Cambiar Estado Carga(En Cola Rips)" action="#{cmRipsCargaBean.guardarEstadoEnColaRips(obj.id)}" icon="ui-icon-refresh" immediate="true" update="frmRipsCargas">
+                            <p:confirm header="Confirmación" message="Está seguro que desea Cambiar Estado?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Consecutivo" filterBy="#{obj.id}" style="text-align: center;">   
+                        <f:facet name="filter">
+                            <p:inputText label="Consecutivo" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Nit" filterBy="#{obj.gnPrestadorSede.cntPrestador.numeroDocumento}">  
+                        <f:facet name="filter">
+                            <p:inputText label="Nit" maxlength="128" onkeypress="if (event.keyCode == 13) {
+                                        return false;
+                                    }" 
+                                         style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gnPrestadorSede.cntPrestador.numeroDocumento}" />
+                    </p:column>
+
+                    <p:column headerText="Sede Prestador" filterBy="#{obj.gnPrestadorSede.nombreSede}">   
+                        <f:facet name="filter">
+                            <p:inputText label="Sede prestador" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gnPrestadorSede.nombreSede}" title="#{obj.gnPrestadorSede.nombreSede}" />
+                    </p:column>
+
+                    <p:column headerText="Nro. Cuenta" filterBy="#{obj.numeroCuenta}" style="text-align: center;">  
+                        <f:facet name="filter">
+                            <p:inputText label="Cuenta" maxlength="128" onkeypress="if (event.keyCode == 13) {
+                                        return false;
+                                    }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroCuenta}" title="#{obj.numeroCuenta}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" width="100">   
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="EN COLA RIPS" itemValue="11" />
+                                <f:selectItem itemLabel="VALIDACIÓN ESTRUCTURA - PROCESO" itemValue="0" />
+                                <f:selectItem itemLabel="VALIDACION ESTRUCTURA - ERROR" itemValue="1" />
+                                <f:selectItem itemLabel="VALIDACIÓN ESTRUCTURA - OK" itemValue="2" />   
+                                <f:selectItem itemLabel="SINCRONIZACION DB - ERROR" itemValue="13" />
+                                <f:selectItem itemLabel="VALIDACIÓN NORMATIVA - PROCESO" itemValue="3" />
+                                <f:selectItem itemLabel="VALIDACIÓN NORMATIVA - ERROR" itemValue="6" />
+                                <f:selectItem itemLabel="VALIDACIÓN NORMATIVA - OK" itemValue="4" />                               
+                                <f:selectItem itemLabel="EN COLA AUDITORIA" itemValue="12" />
+                                <f:selectItem itemLabel="ENVÍO AUDITORÍA - PROCESO" itemValue="9" />
+                                <f:selectItem itemLabel="ENVÍO AUDITORÍA - ERROR " itemValue="8" />   
+                                <f:selectItem itemLabel="ENVÍO AUDITORÍA - DUPLICADO" itemValue="10" />
+                                <f:selectItem itemLabel="ENVÍO AUDITORÍA - RECHAZADO" itemValue="5" />
+                                <f:selectItem itemLabel="ENVÍO AUDITORÍA - OK" itemValue="7" />                               
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}" title="#{obj.estado}"/>
+                    </p:column>
+
+                    <p:column headerText="Nro. Contrato" filterBy="#{obj.cntContrato.contrato}">   
+                        <f:facet name="filter">
+                            <p:inputText label="Contrato" maxlength="128" onkeypress="if (event.keyCode == 13) {
+                                        return false;
+                                    }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText rendered="#{obj.cntContrato.contrato != ''}" value="#{obj.cntContrato.contrato}" title="#{obj.cntContrato.contrato}"/>
+                        <h:outputText rendered="#{obj.cntContrato.contrato == ''}" value="N/A" title="N/A"/>
+                    </p:column>
+
+                    <p:column headerText="Valor" >   
+                        <h:outputText value="#{obj.valorCarga}" title="#{obj.valorCarga}">
+                            <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                        </h:outputText>
+                    </p:column> 
+
+                    <p:column headerText="Facturas" style="text-align: center;">     
+                        <h:outputText value="#{obj.cantidadFactura}" title="#{obj.cantidadFactura}" /> 
+                    </p:column>
+
+                    <p:column headerText="Regimen" filterBy="#{obj.maeRegimenValor}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="CONTRIBUTIVO" itemValue="Contributivo" />
+                                <f:selectItem itemLabel="SUBSIDIADO" itemValue="Subsidiado" />
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.maeRegimenValor}" title="#{obj.maeRegimenValor}" /> 
+                    </p:column>
+
+                    <p:column headerText="Modalidad" filterBy="#{obj.maeContratoModalidadValor}" style="text-align: center;">   
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="CAPITA" itemValue="Capita" />
+                                <f:selectItem itemLabel="COVID" itemValue="Covid" />
+                                <f:selectItem itemLabel="EVENTO" itemValue="Evento" /> 
+                                <f:selectItem itemLabel="PAQUETE" itemValue="Paquetes" />
+                                <f:selectItem itemLabel="PGP" itemValue="PGP" />     
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.maeContratoModalidadValor}" title="#{obj.maeContratoModalidadValor}" /> 
+                    </p:column>
+
+                    <p:column headerText="Cama Fija" filterBy="#{obj.camaFija}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.camaFijaStr}" title="#{obj.camaFijaStr}" /> 
+                    </p:column>
+
+                    <p:column headerText="Pbs" filterBy="#{obj.pbs}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />
+                            </p:selectOneMenu>                              
+                        </f:facet>
+                        <h:outputText value="#{obj.pbsStr}" title="#{obj.pbsStr}" /> 
+                    </p:column>
+
+                    <p:column headerText="Fecha hora inicio">     
+                        <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}"> 
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"  />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha hora fin">     
+                        <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}"> 
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"  />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Tiempo">     
+                        <h:outputText value="#{obj.tiempo} Mins" title="#{obj.tiempo}"> 
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario Crea">     
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"> 
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario Radica"  filterBy="#{obj.usuarioAudita}">     
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario Radica" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioAudita}" title="#{obj.usuarioAudita}"> 
+                        </h:outputText>
+                    </p:column>
+
+
+                </p:dataTable>
+            </h:form>
+
+            <p:dialog header="Crear Carga de Rips" id="dialogoCrear" widgetVar="dialogoCrear" appendTo="@(body)" 
+                      modal="true"  width="95%" dynamic="true" style="max-height: 90%;">
+                <p:scrollPanel mode="native" style="height: 450px">
+                    <h:form id="frmCrear">
+                        <p:panel id="pCrearDatos" header="Datos Rips" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelCrear" columns="4"
+                                         layout="grid">                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Prestador *" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel id="prestador" value="#{cmRipsCargaBean.objetoPrestador.razonSocial}"/>
+                                        <p:commandButton immediate="true" action="#{cmRipsCargaBean.consultarSedes()}" 
+                                                         icon="ui-icon-home" style="float:right" title="Seleccionar sede"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel id="sede" value="#{cmRipsCargaBean.objetoPrestadorSede.nombreSede}" />
+                                    </p:column>
+                                </p:row>
+
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Nro. Cuenta" for="numero_cuenta" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:inputNumber id="numero_cuenta" decimalPlaces="0" thousandSeparator="" value="#{cmRipsCargaBean.objeto.numeroCuenta}" 
+                                                       required="true" requiredMessage="Por favor ingrese Numero de la cuenta" maxValue="2147483647" class="responsive_input"></p:inputNumber>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Valor cuenta" style="font-weight:bold" class="etiqueta" for="valorCuenta"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:inputNumber id="valorCuenta" value="#{cmRipsCargaBean.objeto.valorCarga}" required="true" requiredMessage="Por favor ingrese el valor cuenta" 
+                                                       decimalSeparator="," minValue="1" thousandSeparator="." symbol="$" class="input-number-con-icono responsive_input" style="padding-left: 0px;padding-right: 0px;margin-top: 10px;" />
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Contrato" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:inputText id="contrato" style="max-width:75%;" readonly="true" value="#{cmRipsCargaBean.objeto.cntContratoSede.cntContrato.contrato}"></p:inputText>
+                                        <p:commandButton icon="ui-icon ui-icon-search" immediate="true"
+                                                         style="float:right"
+                                                         id="botonContratos" action="#{cmRipsCargaBean.verContratos()}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Modalidad" for="modalidad" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <h:selectOneMenu id="modalidad" class="mae-select" value="#{cmRipsCargaBean.objeto.maeContratoModalidadId}" 
+                                                         required="true" requiredMessage="Debe ingresar la modalidad">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{cmRipsCargaBean.hashModalidadContratos.entrySet()}" 
+                                                           itemValue="#{modalidadContrato.key}"
+                                                           itemLabel="#{cmRipsCargaBean.getMapMaestroValue(cmRipsCargaBean.hashModalidadContratos, modalidadContrato.key).nombre}" 
+                                                           var="modalidadContrato"> 
+                                            </f:selectItems>
+                                            <p:ajax listener="#{cmRipsCargaBean.deshabilitarCoberturaSegunModalidad()}" />  
+                                        </h:selectOneMenu> 
+                                    </p:column>
+
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Régimen" for="regimen" class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <h:selectOneMenu id="regimen" class="mae-select" value="#{cmRipsCargaBean.objeto.maeRegimenId}" required="true" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"  />
+                                            <f:selectItems value="#{cmRipsCargaBean.hashRegimenes.entrySet()}" 
+                                                           itemValue="#{regimen.key}" 
+                                                           itemLabel="#{cmRipsCargaBean.getMapMaestroValue(cmRipsCargaBean.hashRegimenes, regimen.key).nombre}" 
+                                                           var="regimen"> 
+                                            </f:selectItems>
+                                        </h:selectOneMenu>  
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Pbs" for="pbs" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <h:selectOneMenu id="pbs" class="mae-select" value="#{cmRipsCargaBean.objeto.pbs}"
+                                                         required="true" requiredMessage="Por favor indique si es PBS o no es PBS">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"  />
+                                            <f:selectItem itemLabel="PBS" itemValue="true" />
+                                            <f:selectItem itemDisabled="#{cmRipsCargaBean.deshabilitarNoPbs}"  itemLabel="No PBS" itemValue="false" />
+                                        </h:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>       
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Cama Fija" for="camafija" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <h:selectOneMenu id="camafija" class="mae-select" value="#{cmRipsCargaBean.objeto.camaFija}"
+                                                         required="true" requiredMessage="Por favor indique si es cama fija o no es cama fija">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"  />
+                                            <f:selectItem itemLabel="Cama Fija" itemValue="true"/>
+                                            <f:selectItem itemLabel="Sin Cama Fija" itemValue="false"/>
+                                        </h:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:fileUpload id="botonCargarRips" label="Agregar archivos" uploadLabel="Subir" cancelLabel="Cancelar"
+                                      fileLimitMessage="Máximo número de archivos excedido" 
+                                      invalidFileMessage="Tipo de archivo inválido" 
+                                      listener="#{cmRipsCargaBean.adicionarAdjunto}"
+                                      mode="advanced" 
+                                      update="tablaAdjuntos, @this"
+                                      dragDropSupport="true" auto="true" multiple="true"
+                                      fileLimit="11" sizeLimit="90000000" 
+                                      allowTypes="/(\.|\/)(txt)$/" />
+                        <p:dataTable id="tablaAdjuntos" class="tabla_altura_fija_sm"
+                                     var="adjunto" value="#{cmRipsCargaBean.listaAdjuntos}" 
+                                     widgetVar="tablaWidgetAdjuntos" scrollable="true" 
+                                     emptyMessage="No se ha cargado ningun archivo rips">
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{adjunto.archivoNombre}"/>
+                            </p:column>
+                            <p:column headerText="Tipo">
+                                <h:outputText value="#{adjunto.tipoStr}"/>
+                            </p:column>
+                            <p:column headerText="Usuario">
+                                <h:outputText value="#{adjunto.usuarioCrea}"/>
+                            </p:column>
+                            <p:column headerText="F.H. Crea">
+                                <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <p:commandButton title="Borrar" action="#{cmRipsCargaBean.retirarAdjunto(adjunto.archivoNombre)}" icon="ui-icon-trash" update="tablaAdjuntos" immediate="true">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                        <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton action="#{cmRipsCargaBean.guardar()}" value="Guardar" update="frmCrear:pCrearDatos"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver errores de validación de estructura" id="dialogoVerErroresEstructura" widgetVar="dialogoVerErroresEstructura" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" dynamic="true" style="max-width:960px;">
+                <h:form id="frmVerErroresEstructura">
+
+                    <p:panel id="pVerErroresEstructuraTabla" header="" style="margin-bottom:-10px;max-height: 200px;overflow-y: scroll;" collapsed="false" toggleable="true">
+                        <f:facet name="header">
+                            <h:outputLabel value="Lista de errores de estructura" />
+                            <h:commandLink style="float: left;margin-right: 13px;margin-top: -5px;">
+                                <p:commandButton title="Descargar" icon="pi pi-download pi-icono-negro" ajax="false" />
+                                <p:dataExporter type="csv" target="tablaErroresEstructura" fileName="rips_error_estructura" encoding="ISO-8859-1" pageOnly="false" />
+                            </h:commandLink>
+                        </f:facet>
+                        <p:dataTable id="tablaErroresEstructura" rows="25"
+                                     var="error" value="#{cmRipsCargaBean.objeto.listaCmRipsEstructuraErrores}" 
+                                     widgetVar="tablaWidgetErroresEstructura" scrollable="true"  
+                                     tableStyle="width: 100%;" paginator="true" 
+                                     paginatorPosition="top" 
+                                     rowsPerPageTemplate="25,50,100"  
+                                     emptyMessage="No se encontraron registros">
+                            <div style="float:right;padding-top: 5px;">
+
+                                <f:facet name="{Exporters}">
+                                    <h:commandLink>
+                                        <p:commandButton title="Descargar" icon="pi pi-info" ajax="false" />
+                                        <p:dataExporter type="csv" target="tablaErroresEstructura" fileName="cars" />
+                                    </h:commandLink>
+                                </f:facet>
+                            </div>
+                            <p:column headerText="Nombre Archivo">
+                                <h:outputText value="#{error.archivoNombre}"/>
+                            </p:column>
+                            <p:column headerText="Línea" style="text-align:center;">
+                                <h:outputText value="#{error.archivoFila}"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Desc.Error">
+                                <h:outputText value="#{error.descripcionError}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerErroresEstructura').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Gestionar" id="dialogoGestionar" widgetVar="dialogoGestionar" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" draggable="false" dynamic="true" style="max-width:1600px;">
+
+                <f:facet name="header" >
+                    <h:form id="frmSucesos">
+                        <h:outputText value="Gestionar"> </h:outputText>
+                        <h:panelGroup id="notificaciones" class="notificaciones" layout="block">
+                            <p:commandButton class="gestionar-alertas" icon="pi pi-bell pi-icono-azul" 
+                                             style="font-size: 1em; width: 33px;" 
+                                             type="button" onclick="sucesosRemote()" title="Ver Sucesos" />
+                        </h:panelGroup>
+                    </h:form>
+                </f:facet>
+                <h:form id="frmGestionar">
+                    <p:panel id="pGestionar" header="Datos Rips" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        
+                        <p:panelGrid id="panelVer" columns="6"
+                                     layout="grid">
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel  value="Valor" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.valorCarga}">
+                                     <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Contrato" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.cntContrato.contrato}"></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Modalidad" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.maeContratoModalidadValor}"></h:outputText>
+                                </p:column>
+                            </p:row>
+                              <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Régimen" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.maeRegimenValor}" ></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Prestador" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.gnPrestadorSede.cntPrestador.razonSocial}" title="#{cmRipsCargaBean.objeto.maeRegimenValor}"></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Sede " class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.gnPrestadorSede.nombreSede}" title="#{cmRipsCargaBean.objeto.gnPrestadorSede.cntPrestador.razonSocial}"></h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        
+                    </p:panel>
+                    <h:panelGroup layout="block" id="facturas" style="text-align: center;background: #f5f5f5;font-weight: bold;">
+                        <h:outputText value="Facturas" class="tituloTabla"></h:outputText>
+                    </h:panelGroup>
+                    <p:dataTable var="obj" value="#{cmRipsCargaBean.objeto.listaCmRipsAfFacturas}" paginator="true" rows="50" 
+                                 emptyMessage="No se encontraron registros"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="10,30,50,100" id="tablaFacturas" paginatorPosition="bottom"
+                                 widgetVar="tablaFacturasWidget" tableStyle=""
+                                 style="font-size:11px;width:100%;max-height: 300px;overflow: scroll;" 
+                                 rowKey="#{obj.id}" reflow="true">
+
+                        <p:column style="text-align: center;">
+                            <f:facet name="header">
+                                <h:outputText value="Acciones"/>
+                            </f:facet>    
+                            <p:commandButton title="Ver detalle" actionListener="#{cmRipsCargaBean.verDetalleFactura(obj)}" icon="ui-icon-search"/>
+                        </p:column>
+
+                        <p:column headerText="Número de factura" sortBy="#{obj.numeroFactura}" filterBy="#{obj.numeroFactura}" style="text-align: center;">   
+                            <h:outputText value="#{obj.numeroFactura}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Fecha de factura" sortBy="#{obj.fechaFactura}" filterBy="#{obj.fechaFactura}" style="text-align: center;">   
+                            <h:outputText value="#{obj.fechaFactura}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Valor total" sortBy="#{obj.valorAPagar}">   
+                            <h:outputText value="#{obj.valorAPagar}">
+                                <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Valor copago" sortBy="#{obj.valorAPagar}">   
+                            <h:outputText value="#{obj.valorCopago}">
+                                <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Valor descuento" sortBy="#{obj.valorDescuento}">   
+                            <h:outputText value="#{obj.valorDescuento}">
+                            </h:outputText>
+                        </p:column>
+
+                    </p:dataTable>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton action="#{cmRipsCargaBean.enviarAuditoria}" value="Enviar auditoría"/>
+                                        <p:commandButton rendered="#{cmRipsCargaBean.accionAdicional4}" value="Rechazar" action="#{cmRipsCargaBean.verConfirmarRechazar(cmRipsCargaBean.objeto.id)}" immediate="true" style="margin-left: 5px;"/>
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoGestionar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        <p:remoteCommand  name="sucesosRemote" action ="#{cmRipsCargaBean.verSucesos(cmRipsCargaBean.objeto.id)}" />
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Buscar contratos" id="dialogoContratos" widgetVar="dialogoVerContratos" appendTo="@(body)" 
+                      modal="true"  width="95%;" dynamic="true" style="max-width:1060px;">
+                <h:form id="frmVerContratos">
+                    <p:panel id="pVerContratosTabla" header="" style="margin-bottom:-10px;max-height: 200px;overflow-y: scroll;" collapsed="false" toggleable="true">
+                        <f:facet name="header">
+                            <h:outputLabel value="Lista de contratos" />
+                        </f:facet>
+                        <p:dataTable id="tablaContratos" rows="25"
+                                     var="cnt" value="#{cmRipsCargaBean.lazyContratos}" 
+                                     widgetVar="tablaWidgetContratos" scrollable="true"  
+                                     tableStyle="width: 100%;" paginator="true" 
+                                     paginatorPosition="top" lazy="true"
+                                     rowsPerPageTemplate="25,50,100"  selectionMode="single" 
+                                     emptyMessage="No se encontraron registros" style="margin-bottom: 20px">
+                            <p:column headerText="Nro. Contrato " style="text-align:center;width: 80px;" filterBy="#{cnt.cntContrato.contrato}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nro. Contrato" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidgetContratos').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{cnt.cntContrato.contrato}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Inicio" style="text-align:center;width: 80px;">
+                                <h:outputText value="#{cnt.fechaInicio}"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Fecha Fin" style="text-align:center;width: 80px;">
+                                <h:outputText value="#{cnt.fechaFin}"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Régimen Aplica" filterBy="#{cmRipsCargaBean.cntContratoSede.nivelAtencion}" >
+                                
+                                 <f:facet name="filter">
+                                  <p:selectOneMenu id="regimenAplica" class="mae-select" onchange="PF('tablaWidgetContratos').filter()"  style="width: 90%;">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"   />
+                                        <f:selectItem itemLabel="Aplica Subsidio" itemValue="1" />
+                                        <f:selectItem itemLabel="Aplica Contributivo" itemValue="2" />
+                                        <f:selectItem itemLabel="Aplica Subsidio-Contributivo" itemValue="3" />
+                                    </p:selectOneMenu> 
+                                 </f:facet>  
+                                
+                                <h:outputText rendered="#{cnt.aplicaSubsidiado}" value="Subsidiado"/>
+                                <h:outputText rendered="#{cnt.aplicaContribuitivo}" value="Contributivo" style="margin-left: 5px;"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Modalidad" style="text-align:center;" filterBy="#{cnt.maeModalidadContratoId}">
+                                <f:facet name="filter">
+                                    <h:selectOneMenu id="modalidadContacto" class="mae-select"  onchange="PF('tablaWidgetContratos').filter()" style="width: 90%; " >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cmRipsCargaBean.hashModalidadContratos.entrySet()}" 
+                                                       itemValue="#{modalidadContrato.key}"
+                                                       itemLabel="#{cmRipsCargaBean.getMapMaestroValue(cmRipsCargaBean.hashModalidadContratos, modalidadContrato.key).nombre}" 
+                                                       var="modalidadContrato" > 
+                                        </f:selectItems>
+                                    </h:selectOneMenu> 
+                                </f:facet>    
+                                <h:outputText value="#{cnt.maeModalidadContratoValor}"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Estado Contrato" style="text-align:center;" >
+                                <h:outputText value="#{cnt.cntContrato.maeEstadoContratoValor}"/>
+                            </p:column>
+                            <p:column colspan="2" headerText="Objeto" style="text-align:center;" >
+                                <h:outputText value="#{cmRipsCargaBean.recortarMensaje(cnt.cntContrato.descripcion)}"/>
+                                <p:commandButton rendered="#{cnt.cntContrato.descripcion.length() > 0 }" actionListener="#{cmRipsCargaBean.mostrarMensaje(cnt.cntContrato.descripcion)}" icon="ui-icon-comment"/> 
+                            </p:column>
+                            <p:ajax event="rowSelect" listener="#{cmRipsCargaBean.seleccionarContrato}" />
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerContratos').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Ver detalle de factura" id="dialogoVerDetalleFactura" widgetVar="dialogoVerDetalleFactura" appendTo="@(body)" 
+                      draggable="true" dynamic="true" position="center" width="95%" modal="true" style="max-height:90%;">
+                <f:facet name="header" >
+                    <h:outputText value="Ver detalles de factura"> </h:outputText>
+                </f:facet>
+                <h:form id="frmVerDetalleFactura">
+                    <p:panel id="pDetalleFactura" header="Datos Rips" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelVer" columns="2"
+                                     layout="grid">
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-6">
+                                    <p:outputLabel  value="Valor" class="etiqueta"  style="font-weight:bold" ></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-6" >
+                                    <h:outputText value="#{cmRipsCargaBean.factura.valorAPagar}">
+                                        <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <h:panelGroup layout="block" id="facturas_detalles" style="text-align: center;background: #f5f5f5;font-weight: bold;">
+                        <h:outputText value="Detalles de factura" class="tituloTabla"></h:outputText>
+                    </h:panelGroup>
+                    <p:dataTable var="obj" value="#{cmRipsCargaBean.lazyDetalles}" paginator="true" rows="25" 
+                                 emptyMessage="No se encontraron registros" 
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="25,50,75,100" id="tablaDetalleFactura" paginatorPosition="bottom"
+                                 widgetVar="tablaWidgetDetalles" tableStyle="" lazy="true"
+                                 style="font-size:11px;width:100%;max-height:400px;overflow-y:scroll;" 
+                                 reflow="true">
+
+                        <p:column headerText="Número de factura" style="text-align: center;">   
+                            <h:outputText value="#{obj.numeroFactura}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Código documento" filterBy="#{obj.codigoDocumento}" style="text-align: center;">   
+                            <h:outputText value="#{obj.codigoDocumento}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Documento" filterBy="#{obj.documento}" style="text-align: center;">   
+                            <h:outputText value="#{obj.documento}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Autorización" >   
+                            <h:outputText value="#{obj.autorizacion}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Código de servicio">   
+                            <h:outputText value="#{obj.codigoServicio}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Tipo de servicio">   
+                            <h:outputText value="#{obj.tipoServicioStr}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Nombre de servicio">   
+                            <h:outputText value="#{obj.nombreServicio}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Cantidad" style="text-align: center;">   
+                            <h:outputText value="#{obj.cantidad}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Valor">   
+                            <h:outputText value="#{obj.valor}">
+                                <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Copago">   
+                            <h:outputText value="#{obj.copago}">
+                                <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Total">   
+                            <h:outputText value="#{obj.total}">
+                                <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                            </h:outputText>
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerDetalleFactura').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Sucesos" id="dialogoVerSucesos" widgetVar="dialogoVerSucesos" appendTo="@(body)" class="modal-no-scroll" 
+                      modal="true"  width="90%;overflow-x:hidden;" draggable="true" dynamic="true" style="max-height: 90%;">
+                <f:facet name="header" >
+                    <h:outputText value="Sucesos"> </h:outputText>
+                </f:facet>
+                <h:form id="frmVerSucesos">
+
+                    <h:panelGroup layout="block" id="titulo_sucesos" style="text-align: center;background: #f5f5f5;font-weight: bold;">
+                        <h:outputText value="Lista de errores y advertencias" class="tituloTabla"></h:outputText>
+                    </h:panelGroup>
+                    <p:panel id="pVerSucesosTabla" header="" style="margin-bottom:-10px;max-height: 450px;" collapsed="false" toggleable="true">
+                        <f:facet name="header">
+                            <h:outputLabel value="Lista de sucesos" />
+                            <h:commandLink style="float: left;margin-right: 13px;margin-top: -5px;" >
+                                <p:commandButton title="Descargar" icon="pi pi-download pi-icono-negro" ajax="false" />
+                                <p:dataExporter type="csv" target="tablaSucesos" fileName="rips_sucesos" encoding="ISO-8859-1" pageOnly="false" />
+                            </h:commandLink>
+                        </f:facet>
+                        <p:dataTable var="obj" value="#{cmRipsCargaBean.lazyCmRipsSucesos}" paginator="true" rows="50" 
+                                     emptyMessage="No se encontraron registros" id="tablaSucesos"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="10,30,50,100" paginatorPosition="bottom"
+                                     widgetVar="tablaWidgetSucesos" tableStyle="" lazy="true"
+                                     style="font-size:11px;width:100%;max-height: 300px;overflow: scroll;" 
+                                     rowKey="#{obj.id}" reflow="true">
+
+                            <p:column headerText="Archivo nombre" sortBy="#{obj.archivoNombre}" filterBy="#{obj.archivoNombre}" style="text-align: center">   
+                                <h:outputText value="#{obj.archivoNombre}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Archivo fila" sortBy="#{obj.archivoFila}" filterBy="#{obj.archivoFila}" style="text-align: center">   
+                                <h:outputText value="#{obj.archivoFila}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Identificador Regla" sortBy="#{obj.cmRipsReglasId}" filterBy="#{obj.cmRipsReglasId}" style="text-align: center">   
+                                <h:outputText value="#{obj.cmRipsReglasId}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Regla" sortBy="#{obj.nombreRegla}" filterBy="#{obj.nombreRegla}">   
+                                <h:outputText value="#{obj.nombreRegla}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Tipo de regla" filterBy="#{obj.tipo}" style="text-align: center" >  
+                                <f:facet name="filter">
+                                    <p:selectOneMenu style="width:85%;min-width:inherit;" onchange="PF('tablaWidgetSucesos').filter()" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="NORMATIVA" itemValue="2" />
+                                        <f:selectItem itemLabel="NEGOCIO" itemValue="3" />
+                                        <f:selectItem itemLabel="ESTRUCTURA" itemValue="1" />
+                                    </p:selectOneMenu> 
+                                </f:facet>
+                                <h:outputText value="#{obj.tipoStr}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Tipo de alerta" filterBy="#{obj.alerta}" style="text-align: center">   
+                                <f:facet name="filter">
+                                    <p:selectOneMenu style="width:85%;min-width:inherit;" onchange="PF('tablaWidgetSucesos').filter()" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="ERROR" itemValue="0" />
+                                        <f:selectItem itemLabel="ALERTA" itemValue="1" />
+                                    </p:selectOneMenu> 
+                                </f:facet>
+                                <h:outputText value="#{obj.alertaStr}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Descripción mensaje" width="120">   
+                                <h:outputText value="#{obj.descripcionMensaje}"></h:outputText>
+                            </p:column>
+
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerSucesos').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Ver" id="dialogoVer" widgetVar="dialogoVer" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:90%;overflow:scroll;">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmRipsCargaBean.getAuditoria(cmRipsCargaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer" style="height:85vh;position:relative;">
+                    <p:panel id="pVer" header="Datos Rips" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        
+                        <p:panelGrid id="panelVer" columns="6"
+                                     layout="grid">
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel  value="Valor" class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.valorCarga}">
+                                        <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Contrato" class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.cntContrato.contrato}"></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Modalidad" class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.maeContratoModalidadValor}"></h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Régimen" class="etiqueta"  style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.maeRegimenValor}" ></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Prestador " class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.gnPrestadorSede.cntPrestador.razonSocial}" title="#{cmRipsCargaBean.objeto.maeRegimenValor}"></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Sede " class="etiqueta"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.gnPrestadorSede.nombreSede}" title="#{cmRipsCargaBean.objeto.gnPrestadorSede.cntPrestador.razonSocial}"></h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Regional " class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.maeRegionalValor}"></h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="PBS " class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.pbsStr}"> </h:outputText>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Cama Fija " class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass=" ui-g-2" >
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.camaFijaStr}"></h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <h:panelGroup layout="block" id="facturas" style="text-align: center;background: #f5f5f5;font-weight: bold;">
+                        <h:outputText value="Facturas" class="tituloTabla"></h:outputText>
+                    </h:panelGroup>
+                    <h:commandLink style="float: left;margin-right: 13px;margin-top: -5px;" >
+                        <p:commandButton title="Descargar" icon="pi pi-download pi-icono-negro" ajax="false" />
+                        <p:dataExporter type="csv" target="tablaFacturas" fileName="facturaRips_#{cmRipsCargaBean.objeto.getId()}" encoding="ISO-8859-1" pageOnly="false" />
+                    </h:commandLink>
+                    <h:panelGroup id="hPanelFacturas">
+                        <p:dataTable var="obj" value="#{cmRipsCargaBean.objeto.listaCmRipsAfFacturas}" paginator="true" rows="50" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="10,30,50,100,500,1000,1500,2000" id="tablaFacturas"
+                                     widgetVar="tablaWidgetFacturas" tableStyle=""
+                                     style="font-size:11px;width:100%;max-height: 55vh;overflow: scroll;" 
+                                     rowKey="#{obj.id}" reflow="true">
+
+                            <p:column exportable="false" style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton title="Ver detalle" actionListener="#{cmRipsCargaBean.verDetalleFactura(obj)}" icon="ui-icon-search"/>
+                            </p:column>
+
+                            <p:column headerText="Número de factura" sortBy="#{obj.numeroFactura}" filterBy="#{obj.numeroFactura}" style="text-align: center;">   
+                                <h:outputText value="#{obj.numeroFactura}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Fecha de factura" sortBy="#{obj.fechaFactura}" filterBy="#{obj.fechaFactura}" style="text-align: center;">   
+                                <h:outputText value="#{obj.fechaFactura}">
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Valor total" sortBy="#{obj.valorAPagar}" style="text-align: center;">   
+                                <h:outputText value="#{obj.valorAPagar}">
+                                    <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Valor copago" sortBy="#{obj.valorAPagar}" style="text-align: center;">   
+                                <h:outputText value="#{obj.valorCopago}">
+                                    <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor descuento" sortBy="#{obj.valorDescuento}" style="text-align: center;">   
+                                <h:outputText value="#{obj.valorDescuento}">
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </h:panelGroup>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px;position:absolute;bottom:0px;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Devoluciones" id="dialogoDevoluciones" widgetVar="dialogoVerDevoluciones" appendTo="@(body)" 
+                      modal="true"  width="95%;" responsive="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerDevoluciones">
+
+                        <p:panel id="pVerDevolucionesTabla" header="" style="margin-bottom:-10px;" toggleable="false">
+                            <f:facet name="header">
+                                <h:commandLink style="float: left;margin-right: 13px;margin-top: -5px;">
+                                    <p:commandButton title="Descargar" icon="pi pi-download pi-icono-negro" ajax="false" />
+                                    <p:dataExporter type="csv" target="tablaDevoluciones" fileName="rips_devoluciones" encoding="ISO-8859-1" pageOnly="false" />
+                                </h:commandLink>
+                            </f:facet>
+                            <f:facet name="header">
+                                <h:outputLabel value="Lista de devoluciones" />
+                            </f:facet>
+                            <p:dataTable id="tablaDevoluciones" rows="#{cmRipsCargaBean.tamanoPagina}"
+                                         var="dev" value="#{cmRipsCargaBean.lazyDevoluciones}" 
+                                         widgetVar="tablaWidgetDevoluciones" scrollable="true"  
+                                         tableStyle="width: 100%;" paginator="true" 
+                                         paginatorPosition="top" lazy="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100"  
+                                         emptyMessage="No se encontraron registros"
+                                         rowKey="#{obj.id}"
+                                         >
+                                <p:column headerText="Nit" filterBy="#{dev.nit}" style="text-align: center;">   
+                                    <f:facet name="filter">
+                                        <p:inputText label="" maxlength="64" onchange="PF('tablaWidgetDevoluciones').filter()" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  />
+                                    </f:facet>
+                                    <h:outputText value="#{dev.nit}"/>
+                                </p:column>
+                                <p:column headerText="Ips" style="text-align:center;" filterBy="#{dev.ips}">   
+                                    <f:facet name="filter">
+                                        <p:inputText label="" maxlength="64" onchange="PF('tablaWidgetDevoluciones').filter()" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" />
+                                    </f:facet>
+                                    <h:outputText value="#{dev.ips}"/>
+                                </p:column>
+                                <p:column headerText="Número facturado" filterBy="#{dev.numeroFacturado}" style="text-align: center;">   
+                                    <f:facet name="filter">
+                                        <p:inputText label="" maxlength="64" onchange="PF('tablaWidgetDevoluciones').filter()" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" />
+                                    </f:facet>
+                                    <h:outputText value="#{dev.numeroFacturado}"/>
+                                </p:column>
+                                <p:column headerText="Número radicado" filterBy="#{dev.numeroRadicado}" style="text-align: center;">   
+                                    <f:facet name="filter">
+                                        <p:inputText label="" maxlength="64" onchange="PF('tablaWidgetDevoluciones').filter()" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" />
+                                    </f:facet>
+                                    <h:outputText value="#{dev.numeroRadicado}"/>
+                                </p:column>
+                                <p:column colspan="2" headerText="Motivo devolución" >
+                                    <h:outputText value="#{dev.maeMotivoDevolucionValor}"/>
+                                </p:column>
+                                <p:column colspan="2" headerText="Observación" >
+                                    <h:outputText value="#{dev.observacion}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerDevoluciones').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Consultar Sedes" widgetVar="dialogoIpsLista" appendTo="@(body)" modal="true" style="max-width: 90%;min-height:90vh!important;" dynamic="true">
+                <p:scrollPanel mode="native" style="he">
+                    <h:form id="frmPrestadorLista">
+                        <div align="right">
+                            <p:commandButton title="Refrescar" actionListener="#{CmRipsCargaBean.refrescarPrestadoresYSedes()}"
+                                             oncomplete="PF('tablaWidgetIPS').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <h:panelGroup id ="hPanelIps">
+                            <p:panelGrid id="panelIpsLista" style="height:auto;" columns="1">
+
+                                <p:dataTable id="tablaRegistrosIps" 
+                                             widgetVar="tablaWidgetIPS" 
+                                             var="objIPS" 
+                                             value="#{cmRipsCargaBean.lazySedes}" 
+                                             rowKey="#{objIPS.id}"
+                                             rows="#{cmRipsCargaBean.tamanoPagina}" 
+                                             paginator="true" 
+                                             lazy="true" 
+                                             reflow="true" 
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" 
+                                             selectionMode="single">
+                                    <p:ajax event="rowSelect" listener="#{cmRipsCargaBean.onRowSelectIps}" />
+                                    <p:column headerText="Código Habilitacion" filterBy="#{objIPS.codigoHabilitacionSede}">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Código Habilitación" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIPS').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.codigoHabilitacionSede}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo Documento" filterBy="#{objIPS.cntPrestador.maeTipoDocumentoValor}">
+                                        <f:facet name="filter">
+                                            <p:selectOneMenu onchange="PF('tablaWidgetIPS').filter()">
+                                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                                <f:selectItems value="#{cmRipsCargaBean.listaTiposDocumentoEmpresa}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                            </p:selectOneMenu>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.cntPrestador.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column headerText="Numero Documento" filterBy="#{objIPS.cntPrestador.numeroDocumento}">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Numero Documetno" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIPS').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.cntPrestador.numeroDocumento}"/>
+                                    </p:column>
+                                    <p:column headerText="Razón Social" filterBy="#{objIPS.cntPrestador.razonSocial}">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Razón Social" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIPS').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.cntPrestador.razonSocial}"/>
+                                    </p:column>
+                                    <p:column headerText="Sede" filterBy="#{objIPS.nombreSede}">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Sede" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIPS').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.nombreSede}"/>
+                                    </p:column>
+                                    <p:column headerText="Departamento">
+                                        <h:outputText value="#{cmRipsCargaBean.obtenerDepartamento(objIPS.ubicacionId)}"/>
+                                    </p:column>
+                                    <p:column headerText="Municipio" filterBy="#{obj.ubicacionId}">
+                                        <f:facet name="filter">
+                                            <p:selectOneMenu onchange="PF('tablaWidgetIPS').filter()" filter="true" filterMatchMode="startsWith">
+                                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                                <f:selectItems value="#{cmRipsCargaBean.listaUbicacion}" var="tipoUbiC1" itemValue="#{tipoUbiC1.id}" itemLabel="#{tipoUbiC1.descripcion}" itemDescription="#{tipoUbiC1.descripcion}" />
+                                            </p:selectOneMenu>
+                                        </f:facet>
+                                        <h:outputText value="#{cmRipsCargaBean.obtenerMunicipio(objIPS.ubicacionId)}"/>
+                                    </p:column>
+                                    <p:column headerText="Dirección">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Dirección" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIPS').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{objIPS.direccion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panelGrid>
+                            <p:panelGrid  style="width:100%;margin:10px 0px">
+                                <f:facet name="footer">
+                                    <p:row>
+                                        <p:column colspan="6" style="text-align: center">
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoIpsLista').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </h:panelGroup>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Editar Carga Rips" id="dialogoEditar" widgetVar="dialogoEditar" appendTo="@(body)" 
+                      modal="true"  width="95%" dynamic="true" style="max-width:960px;">
+                <h:form id="frmEditar">
+                    <p:panel id="pEditarDatos" header="Datos Rips" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="pEditar" columns="4"
+                                     layout="grid" >                            
+                            
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-3" >
+                                    <p:outputLabel value="Prestador *" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass="ui-g-3">
+                                    <p:outputLabel id="prestador" value="#{cmRipsCargaBean.objetoPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-3" >
+                                    <p:outputLabel value="Sede" style="font-weight:bold" />
+                                </p:column>
+                                <p:column styleClass="ui-g-3">
+                                    <p:outputLabel id="sede" value="#{cmRipsCargaBean.objetoPrestadorSede.nombreSede}" />
+                                </p:column>
+                            </p:row>
+                            
+
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Nro. Cuenta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <p:outputLabel value="#{cmRipsCargaBean.objeto.numeroCuenta}"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Valor cuenta" class="etiqueta" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <h:outputText value="#{cmRipsCargaBean.objeto.valorCarga}" title="#{cmRipsCargaBean.objeto.valorCarga}">
+                                        <f:convertNumber currencySymbol="$" groupingUsed="true" maxFractionDigits="2" type="currency" locale="es_CO" />
+                                    </h:outputText>
+                                </p:column>
+                                 <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Contrato" style="font-weight:bold"></p:outputLabel>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <p:outputLabel id="contrato" style="max-width:75%;" value="#{cmRipsCargaBean.objeto.cntContratoSede.cntContrato.contrato}"></p:outputLabel>
+                                </p:column>
+                            </p:row>
+
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Modalidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <p:outputLabel value="#{cmRipsCargaBean.objeto.maeContratoModalidadValor}"/>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Régimen" class="etiqueta" style="font-weight:bold"></p:outputLabel>                                   
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <p:outputLabel value="#{cmRipsCargaBean.objeto.maeRegimenValor}"/>
+                                </p:column>
+                                 <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Regional" class="etiqueta" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <p:outputLabel value="#{cmRipsCargaBean.objeto.maeRegionalValor}"/>
+                                </p:column>
+                            </p:row>
+                    
+                            <p:row>                            
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Pbs" for="pbs" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <h:selectOneMenu id="pbs" class="mae-select" value="#{cmRipsCargaBean.objeto.pbs}"
+                                                     required="true" requiredMessage="Por favor indique si es PBS o no es PBS">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"  />
+                                        <f:selectItem itemLabel="PBS" itemValue="true"/>
+                                        <f:selectItem itemLabel="No PBS" itemValue="false" itemDisabled="#{cmRipsCargaBean.deshabilitarNoPbs}" />
+                                    </h:selectOneMenu>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2" >
+                                    <p:outputLabel value="Cama Fija" for="camafija" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass="ui-g-2">
+                                    <h:selectOneMenu id="camafija" class="mae-select" value="#{cmRipsCargaBean.objeto.camaFija}"
+                                                     required="true" requiredMessage="Por favor indique si es cama fija o no es cama fija">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"  />
+                                        <f:selectItem itemLabel="Cama Fija" itemValue="true"/>
+                                        <f:selectItem itemLabel="Sin Cama Fija" itemValue="false"/>
+                                    </h:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                           
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton action="#{cmRipsCargaBean.modificar()}" value="Modificar"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Archivos rips" id="dialogoVerAdjuntos" widgetVar="dialogoVerAdjuntos" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" draggable="false" dynamic="true" style="max-width:1600px;">
+                <h:form id="frmVerAdjuntos">
+                    <p:panel id="pAdjuntos" header="Descargar" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:dataTable id="tablaAdjuntos" var="adjunto" value="#{cmRipsCargaBean.listaAnexos}" 
+                                     widgetVar="tablaWidgetAdjuntos" 
+                                     scrollable="true" 
+                                     emptyMessage="No se encontraron rips">
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{adjunto.archivoNombreOriginal}"/>
+                            </p:column>
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                    <p:fileDownload value="#{cmRipsCargaBean.descargarAdjunto(adjunto)}" />
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerAdjuntos').hide()" 
+                                                         immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoRechazoRips" header="Rechazo" appendTo="@(body)" responsive="true" modal="true" width="80%">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmRechazoRips">
+                        <p:panel id="panelRechazoRips" header="Rechazo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Información Rechazo"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelInfoDevolucion" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Motivo Rechazo" for="rechazoSelect" style="font-weight:bold"/>
+                                <h:selectOneMenu id="rechazoSelect" class="mae-select" value="#{cmRipsCargaBean.objeto.maeRechazoId}" 
+                                                 required="true" requiredMessage="Motivo Rechazo: Este campo es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{cmRipsCargaBean.hashRechazos.entrySet()}" 
+                                                   itemValue="#{reachazo.key}"
+                                                   itemLabel="#{cmRipsCargaBean.getMapMaestroValue(cmRipsCargaBean.hashRechazos , reachazo.key).nombre}" 
+                                                   var="reachazo"> 
+                                    </f:selectItems>
+                                </h:selectOneMenu>
+
+                                <p:outputLabel value="Observación" for="observacionDevolucion" style="font-weight:bold"/>
+                                <p:inputTextarea id="observacionDevolucion" style="width: 100%;" value="#{cmRipsCargaBean.objeto.observacionRechazo}" required="true" requiredMessage="Observación: Este campo es obligatorio."/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Rechazar" rendered="#{cmRipsCargaBean.accionAdicional4}" action="#{cmRipsCargaBean.rechazar(cmRipsCargaBean.objeto.id)}" style="margin-left: 5px;"/>
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoRechazoRips').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmMensaje"> 
+                        <h:outputText id="mensaje" value="#{cmRipsCargaBean.mansajeGeneral}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+            
+            
+            <script type="javascript">
+                $(document).ready(function ()
+                {
+                $(function ()
+                {
+                PF('tablaWidgetIPS').filter();
+                });
+                });
+            </script>
+
+        </center>
+
+        <h:form id="exit">
+            <p:remoteCommand  id="limpiarRender" name="limpiarRender" action="#{cmRipsCargaBean.salir()}"/>
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>

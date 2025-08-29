@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <html xmlns="http://www.w3.org/1999/xhtml"
+          xmlns:h="http://xmlns.jcp.org/jsf/html">  
+        <p:dialog header="Consultar Prestador" widgetVar="dialogoPrestadorLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true" onHide="ocultarDialogoSelPrestador()" >
+            <p:scrollPanel mode="native" style="max-height: 550px;">
+                <h:form id="frmPrestadorLista">
+                    <div align="right">
+                        <p:commandButton title="Refrescar" actionListener="#{selPrestadorBean.refrescar()}" oncomplete="PF('tablaWidgetPrestador').filter()" icon="ui-icon-refresh"/>
+                    </div>
+                    <p:panelGrid id="panelSedeLista" columns="1">
+                            <p:dataTable id="tablaRegistrosPrestador" widgetVar="tablaWidgetPrestador" var="objPrestador" value="#{selPrestadorBean.lazyRegistros}" rowKey="#{objPrestador.id}"
+                                         rows="#{selPrestadorBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{selPrestadorBean.onRowSelectPrestador}" oncomplete="cerrarDialogoSelPrestador()"/>
+                                <p:column headerText="Código MinSalud" filterBy="#{objPrestador.codigoMinSalud}">
+                                    <f:facet name="filter">
+                                        <p:inputText class="filtroSede" label="Código MinSalud" maxlength="16" style="width: 95%;" onchange="PF('tablaWidgetPrestador').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.codigoMinSalud}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Documento" filterBy="#{objPrestador.maeTipoDocumentoId}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu class="filtroSede" onchange="PF('tablaWidgetPrestador').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{selPrestadorBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{selPrestadorBean.getTipoDocumento(objPrestador.maeTipoDocumentoId)}"/>
+                                </p:column>                                
+                                <p:column headerText="Numero Documento" filterBy="#{objPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText class="filtroSede" label="Numero Documento" maxlength="32" style="width: 95%;" onchange="PF('tablaWidgetPrestador').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.numeroDocumento}"/>
+                                </p:column>  
+                                <p:column headerText="Razón Social" filterBy="#{objPrestador.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText class="filtroSede" label="Razón Social" maxlength="256" style="width: 95%;" onchange="PF('tablaWidgetPrestador').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Clase Prestador" filterBy="#{objPrestador.maeClasePrestadorValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText class="filtroSede" label="Clase Prestador" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetPrestador').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.maeClasePrestadorValor}"/>
+                                </p:column>
+                            </p:dataTable>
+                    </p:panelGrid>
+                </h:form>
+            </p:scrollPanel>
+        </p:dialog>
+    </html>
+</ui:composition>

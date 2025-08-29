@@ -1,0 +1,592 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <!-- Listar -->
+            <h:form id="frmUsuarios">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{usuarioBean.modulo.descripcion}">#{usuarioBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{usuarioBean.accionListar}" title="Refrescar" class="btn-icono"   ajax="false" actionListener="#{usuarioBean.refrescar}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{usuarioBean.accionCrear}" title="Crear" class="btn-icono"   actionListener="#{usuarioBean.crear}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{usuarioBean.lazyUsuario}" rowKey="#{obj.id}"
+                             rows="#{usuarioBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Usuario" sortBy="#{obj.usuario}" filterBy="#{obj.usuario}">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuario}"/>
+                    </p:column>
+                    <p:column headerText="Documento" sortBy="#{obj.documento}" filterBy="#{obj.documento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText title="#{obj.documento}" value="#{obj.documento}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Area" filterBy="#{obj.maeAreaId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{usuarioBean.listaAreas}" var="area" itemValue="#{area.id}" itemLabel="#{area.nombre}" itemDescription="#{area.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeAreaValor}"/>
+                    </p:column>
+                    <p:column headerText="Correo Electrónico" sortBy="#{obj.correoElectronico}" filterBy="#{obj.correoElectronico}">
+                        <f:facet name="filter">
+                            <p:inputText label="Correo Electrónico" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.correoElectronico}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="1" />
+                                <f:selectItem itemLabel="NO" itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column headerText="Bloqueado" filterBy="#{obj.bloqueado}" sortBy="#{obj.bloqueado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="true" />
+                                <f:selectItem itemLabel="NO" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.bloqueadoStr}"/>
+                    </p:column>
+                    <p:column headerText="Roles" filterBy="#{obj.listaRoles}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" filter="true" filterMatchMode="contains">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{usuarioBean.listaRoles}" var="rol" itemValue="#{rol.id}"  itemLabel="#{rol.nombre}" itemDescription="#{rol.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:dataList value="#{obj.listaRoles}" var="rr" type="ordered">
+                            #{rr.rol.nombre}
+                        </p:dataList>
+                    </p:column>
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="F.H. Ingreso" sortBy="#{obj.fechaUltimoIngreso}">                        
+                        <h:outputText value="#{obj.fechaUltimoIngreso}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{usuarioBean.accionVer}" title="Ver" class="btn-icono"  actionListener="#{usuarioBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{usuarioBean.accionEditar}" title="Editar" class="btn-icono"  actionListener="#{usuarioBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{usuarioBean.accionAdicional1}" title="Restaurar Contraseña" class="btn-icono"   action="#{usuarioBean.restaurarContrasena(obj.id)}" icon="pi pi-lock-open">
+                            <p:confirm header="Confirmación" message="Está seguro que desea restaurar la contraseña para este usuario?" class="btn-icono"   icon="pi pi-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{usuarioBean.accionAdicional2 and usuarioBean.validarBloqueo(obj.bloqueado)}" title="Desbloquear" action="#{usuarioBean.desbloquearUsuario(obj.id)}" icon="pi pi-key">
+                            <p:confirm header="Confirmación" message="Está seguro que desea desbloquear?" class="btn-icono"  icon="pi pi-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{usuarioBean.accionBorrar}" title="Borrar" class="btn-icono"   action="#{usuarioBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?"  icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes"  icon="pi pi-check" style="left:3%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono" styleClass="ui-confirmdialog-no"  icon="pi pi-times" style="left:3%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="80%">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{usuarioBean.getAuditoria(usuarioBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Usuario" style="font-weight:bold"  />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.usuario}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" style="font-weight:bold"  />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.activoStr}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.maeTipoDocumentoValor}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.documento}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Area" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.maeAreaValor}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cargo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.maeCargoValor}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Correo Electrónico" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.correoElectronico}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Telefono" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.telefono}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Celular" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.celular}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Creación" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Ultimo Ingreso" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaUltimoIngreso}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Bloqueado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.bloqueadoStr}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Sesiones" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.sesiones}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Accesos"  style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value= "" />
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Roles" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:dataList value="#{usuarioBean.objeto.listaRoles}" var="rol" type="ordered">
+                                    #{rol.rol.nombre}
+                                </p:dataList>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="80%">
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Usuario" for="usuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="usuario" label="Usuario" value="#{usuarioBean.objeto.usuario}" size="15" maxlength="12" required="true" requiredMessage="EL usuario: Este campo es obligatorio" >
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{usuarioBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="tipoDocumento" value="#{usuarioBean.objeto.maeTipoDocumentoId}" filter="true" required="true" requiredMessage="El Tipo Documento; Este campo es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="documento" label="Documento" value="#{usuarioBean.objeto.documento}" size="15" maxlength="12" required="true" requiredMessage="El Documento: Este campo es obligatorio">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{usuarioBean.objeto.nombre}"  maxlength="128" required="true">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Area" for="area" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="area" value="#{usuarioBean.objeto.maeAreaId}" filter="true" required="true" requiredMessage="El Area: Este campo es obligatorio" style="width: 90%">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaAreas}" var="area" itemValue="#{area.id}" itemLabel="#{area.nombre}" itemDescription="#{area.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cargo" for="cargo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="cargo" value="#{usuarioBean.objeto.maeCargoId}" filter="true" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaCargos}" var="cargo" itemValue="#{cargo.id}" itemLabel="#{cargo.nombre}" itemDescription="#{cargo.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Correo Electrónico" for="correoElectronico" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="correoElectronico" label="Correo Electrónico" value="#{usuarioBean.objeto.correoElectronico}" maxlength="128" required="true">
+                                    <f:validator validatorId="validarCorreo"/>
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Celular" for="celular" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="celular" label="Celular" value="#{usuarioBean.objeto.celular}" size="16" maxlength="16">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Telefono" for="telefono" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="telefono" label="Telefono" value="#{usuarioBean.objeto.telefono}" size="16" maxlength="16">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Creación" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Ultimo Ingreso" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaUltimoIngreso}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Bloqueado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.bloqueadoStr}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Sesiones" style="font-weight:bold" for="sesionesCrear"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputNumber id="sesionesCrear" label="Sesiones" maxValue="99" minValue="0" value="#{usuarioBean.objeto.sesiones}" required="true" requiredMessage="Sesiones: Este campo es obligatorio"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Accesos" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value=""/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Roles" for="roles" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectCheckboxMenu style="width: 250px;" id="roles" value="#{usuarioBean.seleccionRoles}" label="Roles"
+                                                      filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                    <f:selectItems value="#{usuarioBean.listaRoles}" var="rol" itemValue="#{rol.id}"  itemLabel="#{rol.nombre}" itemDescription="#{rol.descripcion}"   />
+                                </p:selectCheckboxMenu>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{usuarioBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="90%">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{usuarioBean.getAuditoria(usuarioBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Usuario" for="usuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="usuario" label="Usuario" value="#{usuarioBean.objeto.usuario}" size="15" maxlength="12" readonly="#{!usuarioBean.accionAdicional3}">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{usuarioBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="tipoDocumento" value="#{usuarioBean.objeto.maeTipoDocumentoId}" filter="true" required="true" requiredMessage="El Tipo Documento; Este campo es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="documento" label="Documento" value="#{usuarioBean.objeto.documento}" maxlength="12" required="true" requiredMessage="El Documento: Este campo es obligatorio">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{usuarioBean.objeto.nombre}"  maxlength="128" required="true">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Area" for="area" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="area" value="#{usuarioBean.objeto.maeAreaId}" filter="true" required="true" requiredMessage="El Area: Este campo es obligatorio" style="width: 90%">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaAreas}" var="area" itemValue="#{area.id}" itemLabel="#{area.nombre}" itemDescription="#{area.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cargo" for="cargo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="cargo" value="#{usuarioBean.objeto.maeCargoId}" filter="true" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{usuarioBean.listaCargos}" var="cargo" itemValue="#{cargo.id}" itemLabel="#{cargo.nombre}" itemDescription="#{cargo.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Correo Electrónico" for="correoElectronico" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="correoElectronico" label="Correo Electrónico" value="#{usuarioBean.objeto.correoElectronico}"   maxlength="128" required="true">
+                                    <f:validator validatorId="validarCorreo"/>
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Celular" for="celular" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="celular" label="Celular" value="#{usuarioBean.objeto.celular}"  maxlength="16">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Telefono" for="telefono" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="telefono" label="Telefono" value="#{usuarioBean.objeto.telefono}"   maxlength="16">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Creación" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Ultimo Ingreso" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.fechaUltimoIngreso}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Bloqueado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{usuarioBean.objeto.bloqueadoStr}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Sesiones" style="font-weight:bold" for="sesionesEditar"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputNumber id="sesionesEditar" label="Sesiones" maxValue="99" minValue="0" value="#{usuarioBean.objeto.sesiones}" required="true" requiredMessage="Sesiones: Este campo es obligatorio"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Accesos" style="font-weight:bold" />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="" />
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Roles" for="roles" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectCheckboxMenu rendered="#{usuarioBean.accionAdicional3}" style="width: 250px;" id="roles" value="#{usuarioBean.seleccionRoles}" label="Roles"
+                                                      filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                    <f:selectItems value="#{usuarioBean.listaRoles}" var="rol" itemValue="#{rol.id}"  itemLabel="#{rol.nombre}" itemDescription="#{rol.descripcion}"   />
+                                </p:selectCheckboxMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:dataList rendered="#{!usuarioBean.accionAdicional3}" value="#{usuarioBean.objeto.listaRoles}" var="rol" type="ordered">
+                                    #{rol.rol.nombre}
+                                </p:dataList>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" class="btn-icono"   type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{usuarioBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

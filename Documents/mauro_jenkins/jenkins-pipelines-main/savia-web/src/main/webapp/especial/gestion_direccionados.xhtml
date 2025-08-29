@@ -1,0 +1,1095 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/rias.css"/>
+        <center>
+            <h:form id="frmGestion">                
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gestionDireccionadosBean.modulo.descripcion}">#{gestionDireccionadosBean.modulo.descripcion}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <f:facet name="right">                        
+                            <p:commandButton rendered="#{gestionDireccionadosBean.accionListar}"  title="Refrescar" actionListener="#{gestionDireccionadosBean.listar()}" icon="ui-icon-refresh"/>
+                        </f:facet>
+                    </f:facet>
+                </p:toolbar>               
+
+                <p:dataTable var="obj" value="#{gestionDireccionadosBean.lazyDireccionados}" class="listaDatos" paginator="true" rows="#{gestionDireccionadosBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px !important;"
+                             scrollable="true"
+                             scrollWidth="180%"
+                             resizableColumns="false"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="Acciones" style="text-align: center; font-size:11px !important;">                            
+                        <p:commandButton rendered="#{gestionDireccionadosBean.accionVer}" title="Ver" action="#{gestionDireccionadosBean.ver()}" icon="ui-icon-search">
+                            <f:setPropertyActionListener value="#{obj}" target="#{gestionDireccionadosBean.objeto}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gestionDireccionadosBean.accionAdicional1 and obj.estado != 5 }" title="Gestionar" action="#{gestionDireccionadosBean.abrirGestion()}" icon="ui-icon-script">
+                            <f:setPropertyActionListener value="#{obj}" target="#{gestionDireccionadosBean.objeto}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gestionDireccionadosBean.accionAdicional2 }" title="Imprimir" icon="ui-icon-document" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" >
+                            <f:setPropertyActionListener value="#{obj}" target="#{gestionDireccionadosBean.objeto}" /> 
+                            <p:fileDownload value="#{gestionDireccionadosBean.generarReporte(obj)}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gestionDireccionadosBean.accionAdicional3 and obj.estado == 1}" title="Anular" actionListener="#{gestionDireccionadosBean.anular(obj.id)}" icon="ui-icon-closethick">
+                            <p:confirm header="Confirmación" message="¿Está seguro que desea anular el registro?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gestionDireccionadosBean.accionAdicional4 and obj.estado != 5 }" title="Registrar atención" action="#{gestionDireccionadosBean.establecerFechaAtencion(obj.id)}" icon="ui-icon-cart">
+                            <f:setPropertyActionListener value="#{obj}" target="#{gestionDireccionadosBean.objeto}" />
+                        </p:commandButton>
+                    </p:column>
+
+
+                    <p:column headerText="Solicitud" filterBy="#{obj.auAnexos3Id}" style="font-size:11px !important;">   
+                        <f:facet name="filter">
+                            <p:inputText label="Solicitud" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.auAnexos3Id.id}" title="#{obj.auAnexos3Id.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Ruta Direccionamiento" filterBy="#{obj.peProgramasId.descripcionPrograma}" style="font-size:11px !important; width: 94px;">   
+                        <f:facet name="filter">
+                            <p:inputText label="Solicitud" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.peProgramasId.descripcionPrograma}" title="#{obj.peProgramasId.descripcionPrograma}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo documento" style="font-size:11px !important;" filterBy="#{obj.maeAfiliadoTipoDocumentoId}" >  
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionDireccionadosBean.listaTipoDocumento}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeAfiliadoTipoDocumentoValor}" title="#{obj.maeAfiliadoTipoDocumentoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Número documento" style="font-size:11px !important;" filterBy="#{obj.afiliadoNumeroDocumento}" > 
+                        <f:facet name="filter">
+                            <p:inputText label="Número documento" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.afiliadoNumeroDocumento}" title="#{obj.afiliadoNumeroDocumento}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombres" style="font-size:11px !important;" filterBy="#{obj.afiliadoPrimerNombre}" >           
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.afiliadoPrimerNombre} #{obj.afiliadoSegundoNombre}" title="#{obj.afiliadoPrimerNombre} #{obj.afiliadoSegundoNombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Apellidos" style="font-size:11px !important;" filterBy="#{obj.afiliadoPrimerApellido}" >
+                        <f:facet name="filter">
+                            <p:inputText label="Apellidos" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.afiliadoPrimerApellido} #{obj.afiliadoSegundoApellido}" title="#{obj.afiliadoPrimerApellido} #{obj.afiliadoSegundoApellido}"/>
+                    </p:column>   
+
+                    <p:column headerText="Fecha Nacimiento" style="font-size:11px !important;" >                        
+                        <h:outputText value="#{obj.asegAfiliadosId.fechaNacimiento}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Items" filterBy="#{obj.listDireccionadoItems}" style="font-size:11px !important;  width: 94px;" > 
+                        <f:facet name="filter">
+                            <p:inputText label="Codigo" maxlength="64" style="width: 99%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <p:dataList value="#{obj.listDireccionadoItems}" var="itemTecno" type="ordered" emptyMessage="No hay items asociados" class="intemsDireccionados" >
+                            <span title="#{itemTecno.auAnexo3ItemsId.maTecnologiaValor}">#{itemTecno.auAnexo3ItemsId.maTecnologiaCodigo}</span>
+                        </p:dataList>
+                    </p:column>  
+
+                    <p:column headerText="Fecha Radicación" style="font-size:11px !important;" >                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Direccionamiento" style="font-size:11px !important; width: 94px;" >                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Tiene Tutela" style="font-size:11px !important;" filterBy="#{obj.tieneTutela}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionDireccionadosBean.listaSiNo}" var="item" itemLabel="#{item.nombre}" itemValue="#{item.id}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.tieneTutela)}" title="#{obj.getBooleanToStr(obj.tieneTutela)}"/>
+                    </p:column>
+
+                    <p:column headerText="Ips programa" style="font-size:11px !important;" filterBy="#{obj.cntPrestadorSedesId.cntPrestador.razonSocial}" >
+                        <f:facet name="filter">
+                            <p:inputText label="Ips solicita" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.cntPrestadorSedesId.cntPrestador.razonSocial}" title="#{obj.cntPrestadorSedesId.cntPrestador.razonSocial}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" style="font-size:11px !important;" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionDireccionadosBean.listaEstadosDireccionado}" var="item" itemLabel="#{item.nombre}" itemValue="#{item.id}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{gestionDireccionadosBean.getEstadoDireccionado(obj.estado)}" title="#{gestionDireccionadosBean.getEstadoDireccionado(obj.estado)}"/>
+                    </p:column>
+
+                    <p:column headerText="Usuario crea" style="font-size:11px !important;" filterBy="#{obj.usuarioCrea}" >
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario crea" maxlength="64" style="width: 99%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+
+                </p:dataTable>  
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" style="max-height: 90%">
+                <header style="font-size: 30px;">
+                    <b>Ver Direccionado</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria"  style="margin-top: -15px; text-align: right;">
+                    <h:outputText id="labelDatosAuditoria" value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.datosAuditoria} "/>
+                    <p:commandButton class="btnAuditoria" action="#{gestionDireccionadosBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionDireccionadosBean.getAuditoria(gestionDireccionadosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height: 400px" >
+                    <h:form id="frmVerDireccionado">
+
+                        <p:panelGrid id="panelEstadoVer" columns="2" 
+                                     layout="grid" styleClass="ui-panelgrid-blank ui-fluid"
+                                     columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                     rendered="#{gestionDireccionadosBean.objeto.estado == 5}" >
+
+                            <h:outputText value="Motivo Estado"  class="header-back" />
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.observacion}" style="color: red;font-weight: bold;"/>
+
+                        </p:panelGrid>  
+                        
+                        <!--Datos de solicitud-->
+                        <p:panel id="pDatoSolicitudVer" header="Datos de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">                            
+                            <p:panelGrid id="panelTipoSolDevoluciones" style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Número solicitud" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{gestionDireccionadosBean.objetoAnexo3.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{gestionDireccionadosBean.objetoAnexo3.estadoStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Responsable" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                     <p:outputLabel value="#{gestionDireccionadosBean.objetoAnexo3.usuarioCrea}"/>
+                                    </p:column>                                    
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Consecutivo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{gestionDireccionadosBean.objetoAnexo3.consecutivo}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                            </p:panelGrid>
+                        </p:panel>  
+
+                        <!--Afiliado-->
+                        <p:panel id="pAfiliadoVer" header="Afiliado" style="margin-bottom:10px;" collapsed="false" toggleable="true">                            
+                            <p:panelGrid id="panelAfiliadoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeTipoDocumentoCodigo}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.numeroDocumento}" />
+
+                                <h:outputText value="Contrato Afiliado"  class="header-back"/>
+                                <h:outputText id="codigoAfiliadoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.idAfiliado}"/>
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <h:outputText id="nombresVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.nombres}"/>
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <h:outputText id="apellidosVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.apellidos}"/>
+
+                                <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                                <h:outputText id="fechaNacimientoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.fechaNacimiento}">
+                                </h:outputText>
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText id="direccionVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.direccionResidencia}"/>
+
+                                <h:outputText value="Regimen"  class="header-back"/>
+                                <h:outputText id="regimenVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeRegimenValor}"/>
+
+                                <h:outputText value="Genero"  class="header-back"/>
+                                <h:outputText id="generoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeGeneroValor}"/>
+
+                                <h:outputText value="Edad"  class="header-back"/>
+                                <h:outputText id="edadVer" value="#{gestionDireccionadosBean.calcularEdad(gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.fechaNacimiento)}"/>
+
+                                <h:outputText value="Email"  class="header-back"/>
+                                <h:outputText id="emailVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.email}"/>
+
+                                <h:outputText value="Teléfono Fijo"  class="header-back"/>
+                                <h:outputText id="telefonoVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.telefonoFijo}"/>
+
+                                <h:outputText value="Celular"  class="header-back"/>
+                                <h:outputText id="celularVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.telefonoMovil}"/>
+
+                                <h:outputText value="Nivel Sisbén"  class="header-back"/>
+                                <h:outputText id="nivelSisbenVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.nivelSisben}"/>
+
+                                <h:outputText value="Discapacidad"  class="header-back"/>
+                                <h:outputText id="discapacidadVer" value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.discapacidadStr}"/>
+
+                                <h:outputText value="Tipo Afiliado"  class="header-back"/>
+                                <h:outputText id="tipoAfiliadoVer" 
+                                              value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeTipoAfiliadoValor}"/>
+
+                                <h:outputText value="Estado Afiliacion"  class="header-back"/>
+                                <h:outputText id="estadoAfiliacionVer" 
+                                              value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeEstadoAfiliacionValor}"/>
+
+                                <h:outputText value="Grupo Poblacional"  class="header-back"/>
+                                <h:outputText id="grupoPoblacionalVer" 
+                                              value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.maeGrupoPoblacionalValor}"/>
+
+                                <h:outputText value="IPS primaria"   class="header-back" />
+                                <h:outputText value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.nombreSede}"/>
+
+                                <h:outputText value="Dirección IPS primaria"  class="header-back" />
+                                <h:outputText value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.direccion}"/>
+
+                                <h:outputText value="Teléfono IPS primaria"  class="header-back" />
+                                <h:outputText value="#{gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <h:outputText value="Ciudad/Municipio IPS primaria"  class="header-back" />
+                                <h:outputText value="#{gestionDireccionadosBean.obtenerMunicipio(gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <h:outputText value="Departamento IPS primaria"  class="header-back" />
+                                <h:outputText 
+                                    value="#{gestionDireccionadosBean.obtenerDepartamento(gestionDireccionadosBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <!-- Direccion alternativa -->
+                        <p:panel header="Información adicional del afiliado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAfiliadoVerInfoAlterna" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Dirección alternativa" class="header-back" />
+                                <p:outputLabel  value="${gestionDireccionadosBean.objetoAnexo3.direccionAlternativa}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acompañante-->
+                        <p:panel id="pAcompananteVer" header="Acompañante" style="margin-bottom:10px;"  collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAcompananteVer" columns="6" 
+                                         layout="grid" 
+                                         columnClasses="ui-grid-col-2,ui-grid-col-2,ui-grid-col-2,ui-grid-col-2,ui-grid-col-2,ui-grid-col-2"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Nombre Completo"  class="header-back"/>
+                                <h:outputText id="nombreAcompananteVer" value="#{gestionDireccionadosBean.objetoAnexo3.nombreAcompanante}" />
+
+                                <h:outputText value="Teléfono Fijo"  class="header-back"/>
+                                <h:outputText id="telefonoAcompananteVer" value="#{gestionDireccionadosBean.objetoAnexo3.telefonoAcompanante}"/>
+
+                                <h:outputText value="Celular"  class="header-back"/>
+                                <h:outputText id="celularAmponanteVer" value="#{gestionDireccionadosBean.objetoAnexo3.celularAcompanente}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Tipo de solicitud-->
+                        <p:panel id="pTipoSolVer" header="Tipo de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTipoSolVer" columns="4" 
+                                         layout="grid" 
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Servicio de atención"  class="header-back"/>
+                                <h:outputText id="serAtenVer" value="#{gestionDireccionadosBean.objetoAnexo3.maServicioHabilitadoValor}"/>
+
+                                <h:outputText value="Ámbito"  class="header-back"/>
+                                <h:outputText id="ambitoVer" value="#{gestionDireccionadosBean.objetoAnexo3.maeAmbitoAtencionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Solicitud-->
+                        <p:panel id="pSolVer" header="Solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelSolVer" columns="4" 
+                                         layout="grid" 
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Número Solicitud"  class="header-back"/>
+                                <h:outputText id="numSolicitudVer" value="#{gestionDireccionadosBean.objetoAnexo3.numero}"/>
+
+                                <h:outputText value="Fecha Orden Medica"  class="header-back"/>
+                                <h:outputText id="fechaOrdenVer" value="#{gestionDireccionadosBean.objetoAnexo3.fechaSolicitud}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--IPS Solicita-->
+                        <p:panel id="pIpsVer" header="IPS Solicita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelipsVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoIpsVer" value="#{gestionDireccionadosBean.obtenerTipoDocumentoIps(gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.maeTipoDocumentoId)}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoIpsVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.numeroDocumento}"/>
+
+                                <h:outputText value="Razón Social"  class="header-back"/>
+                                <h:outputText id="razonSocialVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.razonSocial}" />
+
+                                <h:outputText value="Departamento"  class="header-back"/>
+                                <h:outputText id="departamentoIpsVer" value="#{gestionDireccionadosBean.obtenerDepartamento(gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Municipio"  class="header-back"/>
+                                <h:outputText id="municipioIpsVer" value="#{gestionDireccionadosBean.obtenerMunicipio(gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText id="direccionIpsVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntPrestadorSedeId.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Datos del profesional-->
+                        <p:panel id="pProfesionalVer" header="Información Profesional" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProfesionalVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoProfVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.maeTipoDocumentoValor}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoProfVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.documento}"/>
+
+                                <h:outputText value="Primer Nombre"  class="header-back"/>
+                                <h:outputText id="primerNombreProfesionalVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.primerNombre}" />
+
+                                <h:outputText value="Segundo Nombre"  class="header-back"/>
+                                <h:outputText id="segundoNombreProfesionalVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.segundoNombre}" />
+
+                                <h:outputText value="Primer Apellido"  class="header-back"/>
+                                <h:outputText id="primerApellidoProfesionalVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.primerApellido}" />
+
+                                <h:outputText value="Segundo Apellido"  class="header-back"/>
+                                <h:outputText id="segundoApellidoProfesionalVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.segundoApellido}" />
+
+                                <h:outputText value="Número RM"  class="header-back"/>
+                                <h:outputText id="registroProfVer" value="#{gestionDireccionadosBean.objetoAnexo3.cntProfesionaleId.registroMedico}"/>
+
+                                <h:outputText value="Especialidad"  class="header-back"/>
+                                <h:outputText id="especialidadProfVer" value="#{gestionDireccionadosBean.objetoAnexo3.objetoEspecialidad.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Infomarcion de la atencion-->
+                        <p:panel id="pInfoAtenVer" header="Información de la atención" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelInfoAtenVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Origen de la atención"  class="header-back"/>
+                                <h:outputText id="origenAtenVer" value="#{gestionDireccionadosBean.objetoAnexo3.maeOrigenAtencionValor}" />
+
+                                <h:outputText value="Prioridad de la atención"  class="header-back"/>
+                                <h:outputText id="prioridadAtenVer" value="Prioridad de la atención"/>
+
+                                <h:outputText value="Tipo Servicio Solicitado"  class="header-back"/>
+                                <h:outputText id="servicioAtenVer" value="#{gestionDireccionadosBean.objetoAnexo3.maServicioSolicitadoValor}"/>
+
+                                <h:outputText value="Ubicación del paciente" class="header-back"/>
+                                <h:outputText id="ubicacionAtenVer" value="#{gestionDireccionadosBean.objetoAnexo3.maeUbicacionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Diagnostico-->
+                        <p:panel id="pDiagnosticoVer" header="Diagnostico" style="margin-bottom:10px;" collapsed="false" toggleable="true">                           
+                            <p:dataTable id="tablaDiagnosticosVer" class="tblCustom" var="diagnosticoVer" value="#{gestionDireccionadosBean.objetoAnexo3.auAnexo3DiagnosticosList}" widgetVar="tablaDiagnosticosVer" resizableColumns="false" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerBoolean(diagnosticoVer.principal)}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Modalidad y finalidad de tecnologia-->
+                        <p:panel header="Información de tecnología" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Modalidad de Tecnología"   class="header-back"  />
+                                <p:outputLabel  value="${auSolicitudBean.objeto.maeModalidadTecnologiaValor}" />
+
+                                <p:outputLabel value="Finalidad de Tecnología"   class="header-back" />
+                                <p:outputLabel value="${auSolicitudBean.objeto.maeFinalidadTecnologiaValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>  
+                        <!--Prescripciones-->
+                        <p:panel id="pPrescripcionVer" header="Prescripciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" class="tblCustom" var="tecnologiasVer" value="#{gestionDireccionadosBean.objeto.listDireccionadoItems}" widgetVar="tablaProcedimientosVer" resizableColumns="false" emptyMessage="No se encontraron procedimientos" style="text-align: center">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerTipoTencnologia(tecnologiasVer.auAnexo3ItemsId.tipoTecnologia)}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Diagnóstico">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.estadoStr}" />
+                                </p:column>                                
+                            </p:dataTable>       
+                        </p:panel>
+                        <!--Programa especial-->
+                        <p:panel id="pProgramaEspecialVer" header="Programa Especial - RIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProgramaEspecialVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Programa Especial"  class="header-back"/>
+                                <h:outputText id="programaVer" value="#{gestionDireccionadosBean.objetoAnexo3.peProgramaId.descripcionPrograma}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Justificacion-->
+                        <p:panel id="pJustifiacionVer" header="Justificación Clínica" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <h:outputText value="#{gestionDireccionadosBean.objetoAnexo3.justificacionClinica}" />
+                        </p:panel>
+                        <!--Soportes fisicos-->
+                        <p:panel id="pSoporteVer" header="Soportes Fisicos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSoportesVer" class="tblCustom" var="soportesVer" value="#{gestionDireccionadosBean.objetoAnexo3.auSolicitudAdjuntosList}" widgetVar="tablaSoportesVer" resizableColumns="false" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Archivos adjuntos">
+                                    <h:outputText value="#{soportesVer.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{soportesVer.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{gestionDireccionadosBean.descargarAdjuntoAnexo3(soportesVer)}" />
+                                    </p:commandButton>
+                                </p:column>                                    
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Tutelas-->
+                        <p:panel id="pTutelaVer" header="Tutelas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTutelasVer" class="tblCustom" var="tutelaVer" value="#{gestionDireccionadosBean.objetoAnexo3.auAnexo3TutelasList}" widgetVar="tablaTutelaCrear" resizableColumns="false" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Número Tutela">
+                                    <h:outputText value="#{tutelaVer.numeroTutela}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tutelaVer.estadoProceso}" />
+                                </p:column>
+                                <p:column headerText="Exonerado">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerBoolean(tutelaVer.exoneracionCopago)}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panel id="pnlGestion" header="Gestiones" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="objG" class="tblCustom" value="#{gestionDireccionadosBean.objeto.listaGestion}"                                             
+                                         emptyMessage="No se encontraron registros"
+                                         id="tablaGestiones"
+                                         widgetVar="tablaGWidget"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{objG.id}">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{objG.maeTipoValor}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{objG.descripcion}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{objG.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{objG.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Gestionar -->
+            <p:dialog header="Gestionar" widgetVar="dialogoGestiones" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:90%;" >
+                <h:form id="frmAuditoriaGestionar" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <h:outputText id="labelDatosAuditoria" value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.datosAuditoria} "/>
+                    <p:commandButton class="btnAuditoria" action="#{gestionDireccionadosBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionDireccionadosBean.getAuditoria(gestionDireccionadosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height:400px">
+                    <h:form id="frmGestionAfiliado">
+                        <p:panel id="pnlAfiliado" header="Datos afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.maeAfiliadoTipoDocumentoValor}"/>                                        
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="txtNumeroDocumento" value="#{gestionDireccionadosBean.objeto.afiliadoNumeroDocumento}" style="width: 181px;"/>
+
+                                <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.nombres}"/>
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.apellidos}"/>
+
+                                <h:outputText value="Género"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.getTipoGenero(gestionDireccionadosBean.objeto.asegAfiliadosId.genero)}"/>
+
+                                <h:outputText value="Régimen"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.regimen == '1' ? 'Subsidiado' : gestionDireccionadosBean.objeto.asegAfiliadosId.regimen == '2' ? 'Contributivo' : ''}"/>
+
+                                <h:outputText value="Estado Afiliación"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.getEstadoAfiliacion(gestionDireccionadosBean.objeto.asegAfiliadosId.maeEstadoAfiliacion)}"/>
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.direccionResidencia}"/>
+
+                                <h:outputText value="Municipio Afiliación"  class="header-back" />
+                                <h:outputText value="#{gestionDireccionadosBean.getUbicacionRecursiva(gestionDireccionadosBean.objeto.asegAfiliadosId.afiliacionUbicacion.id)}"/>
+
+                            </p:panelGrid>
+
+                            <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto; margin-top: 0.4rem;">
+                                <p:scrollPanel mode="native">
+                                    <p:dataTable id="tablaContactosVerAseg"  class="tblCustom"  var="contacto" value="#{gestionDireccionadosBean.listaContactosAfiliado}" widgetVar="tablaContactosVerAseg" scrollable="true" emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Número Contacto">
+                                            <h:outputText value="#{contacto.numeroContacto}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+
+                            <p:panel header="Contactos Programa" toggleable="true" style="height:auto; margin-top: 0.4rem;">
+                                <p:scrollPanel mode="native">
+                                    <p:dataTable id="tablaContactosVerPro"  class="tblCustom"  var="contacto" value="#{gestionDireccionadosBean.listaContactosPrograma}" widgetVar="tablaContactosVerPro" scrollable="true" emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Número Contacto">
+                                            <h:outputText value="#{contacto.numero}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>  
+
+                        </p:panel>                        
+                    </h:form>
+                    <h:form id="frmGestionDireccionado">
+                        <p:panel id="pnlMatricula" header="Matricula Programa Especial" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="6" 
+                                         columnClasses="ui-grid-col-2"
+                                         layout="grid" styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Programa Especial"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.peProgramasId.descripcionPrograma}"/>                                        
+
+                                <h:outputText value="Responsable Programa"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.peProgramasId.usuariosId.nombre}" />
+
+                                <h:outputText value="Programa Activo"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.getBooleanToStr(gestionDireccionadosBean.objeto.peProgramasId.activo)}"/>
+
+                            </p:panelGrid>                        
+                        </p:panel>
+                        <p:panel id="pDiagnosticoVer" header="Diagnostico" style="margin-bottom:10px;" collapsed="false" toggleable="true">                           
+                            <p:dataTable id="tablaDiagnosticosVer" var="diagnosticoVer" class="tblCustom" value="#{gestionDireccionadosBean.objetoAnexo3.auAnexo3DiagnosticosList}" widgetVar="tablaDiagnosticosVer" resizableColumns="false" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerBoolean(diagnosticoVer.principal)}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Prescripciones-->
+                        <p:panel id="pPrescripcionVer" header="Prescripciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" class="tblCustom" var="tecnologiasVer" value="#{gestionDireccionadosBean.objeto.listDireccionadoItems}" widgetVar="tablaProcedimientosVer" resizableColumns="false" emptyMessage="No se encontraron procedimientos" style="text-align: center;">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerTipoTencnologia(tecnologiasVer.auAnexo3ItemsId.tipoTecnologia)}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Diagnóstico">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tecnologiasVer.auAnexo3ItemsId.estadoStr}" />
+                                </p:column>                                
+                            </p:dataTable>       
+                        </p:panel>
+                        <p:panel id="pnlGestion" header="Gestiones" style="margin-bottom:10px;" toggleable="true">
+                            <p:toolbar>
+                                <f:facet name="right">
+                                    <p:commandButton rendered="#{gestionDireccionadosBean.accionAdicional1 and (gestionDireccionadosBean.objeto.estado == 1 or gestionDireccionadosBean.objeto.estado == 2 )}" title="Crear Gestión" action="#{gestionDireccionadosBean.crearGestion()}" icon="ui-icon-plusthick"/>
+                                </f:facet>
+                            </p:toolbar>
+                            <p:dataTable var="objG"  class="tblCustom"  value="#{gestionDireccionadosBean.objeto.listaGestion}"                                             
+                                         emptyMessage="No se encontraron registros"
+                                         id="tablaGestiones"
+                                         widgetVar="tablaGWidget"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{objG.id}">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{objG.maeTipoValor}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{objG.descripcion}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{objG.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{objG.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">                                                                
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestiones').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Crear Gestion -->
+            <p:dialog header="Gestiones" widgetVar="dialogoCrearGestion" appendTo="@(body)" position="center" width="60%;" modal="true" style="max-height:40%;" >
+                <h:form id="frmGestiones">
+                    <p:panelGrid id="panelGestion" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                        <h:outputText value="Tipo *"  class="header-back"/> 
+                        <p:selectOneMenu id="somTipo" required="true" value="#{gestionDireccionadosBean.objetoGestion.maeTipoId}" 
+                                         filter="true" autoWidth="false" dynamic="false" style="width: 90%"  requiredMessage="Tipo : Este campo es requerido."
+                                         >
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{gestionDireccionadosBean.listaTipoGestion}" var="tipGestion" itemValue="#{tipGestion.id}" itemLabel="#{tipGestion.nombre}" itemDescription="#{tipGestion.descripcion}"/>
+                        </p:selectOneMenu>
+
+                        <h:outputText value="Observación *"  class="header-back"/>
+                        <p:inputTextarea id="descripcion" label="Descripción" value="#{gestionDireccionadosBean.objetoGestion.descripcion}" style="width: 99%;" cols="40" maxlength="1024" required="true" requiredMessage="Observación : Este campo es requerido." />
+
+                    </p:panelGrid>
+                    <p:panelGrid id="panelGestionAdjuntar" style="width: 99%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Guardar" type="button" onclick="GuardarGestionRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="GuardarGestionRemote" action="#{gestionDireccionadosBean.guardarGestiones()}" update="frmGestiones" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrearGestion').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!--Anular Solitud-->
+            <p:dialog header="Anular direccionado" widgetVar="dialogoAnular" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <h:form id="frmAnular">
+                    <p:panelGrid id="panelAnularSolicitud" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                        <h:outputText value="Comentario" class="header-back"/>
+                        <p:inputTextarea id="comentarioAnulacion" rows="5" cols="100" value="#{gestionDireccionadosBean.objeto.observacion}" counter="display1Anular" maxlength="200" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                        <br/>
+                        <h:outputText id="display1Anular" />
+
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Anular" actionListener="#{gestionDireccionadosBean.anularDireccionado()}"/>                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoAnular').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+
+            <!--Registrar fecha-->
+            <p:dialog header="Registrar Fecha" widgetVar="dialogoRegistrarFecha" appendTo="@(body)" modal="true" width="40%" dynamic="true">
+                <h:form id="frmRegFecha" prependId="false" >
+                    <p:panelGrid id="panelRegFecha" columns="2" 
+                                 layout="grid" 
+                                 columnClasses="ui-grid-col-3, ui-grid-col-9"
+                                 styleClass="ui-panelgrid-blank ui-fluid" >
+
+                        <h:outputText value="Fecha" class="header-back"/>
+                        <p:datePicker id="rffecha" yearRange="c-100:c" label="Fecha Orden Medica" locale="es" 
+                                      monthNavigator="true" 
+                                      pattern="yyyy-MM-dd"  
+                                      value="#{gestionDireccionadosBean.objetoDireccionadoItem.fechaPrestacion}" 
+                                      maxdate="#{gestionDireccionadosBean.obtenerFechaActual()}" 
+                                      mindate="#{gestionDireccionadosBean.objeto.fechaHoraCrea}"
+                                      size="7" maxlength="10" required="true" 
+                                      style="width: 100%"
+                                      requiredMessage="Fecha Orden Medica: Este campo es obligatorio"                                      
+                                      />
+
+                        <h:outputText value="Comentario" class="header-back"/>
+                        <p:inputTextarea id="rfcomentarioAnulacion" rows="5" cols="50" value="#{gestionDireccionadosBean.objetoDireccionadoItem.observacion}" 
+                                         counter="display1Anular" maxlength="200" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" 
+                                         requiredMessage="Comentario: Este campo es obligatorio" style="width: 100%"/>
+                        <br/>
+                        <h:outputText id="display1Anular" />
+
+                    </p:panelGrid>
+
+                    <p:panelGrid style="width: 100%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Guardar" actionListener="#{gestionDireccionadosBean.guardarFechaAtencion()}" update="frmRegFecha" />                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoRegistrarFecha').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>                                </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+
+                </h:form>                
+            </p:dialog>
+
+            <!--Ver registros de fecha-->
+            <p:dialog header="Registro fechas de atención" widgetVar="dialogoGestionarFechas" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:80%;">
+                <p:scrollPanel mode="native" >
+                    <h:form id="frmGestionarFecha">
+                        <!-- Informacion -->
+                        <p:panel id="pInformacionGestionar" header="Información Direccionado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Solicitud"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.auAnexos3Id.id}"/>
+
+                                <h:outputText value="Ruta"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.peProgramasId.descripcionPrograma}"/>
+
+                                <h:outputText value="Tipo documento"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.maeAfiliadoTipoDocumentoValor}"/>
+
+                                <h:outputText value="Número documento"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.afiliadoNumeroDocumento}" />
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.afiliadoPrimerNombre} #{gestionDireccionadosBean.objeto.afiliadoSegundoNombre}" />
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <h:outputText value="#{gestionDireccionadosBean.objeto.afiliadoPrimerApellido} #{gestionDireccionadosBean.objeto.afiliadoSegundoApellido}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Items -->
+                        <p:panel id="pItemsGestionarFecha" header="Tecnologias" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tblItemsGestionar" var="item" class="tblCustom" value="#{gestionDireccionadosBean.objeto.listDireccionadoItems}" 
+                                         widgetVar="tablaTecnologiasGestionar" resizableColumns="false" emptyMessage="No se encontraron procedimientos" style="text-align: center" reflow="true">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{gestionDireccionadosBean.obtenerTipoTencnologia(item.auAnexo3ItemsId.tipoTecnologia)}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{item.auAnexo3ItemsId.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{item.auAnexo3ItemsId.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{item.auAnexo3ItemsId.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{gestionDireccionadosBean.getEstadoItem(item.estado)}" />
+                                </p:column>
+                                <p:column headerText="Fecha Atención">
+                                    <h:outputText value="#{item.fechaPrestacion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota" />
+                                    </h:outputText>
+                                </p:column> 
+                                <p:column headerText="Observación">
+                                    <h:outputText value="#{item.observacion}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton rendered="#{gestionDireccionadosBean.objeto.estado != 5 and (item.estado == 0 or item.estado == 1)}" title="Registrar fecha de atención" immediate="true" actionListener="#{gestionDireccionadosBean.abrirRegistrarFecha(item)}" icon="ui-icon-calendar"/>
+                                    <p:commandButton rendered="#{gestionDireccionadosBean.objeto.estado != 5 and (item.estado == 0 or item.estado == 1)}" title="Rechazar" actionListener="#{gestionDireccionadosBean.abrirDialogoRechazarDireccionadoItem(item)}" icon="ui-icon-closethick" />                                        
+                                </p:column>
+                            </p:dataTable>  
+                        </p:panel>
+                        <!-- Acciones -->
+                        <p:panelGrid id="panelAccionesGestionar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center;">                                      
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarFechas').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!--Rechazar direccionado item -->
+            <p:dialog header="Rechazar Tecnología" widgetVar="dialogoRechazarItem" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <h:form id="frmRechazarItem" prependId="false" >
+                    <p:panelGrid id="panelRechazaItem" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                        <h:outputText value="Comentario" class="header-back"/>
+                        <p:inputTextarea id="rfcomentarioRechazo" rows="5" cols="50" value="#{gestionDireccionadosBean.objetoDireccionadoItem.observacion}" counter="countObservacionRechazado" maxlength="200" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                        <br/>
+                        <h:outputText id="countObservacionRechazado" />
+
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Guardar" actionListener="#{gestionDireccionadosBean.rechazarDireccionadoItam()}" update="frmRechazarItem" />                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoRechazarItem').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+            <!-- descripciones afiliado genericas -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" class="modal-no-scroll"  appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:70%;">           
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <h:outputText value="Estado"   class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.maeEstadoAfiliacionValor}" />
+
+                            <h:outputText value="Nombres"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.nombres}" />
+
+                            <h:outputText value="Apellidos"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.apellidos}" />
+
+                            <h:outputText value="Tipo Documento"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.maeTipoDocumentoCodigo}" />
+
+                            <h:outputText value="Documento"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.numeroDocumento}" />
+
+                            <h:outputText value="Correo"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.email}" />
+
+                            <h:outputText value="Dirección"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.direccionResidencia}" />
+
+                            <h:outputText value="Ubicación"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.getUbicacionRecursiva(gestionDireccionadosBean.objeto.asegAfiliadosId.residenciaUbicacion.id)}" />
+
+                            <h:outputText value="Regimen"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.maeRegimenValor}" />
+
+                            <h:outputText value="Contrato"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.idAfiliado}" />
+
+                            <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                            <h:outputText value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.fechaNacimiento}" />
+
+                        </p:panelGrid>
+                        <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactosGeneralAseg" var="contacto"  class="listaDatos"
+                                             value="#{gestionDireccionadosBean.objeto.asegAfiliadosId.listaAsegAfiliadoContacto}" 
+                                             widgetVar="tablaContactosGestionarAseg" scrollable="true" 
+                                             emptyMessage="No se encontraron registros"
+                                             style="font-size: 11px"
+                                             >
+                                    <p:column headerText="Número Contacto"  >
+                                        <h:outputText value="#{contacto.numeroContacto}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo"  >
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}" />
+                                    </p:column>
+                                    <p:column headerText="Observación"  >
+                                        <h:outputText value="#{contacto.observacion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panel header="Contactos Programa" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactoPersonaGeneral"  class="listaDatos"  widgetVar="tablaContactoPersonaGeneral" var="contacto" value="#{gestionDireccionadosBean.listaContactosPrograma}" scrollable="true" style="margin-bottom:20px;" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número Contacto"  >
+                                        <h:outputText value="#{contacto.numero}"   />
+                                    </p:column>
+                                    <p:column headerText="Tipo" >
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}"  />
+                                    </p:column>
+                                    <p:column headerText="Observación"  >
+                                        <h:outputText value="#{contacto.observacion}" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

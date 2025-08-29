@@ -1,0 +1,1450 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/rias.css"/>
+        <center>
+            <h:form id="frmSugeridos">     
+                <p:remoteCommand name="cerrarDialogoDiagnostico" action="#{peAfiliadoSugeridoBean.cerrarDialogoDiagnostico()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{peAfiliadoSugeridoBean.modulo.descripcion}">#{peAfiliadoSugeridoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{peAfiliadoSugeridoBean.listar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>               
+
+                <p:dataTable id="tablaRegistros" var="obj" class="listaDatos" value="#{peAfiliadoSugeridoBean.lazySugeridos}"  paginator="true" rows="#{peAfiliadoSugeridoBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" lazy="true"
+                             widgetVar="tablaWidget"                             
+                             scrollable="true"
+                             resizableColumns="false"
+                             scrollWidth="170%"
+                             rowKey="#{obj.id}" reflow="true" >
+
+                    <p:column headerText="Acciones" style="text-align: center; font-size:11px !important;">                            
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionAdicional3 and obj.origen == 0}" title="Ver Hospitalización" actionListener="#{peAfiliadoSugeridoBean.verHospitalizacion(obj)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionAdicional3 and obj.origen == 3}" title="Ver Solicitud" actionListener="#{peAfiliadoSugeridoBean.verSolicitudAnexo3(obj)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionAdicional1 and obj.estado == 1 }" title="Marcar" action="#{peAfiliadoSugeridoBean.marcar(obj.id)}" icon="ui-icon-script">
+                            <f:setPropertyActionListener value="#{obj}" target="#{peAfiliadoSugeridoBean.objeto}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionAdicional2 and obj.estado == 1}" title="Rechazar" actionListener="#{peAfiliadoSugeridoBean.rechazar(obj.id)}" icon="ui-icon-closethick" />
+                        <p:commandButton rendered="#{peAfiliadoSugeridoBean.accionAdicional3}" title="Ver Auditoria" actionListener="#{peAfiliadoSugeridoBean.verAuditoria(obj)}" icon="ui-icon-comment" />
+                    </p:column>
+
+                    <p:column headerText="Fuente Origen" filterBy="#{obj.origen}" style="text-align: center; font-size:11px !important;" >  
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaFuenteOrigen}" var="tipoFuente" itemValue="#{tipoFuente.id}" itemLabel="#{tipoFuente.nombre}" itemDescription="#{tipoFuente.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{peAfiliadoSugeridoBean.getNombreFuenteOrigenSugeridos(obj.origen)}" title="#{peAfiliadoSugeridoBean.getNombreFuenteOrigenSugeridos(obj.origen)}"/>
+                    </p:column>
+
+
+                    <p:column headerText="Estado Sugerido" filterBy="#{obj.estado}" style="font-size:11px !important;" >   
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaEstadoSugerido}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{peAfiliadoSugeridoBean.getEstado(obj.estado)}" title="#{peAfiliadoSugeridoBean.getEstado(obj.estado)}"/>
+                    </p:column>  
+
+                    <p:column headerText="Fuente Rechazo" filterBy="#{obj.origenRechazo}" style="text-align: center; font-size:11px !important;" >  
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaFuenteOrigen}" var="tipoFuente" itemValue="#{tipoFuente.id}" itemLabel="#{tipoFuente.nombre}" itemDescription="#{tipoFuente.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{peAfiliadoSugeridoBean.getNombreFuenteOrigenSugeridos(obj.origenRechazo)}" title="#{peAfiliadoSugeridoBean.getNombreFuenteOrigenSugeridos(obj.origenRechazo)}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Documento" filterBy="#{obj.asegAfiliado.maeTipoDocumento}" style="font-size:11px !important;" >   
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaTiposDocumento}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.maeTipoDocumentoValor}" title="#{obj.asegAfiliado.maeTipoDocumentoValor}"/>
+                    </p:column>                    
+                    <p:column headerText="Número Documento" filterBy="#{obj.asegAfiliado.numeroDocumento}" style="font-size:11px !important;" >   
+                        <f:facet name="filter">
+                            <p:inputText label="Número Documento" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.numeroDocumento}" title="#{obj.asegAfiliado.numeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Nombres"  filterBy="#{obj.asegAfiliado.nombres}" style="font-size:11px !important;" >   
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.nombresCF}" title="#{obj.asegAfiliado.nombresCF}"/>
+                    </p:column>
+                    <p:column headerText="Apellidos"  filterBy="#{obj.asegAfiliado.apellidos}" style="font-size:11px !important;" >  
+                        <f:facet name="filter">
+                            <p:inputText label="Apellidos" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.apellidosCF}" title="#{obj.asegAfiliado.apellidosCF}"/>
+                    </p:column>
+                    <p:column headerText="Fecha Nacimiento"  style="font-size:11px !important;">   
+                        <h:outputText value="#{obj.asegAfiliado.fechaNacimiento}" title="#{obj.asegAfiliado.fechaNacimiento}"/>
+                    </p:column>
+                    <p:column headerText="Genero" filterBy="#{obj.asegAfiliado.maeGeneroId}"  style="font-size:11px !important;"> 
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaTiposGenero}" var="tipoGenero" itemValue="#{tipoGenero.id}" itemLabel="#{tipoGenero.nombre}" itemDescription="#{tipoGenero.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.genero}" title="#{obj.asegAfiliado.genero}"/>
+                    </p:column>
+                    <p:column headerText="Municipio Afiliación"  filterBy="#{obj.asegAfiliado.afiliacionUbicacion.nombre}" style="font-size:11px !important;">   
+                        <f:facet name="filter">
+                            <p:inputText label="Municipio Afiliación" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.afiliacionUbicacion.nombre}" title="#{obj.asegAfiliado.afiliacionUbicacion.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Programa Sugerido"  filterBy="#{obj.pePrograma.id}" style="font-size:11px !important;">   
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaPePrograma}" var="prog" itemValue="#{prog.id}" itemLabel="#{prog.descripcionPrograma}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.pePrograma.descripcionPrograma}" title="#{obj.pePrograma.descripcionPrograma}"/>
+                    </p:column>
+                    <p:column headerText="Responsable Programa"  filterBy="#{obj.pePrograma.usuariosId.nombre}" style="font-size:11px !important;"> 
+                        <f:facet name="filter">
+                            <p:inputText label="Responsable Programa" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.pePrograma.usuariosId.nombre}" title="#{obj.pePrograma.usuariosId.nombre}"/>
+                    </p:column>  
+
+                    <p:column headerText="Usuario Crea"  style="font-size:11px !important;">   
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+
+                </p:dataTable>  
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+
+            </h:form>            
+
+            <!-- Ver Hospitalización -->
+            <p:dialog class="elDialogo" widgetVar="dialogoVerHospitalizacion" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Hospitalización</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <h:outputText id="labelDatosAuditoria" value="#{peAfiliadoSugeridoBean.objeto.datosAuditoria}"/>
+                    <p:commandButton id="btnauditoria" class="btnAuditoria" action="#{peAfiliadoSugeridoBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{peAfiliadoSugeridoBean.getAuditoria(peAfiliadoSugeridoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">                    
+                    <h:form id="frmVerHospitalizacion">                                               
+                        <p:panelGrid id="panelEstadoVer" columns="2" layout="grid" styleClass="showcase-text-align-center" rendered="#{peAfiliadoSugeridoBean.objeto.estado == 3}" >
+                            <h:outputText value="Observación Rechazo"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.observacionRechazo}" style="color: red;font-weight: bold;"/>
+
+                        </p:panelGrid>  
+
+                        <!-- Hospitalizacion -->
+                        <p:panel id="pHospitalizacionVer" header="HOSPITALIZACION" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelHospitalizacionVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Nro Hospitalización"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.id}"/>
+
+                                <h:outputText value="Estado Auditoria"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.estadoAuditoriaStr}"/>
+
+                                <h:outputText value="Código Evento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.codigoEvento}"/>
+
+                                <h:outputText value="Estado"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.estadoStr}"/>
+
+                                <h:outputText value="Auditor"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.gnUsuariosAuditorId.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Ips -->
+                        <p:panel id="pIpsVer" header="IPS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIpsVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.maeTipoDocumentoValor}" />
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.numeroDocumento}" />
+
+                                <h:outputText value="Razón Social"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.razonSocial}" />
+
+                                <h:outputText value="Departamento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.obtenerDepartamento(peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Municipio"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.obtenerMunicipio(peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.direccion}" />
+
+                                <h:outputText value="Código Habilitación"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.codigoHabilitacionSede}" />
+
+                                <h:outputText value="Nombre Sede"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.cntPrestadorSedeId.nombreSede}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Ingresos -->
+                        <p:panel id="pIngresoVer" header="INGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIngresoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Fecha Ingreso"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.fechaIngreso}"/>
+
+                                <h:outputText value="Reingreso"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.ingresoStr}"/>
+
+                                <h:outputText value="Tipo Ingreso"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.maeTipoIngresoValor}"/>
+
+                                <h:outputText value="Modalidad"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.maeCntModalidadValor}"/>
+
+                                <h:outputText value="Remisión no Pertinente"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.maeRemisionNoPertinenteValor}"/>
+
+                                <h:outputText value="Charlson"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.indiceCharlson}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pIngresoDescripcionVer" header="DESCRIPCION REMISIÓN NO PERTINENTE" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIngresoDescripcionVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText  value="Descripción"  class="header-back" rendered="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.habilitarDescripcion > 0}"/>
+                                <p:inputTextarea value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.descripcion}" maxlength="1024" rows="5" disabled="false" rendered="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.habilitarDescripcion > 0}" style="width: 100%"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pDiagnosticoVer" header="DIAGNOSTICO INGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">     
+
+                            <p:dataTable id="tablaDiagnosticosVer" var="diagnosticoVer" class="tblCustom"
+                                         value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucIngresoId.aucDiagnosticosList}" 
+                                         widgetVar="tablaDiagnosticosVer" 
+                                         resizableColumns="false" 
+                                         emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <p:selectBooleanCheckbox id="principalDiangosticoVer" label="Es Principal" value="#{diagnosticoVer.principal}" disabled="true">
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!-- Seguimientos -->
+                        <p:panel id="pSeguimientoVer" header="SEGUIMIENTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSeguimientosVer" class="tblCustom" var="seguimientoVer" 
+                                         value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionSeguimientoList}" 
+                                         widgetVar="tablaSeguimientoVer" 
+                                         scrollable="true" 
+                                         resizableColumns="false"
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center; font-size: 11px;" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{seguimientoVer.maeTipoSeguimientoValor}" />
+                                </p:column>
+                                <p:column headerText="Descripción"  style="width:400px;">
+                                    <h:outputText value="#{seguimientoVer.descripcionCorto}" />
+                                    <p:commandButton rendered="#{seguimientoVer.descripcionCorto.length() > 0 }" actionListener="#{peAfiliadoSugeridoBean.mostrarMensaje(seguimientoVer.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{seguimientoVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{seguimientoVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Estancias -->
+                        <p:panel id="pEstanciaVer" header="ESTANCIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaEstanciaVer" class="tblCustom" var="estanciaVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionEstanciaList}" widgetVar="tablaEstanciaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Fecha Ingreso">
+                                    <h:outputText value="#{estanciaVer.fechaIngreso}" />
+                                </p:column>
+                                <p:column headerText="Fecha Egreso">
+                                    <h:outputText value="#{estanciaVer.fechaEgreso}" />
+                                </p:column>
+                                <p:column headerText="Dias">
+                                    <h:outputText value="#{estanciaVer.dias}" />
+                                </p:column>
+                                <p:column headerText="Servicio">
+                                    <h:outputText value="#{estanciaVer.maeServicioValor}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{estanciaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{estanciaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:panel>
+                        <!-- justificacion estancias prolongadas -->
+                        <p:panel id="pJustificacionEstanciaProlongadaVer" header="JUSTIFICACION ESTANCIAS PROLONGADAS" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaJustificacionEstanciaProlongadaVer" class="tblCustom"  var="justificacionEstanciaProlongadaVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionJustificacionEstanciasProlongadaList}" widgetVar="tablaJustificacionEstanciaProlongadaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Causa">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.maeCausaEstanciaProlongadaValor}" />
+                                </p:column>
+                                <p:column headerText="Propuesta">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.maePropuestaIntervensionValor}" />
+                                </p:column>
+                                <p:column headerText="Resumen Clínico">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.resumenClinicoCorto}" />
+                                    <p:commandButton rendered="#{justificacionEstanciaProlongadaVer.resumenClinicoCorto.length() > 0 }" actionListener="#{peAfiliadoSugeridoBean.mostrarMensaje(justificacionEstanciaProlongadaVer.resumenClinico)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Patologias -->
+                        <p:panel id="pPatologiaVer" header="PATOLOGIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaPatologiaVer"  class="tblCustom"  var="patologiaVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionPatologiaList}" widgetVar="tablaPatologiaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Patologia">
+                                    <h:outputText value="#{patologiaVer.maePatologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{patologiaVer.estadoStr}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{patologiaVer.descripcionCorto}" />
+                                    <p:commandButton rendered="#{patologiaVer.descripcionCorto.length() > 0 }" actionListener="#{peAfiliadoSugeridoBean.mostrarMensaje(patologiaVer.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{patologiaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{patologiaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Inoportunidades -->
+                        <p:panel id="pInoportunidadVer" header="INOPORTUNIDADES" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaInoportunidadVer" class="tblCustom" var="inoportunidadVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionInoportunidadList}" widgetVar="tablaInoportunidadVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{inoportunidadVer.maeTipoInoportunidadValor}" />
+                                </p:column>
+                                <p:column headerText="Dias">
+                                    <h:outputText value="#{inoportunidadVer.diasInoportunidad}" />
+                                </p:column>
+                                <p:column headerText="Fecha Inicio">
+                                    <h:outputText value="#{inoportundadVer.fechaInicioInoportunidad}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin">
+                                    <h:outputText value="#{inoportunidadVer.fechaFinInoportunidad}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Observación">
+                                    <h:outputText value="#{inoportunidadVer.observacionCorto}" />
+                                    <p:commandButton rendered="#{inoportunidadVer.observacionCorto.length() > 0 }" actionListener="#{peAfiliadoSugeridoBean.mostrarMensaje(inoportunidadVer.observacion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{inoportunidadVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{inoportunidadVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Adversos -->
+                        <p:panel id="pAdversoVer" header="ADVERSOS" class="tblCustom" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdversoVer" var="adversoVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHosptalizacionAdversoList}" widgetVar="tablaAdversoVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Fecha Evento">
+                                    <h:outputText value="#{adversoVer.fechaEvento}" />
+                                </p:column>
+                                <p:column headerText="Categoria">
+                                    <h:outputText value="#{adversoVer.maeCategoriaEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Subcategoria">
+                                    <h:outputText value="#{adversoVer.maeSubcategoriaEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Conclusión">
+                                    <h:outputText value="#{adversoVer.maeConclusionEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adversoVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{adversoVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Objeciones -->
+                        <p:panel id="pObjecionVer" header="OBJECIONES" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaObjecionVer" var="objecionVer" class="tblCustom"
+                                         value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionObjecionList}"
+                                         widgetVar="tablaObjecionVer" 
+                                         scrollable="true" 
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{objecionVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Codigo Tecnologia">
+                                    <h:outputText value="#{objecionVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{objecionVer.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{objecionVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{objecionVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Servicios -->
+                        <p:panel id="pServicioVer" header="SERVICIOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaServicioVer" var="servicioVer" class="tblCustom"
+                                         value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucHospitalizacionServicioList}" 
+                                         widgetVar="tablaServicioVer" 
+                                         scrollable="true" 
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{servicioVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Codigo Tecnologia">
+                                    <h:outputText value="#{servicioVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Fecha Prestación">
+                                    <h:outputText value="#{servicioVer.fechaPrestacion}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{servicioVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{servicioVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Egreso -->
+                        <p:panel id="pEgresoVer" header="EGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEgresoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Número Certificado"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.numCertificado}"/>
+
+                                <h:outputText value="Fecha Egreso"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.fechaEgreso}"/>
+
+                                <h:outputText value="Destino"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.maeDestinoEgresoValor}"/>
+
+                                <h:outputText value="Conducta"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.maeConductaEgresoValor}"/>
+
+                                <h:outputText value="Especialidad"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.maEspecialidadesValor}"/>
+
+                                <h:outputText value="Fallecido"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.fallecidoStr}"/>
+
+                                <h:outputText value="Valor Estancia"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.valorEstancia}"/>
+
+                                <h:outputText value="Facturado"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.facturado}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pDiagnosticoEgresoVer" header="DIAGNOSTICO EGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaDiagnosticosEgresoVer" class="tblCustom" var="diagnosticoEgresoVer" value="#{peAfiliadoSugeridoBean.objetoHospitalizacion.aucEgresoId.aucDiagnosticosList}" widgetVar="tablaDiagnosticosVer" resizableColumns="true" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maDiagnosticoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <p:selectBooleanCheckbox id="principalDiangosticoVer" label="Es Principal" value="#{diagnosticoEgresoVer.principal}" disabled="true">
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!-- Observaciones -->
+                        <p:panelGrid id="panelObservacion" columns="2" layout="grid" styleClass="showcase-text-align-center"   >
+                            <h:outputText value="OBSERVACION"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.observacion}" />
+                        </p:panelGrid> 
+                        <!-- Adjuntos hospitalización -->
+                        <p:panel id="pnlAdjuntosEx" header="ADJUNTOS" style="margin-bottom:10px;" toggleable="true">
+                            <br/>
+                            <p:dataTable var="adj" widgetVar="tablaArchivo" class="tblCustom" value="#{peAfiliadoSugeridoBean.listaSugeridoAdjuntos}"
+                                         emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Tipo" style="font-size: 11px;">
+                                    <h:outputText value="#{adj.maeTipoArchivoValor}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="font-size: 11px; ">
+                                    <h:outputText value="#{adj.nombre}"/>
+                                </p:column>
+                                <p:column style="text-align: center; font-size: 11px;">
+                                    <p:commandButton icon="ui-icon-arrowstop-1-s" 
+                                                     title="Descargar Adjunto" 
+                                                     action="#{peAfiliadoSugeridoBean.descargarAdjuntoHospitalizacion(adj)}" 
+                                                     ajax="false" 
+                                                     process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVerHospitalizacion').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!--Rechazar Sugerido-->
+            <p:dialog header="Rechazar Sugerido" widgetVar="dialogoRechazar" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <h:form id="frmRechazar">
+                    <p:panelGrid id="panelRechazarSugerido" columns="2" 
+                                 layout="grid" 
+                                 columnClasses="ui-grid-col-3, ui-grid-col-9"
+                                 styleClass="ui-panelgrid-blank ui-fluid" >
+
+                        <h:outputText value="Comentario" class="header-back"/>
+                        <p:inputTextarea id="comentarioAnulacion" rows="5" cols="100" value="#{peAfiliadoSugeridoBean.objeto.observacionRechazo}" counter="display1Anular" maxlength="200" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                        <br/>
+                        <h:outputText id="display1Anular" />
+
+
+                    </p:panelGrid>
+
+                    <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Rechazar" actionListener="#{peAfiliadoSugeridoBean.rechazarSugerido()}"/>                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoRechazar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                   
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+
+            <!--Marcar Sugerido-->
+            <p:dialog header="Marcar" widgetVar="dialogoMarcar" appendTo="@(body)" position="center" width="90%" modal="true" style="height: auto;">
+                <p:scrollPanel mode="native" style="height:450px" >
+                    <h:form id="frmAfiliado">
+                        <p:panel id="pnlAfiliado" header="Datos afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.maeTipoDocumentoValor}"/>
+
+                                <h:outputText value="Número Documento"   class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.numeroDocumento}"/>
+
+                                <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.nombres}"/>
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.apellidos}"/>
+
+                                <h:outputText value="Género"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.maeGeneroValor}"/>
+
+                                <h:outputText value="Régimen"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.regimen == '1' ? 'Subsidiado' : peAfiliadoSugeridoBean.objeto.asegAfiliado.regimen == '2' ? 'Contributivo' : ''}"/>
+
+                                <h:outputText value="Estado Afiliación"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.maeEstadoAfiliacionValor}"/>
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.direccionResidencia}"/>
+
+                                <h:outputText value="Municipio Afiliación"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.afiliacionUbicacion.nombre}"/>
+
+                                <h:outputText value="Tiene Portabilidad"   class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.tienePortabilidadStr}"/>
+
+                                <h:outputText value="Sede Prestador Portabilidad"  class="header-back" />
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.portabilidadPrestadorSede.nombreSede}"/>
+
+                                <h:outputText value="Munipio Portabilidad"   class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.asegAfiliado.portabilidadPrestadorSede.ubicacion.nombre}"/>
+
+                            </p:panelGrid>
+
+                            <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto; margin-top: 0.4rem;">
+                                <p:scrollPanel mode="native">
+                                    <p:dataTable id="tablaContactosAseg" var="contacto"  class="tblCustom" 
+                                                 value="#{peAfiliadoSugeridoBean.listaContactos}" 
+                                                 widgetVar="tablaContactosAseg" 
+                                                 scrollable="false" 
+                                                 emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Número Contacto">
+                                            <h:outputText value="#{contacto.numeroContacto}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+
+                            <p:panel header="Contactos Programa" toggleable="true" style="height:auto; margin-top: 0.4rem;">
+                                <p:scrollPanel mode="native">
+                                    <p:toolbar>
+                                        <f:facet name="right">
+                                            <p:commandButton title="Agregar Contacto" actionListener="#{peAfiliadoSugeridoBean.adicionarContacto()}" icon="ui-icon-document" immediate="true"/>
+                                        </f:facet>
+                                    </p:toolbar>
+                                    <p:dataTable id="tablaContactosCrearPro" var="contacto"  class="tblCustom"
+                                                 value="#{peAfiliadoSugeridoBean.listaContactosPrograma}" 
+                                                 widgetVar="tablaContactosCrearPro" 
+                                                 scrollable="false" 
+                                                 emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Acciones" style="text-align: center;">                                            
+                                            <p:commandButton rendered="#{contacto.nuevo}" title="Retirar Contacto" action="#{peAfiliadoSugeridoBean.retirarContacto(contacto.id)}" icon="ui-icon-close" immediate="true">
+                                                <p:confirm header="Confirmación" message="Está seguro que desea retirar?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                            <p:commandButton rendered="#{!contacto.nuevo}" title="Borrar Contacto" action="#{peAfiliadoSugeridoBean.borrarContacto(contacto.id)}" icon="ui-icon-trash" immediate="true">
+                                                <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                        </p:column>
+                                        <p:column headerText="Número Contacto">
+                                            <h:outputText value="#{contacto.numero}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>                            
+                        </p:panel>
+                    </h:form>
+                    <h:form id="frmCrear">                        
+                        <p:panel id="pnlMatricula" header="Matricula Programa Especial" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Programa Especial"  class="header-back"/>
+                                <h:outputText id="SomPrograma" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.pePrograma.descripcionPrograma}"  />                                            
+
+                                <h:outputText value="Responsable Programa"   class="header-back"/>
+                                <h:outputText id="resPrograma" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.pePrograma.usuariosId.nombre}" title="#{obj.pePrograma.usuariosId.nombre}" />                                        
+
+                                <h:outputText value="Ips Programa"   class="header-back"/>
+                                <p:selectOneMenu id="SomIps" required="true" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.cntPrestadorSede.id}" requiredMessage="Debe seleccionar la Ips del programa" filter="true" filterMatchMode="contains" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{peAfiliadoSugeridoBean.listaPrestadorSede}" var="sede" itemLabel="#{sede.cntPrestadorSedesId.nombreSede}" itemValue="#{sede.cntPrestadorSedesId.id}" />
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Fecha Inicio Programa"  class="header-back"/>
+                                <p:calendar id="fechaInicio"
+                                            autocomplete="off"
+                                            navigator="true"
+                                            pattern="yyyy-MM-dd"
+                                            size="30"
+                                            maxlength="10"
+                                            maxdate="#{peAfiliadoSugeridoBean.fechaHoy}"
+                                            value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.fechaInicioPrograma}"
+                                            required="true"
+                                            requiredMessage="Debe seleccionar la fecha inicio del programa"
+                                            >
+                                    <p:ajax event="dateSelect" update="" />
+                                </p:calendar>
+
+                                <h:outputText value="Fecha fin"  class="header-back"/>
+                                <p:calendar id="fechaFin"
+                                            autocomplete="off"
+                                            navigator="true"
+                                            pattern="yyyy-MM-dd"
+                                            size="30"
+                                            maxlength="10"
+                                            value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.fechaFinPrograma}"
+                                            mindate="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.fechaInicioPrograma}"/>
+
+                                <h:outputText value="Sexo Aplica"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.getSexoAplicaPrograma(peAfiliadoSugeridoBean.objetoAfiliadosPrograma.pePrograma.sexoAplica)}"/>
+
+                                <h:outputText value="Fecha Diagnostico"  class="header-back"/>
+                                <p:calendar id="fechaDx"
+                                            autocomplete="off"
+                                            navigator="true"
+                                            pattern="yyyy-MM-dd"
+                                            size="30" 
+                                            maxdate="#{peAfiliadoSugeridoBean.fechaHoy}"
+                                            maxlength="10"
+                                            readonlyInput="true"
+                                            value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.fechaDiagnostico}">
+                                    <p:ajax event="dateSelect" update="fechaFin" />
+                                </p:calendar>
+
+                                <h:outputText value="Región Corporal"  class="header-back"/>
+                                <p:selectOneMenu id="auRC" required="false" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.maeRegionCorporalId}" filter="true" filterMatchMode="contains" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{peAfiliadoSugeridoBean.listaRegionCorporal}" var="rcor" itemLabel="#{rcor.nombre}" itemValue="#{rcor.id}" />
+                                </p:selectOneMenu>                                        
+
+                                <h:outputText value="Medio Diagnóstico"  class="header-back"/>
+                                <p:selectOneMenu id="auMedioDx" required="false" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.maeMedioDxId}" filter="true" filterMatchMode="contains" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{peAfiliadoSugeridoBean.listaMedioDiagnostico}" var="mdiag" itemLabel="#{mdiag.nombre}" itemValue="#{mdiag.id}" />
+                                </p:selectOneMenu> 
+
+                                <h:outputText value="Activo"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.getEstadoRecursiva(peAfiliadoSugeridoBean.objetoAfiliadosPrograma.activo)}"/>
+
+                                <h:outputText value="Causa"   class="header-back"/>
+                                <p:selectOneMenu id="SomCausasActivo" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.maeCausaActivoId}" required="true" requiredMessage="Debe seleccionar la causa" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{0}" noSelectionOption="true" />
+                                    <f:selectItems value="#{peAfiliadoSugeridoBean.listCausasActivo}" var="CausaA" itemLabel="#{CausaA.nombre}" itemValue="#{CausaA.id}" />                                            
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>                        
+                        </p:panel>
+                        <p:panel id="pDiagnosticoCrear" header="Diagnostico" style="margin-bottom:10px;" collapsed="false" toggleable="false">
+                            <div align="right"> 
+                                <p:commandButton  immediate="true" action="#{peAfiliadoSugeridoBean.consultarDiagnostico()}" icon="ui-icon-clipboard" title="Agregar Diagnostico"/>
+                            </div>                            
+                            <p:dataTable id="tablaDiagnosticosCrear" class="tblCustom" var="diagnosticoCrear" value="#{peAfiliadoSugeridoBean.objetoAfiliadosPrograma.peAfiliadoDiagnosticoList}" 
+                                         widgetVar="tablaDiagnosticosCrear" resizableColumns="false" 
+                                         emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoCrear.maDiagnosticosCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoCrear.maDiagnosticosValor}" />
+                                </p:column>                                
+                                <p:column headerText="Principal">
+                                    <p:selectBooleanCheckbox id="principalDiangosticoCrear" label="Es Principal" value="#{diagnosticoCrear.principal}">
+                                        <p:ajax event="change" listener="#{peAfiliadoSugeridoBean.cambiarPrincipalDiagnostico(diagnosticoCrear.maDiagnosticosId)}" update="tablaDiagnosticosCrear"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{peAfiliadoSugeridoBean.borrarDiagnostico(diagnosticoCrear.maDiagnosticosId)}" icon="ui-icon-closethick">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar el registro?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel> 
+                        <p:panelGrid id="panelCrear" style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{peAfiliadoSugeridoBean.guardarMarca}" update="@form" />
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoMarcar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!--Ver auditoria-->            
+            <p:dialog header="Auditoria Sugerido" widgetVar="dialogoAuditoria" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmAuditoria">
+                        <p:panel id="pTablaAuditoria" header="Lista Auditoria" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAuditoria" var="auditoria" class="tblCustom" value="#{peAfiliadoSugeridoBean.objeto}" widgetVar="tablaAuditoria" resizableColumns="false" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.getEstado(peAfiliadoSugeridoBean.objeto.estado)}" />
+                                </p:column>
+                                <p:column headerText="Usuario Crea">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.objeto.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Crea">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.objeto.fechaHoraCrea}" />
+                                </p:column>
+                                <p:column headerText="Usuario Modifica">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.objeto.usuarioModifica}" />
+                                </p:column>
+                                <p:column headerText="Fecha Modifica">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.objeto.fechaHoraModifica}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelDevoluciones" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoAuditoria').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo para crear Contacto -->
+            <p:dialog header="Crear Contacto"  widgetVar="dialogoCrearContacto" appendTo="@(body)"  position="center" width="60%" modal="true">
+                <p:scrollPanel mode="native" >
+                    <h:form id="frmCrearContacto">
+                        <p:panelGrid id="panelCrearContacto" 
+                                     columns="4" layout="grid" 
+                                     columnClasses="ui-grid-col-2, ui-grid-col-4,ui-grid-col-2, ui-grid-col-4"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <h:outputText value="Tipo"  class="header-back"/>
+                            <p:selectOneMenu id="tipoContacto" label="Tipo" required="true" value="#{peAfiliadoSugeridoBean.contacto.maeTipoContactoId}" 
+                                             editable="fase"  requiredMessage="Tipo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{peAfiliadoSugeridoBean.listaTiposContacto}" var="TIPO_CONTACTO" itemValue="#{TIPO_CONTACTO.id}" itemLabel="#{TIPO_CONTACTO.nombre}" itemDescription="#{TIPO_CONTACTO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <h:outputText value="Número de Contacto"   class="header-back"/>
+                            <p:inputText id="numeroContacto" label="Número de Contacto" value="#{peAfiliadoSugeridoBean.contacto.numero}" maxlength="10" required="true" requiredMessage="Número de Contacto: Este campo es obligatorio." >
+                                <p:keyFilter regEx="/[0-9]/i"/>
+                            </p:inputText>
+
+                            <h:outputText value="Observación" class="header-back"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{peAfiliadoSugeridoBean.contacto.observacion}" maxlength="128" required="false" requiredMessage="Observación: Este campo es obligatorio." />
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarContactoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarContactoRemote" action="#{peAfiliadoSugeridoBean.guardarContacto()}" update="panelCrearContacto"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearContacto').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>             
+
+            <!-- descripciones genericas -->
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native">
+                    <h:form id="frmObservacion">
+                        <p:panelGrid id="panelObservacion" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                            <p:inputTextarea  value="#{peAfiliadoSugeridoBean.descripcionGenerica}" readonly="true" style="width: 100%;" />
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- descripciones afiliado genericas -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" appendTo="@(body)" position="center" width="80%" modal="true" style="height: auto;">           
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <h:outputText value="Estado"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.maeEstadoAfiliacionValor}" />
+
+                            <h:outputText value="Nombres"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.nombres}" />
+
+                            <h:outputText value="Apellidos"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.apellidos}" />
+
+                            <h:outputText value="Tipo Documento"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.maeTipoDocumentoCodigo}" />
+
+                            <h:outputText value="Documento"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.numeroDocumento}" />
+
+                            <h:outputText value="Correo"   class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.email}" />
+
+                            <h:outputText value="Dirección"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.direccionResidencia}" />
+
+                            <h:outputText value="Ubicación"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.obtenerMunicipioDepartamento(peAfiliadoSugeridoBean.objeto.asegAfiliado.residenciaUbicacion.id)}" />
+
+                            <h:outputText value="Regimen"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.maeRegimenValor}" />
+
+                            <h:outputText value="Contrato"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.idAfiliado}" />
+
+                            <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.fechaNacimiento}" />
+
+                        </p:panelGrid>
+                        <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactosGeneralAseg" var="contacto" 
+                                             value="#{peAfiliadoSugeridoBean.objeto.asegAfiliado.listaAsegAfiliadoContacto}" 
+                                             widgetVar="tablaContactosGestionarAseg" scrollable="true" 
+                                             emptyMessage="No se encontraron registros"
+                                             style="font-size: 11px"
+                                             >
+                                    <p:column headerText="Número Contacto" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.numeroContacto}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}" style="font-size: 11px" />
+                                    </p:column>
+                                    <p:column headerText="Observación" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.observacion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panel header="Contactos Programa" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactoPersonaGeneral" widgetVar="tablaContactoPersonaGeneral" var="contacto" value="#{peAfiliadoSugeridoBean.listaContactosPrograma}" scrollable="true" style="margin-bottom:20px;" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número Contacto" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.numero}"  style="font-size: 11px" />
+                                    </p:column>
+                                    <p:column headerText="Tipo" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}"  style="font-size: 11px" />
+                                    </p:column>
+                                    <p:column headerText="Observación" style="font-size: 11px" >
+                                        <h:outputText value="#{contacto.observacion}"  style="font-size: 11px" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!--Ver Solicitud-->
+            <p:dialog widgetVar="dialogoVerSolicitud" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+
+                <header style="font-size: 30px;">
+                    <b>Ver Solicitud</b>
+                </header>
+                <h:form id="frmAuditoriaVerSolicitud" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <h:outputText id="labelDatosAuditoria" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{peAfiliadoSugeridoBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height: 500px" >
+                    <h:form id="frmVerSolicitud">
+                        <p:panelGrid id="panelEstadoVer" columns="2" layout="grid" styleClass="showcase-text-align-center" rendered="#{peAfiliadoSugeridoBean.objeto.estado == 3}" >
+
+                            <h:outputText value="Motivo Estado"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.observacion}" style="color: red;font-weight: bold;"/>
+
+                            <h:outputText value="Observación Rechazo"  class="header-back"/>
+                            <h:outputText value="#{peAfiliadoSugeridoBean.objeto.observacionRechazo}" style="color: red;font-weight: bold;"/>
+
+                        </p:panelGrid> 
+
+                        <!--solicitud-->
+                        <p:panel id="pDatoSolicitudVer" header="Datos de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTipoSol" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Número solicitud"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.id}"/>
+
+                                <h:outputText value="Estado"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.estadoStr}"/>
+
+                                <h:outputText value="Responsable"  class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.usuarioCrea}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Afiliado-->
+                        <p:panel id="pAfiliadoVer" header="Afiliado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAfiliadoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeTipoDocumentoCodigo}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.numeroDocumento}" />
+
+                                <h:outputText value="Contrato Afiliado"  class="header-back"/>
+                                <h:outputText id="codigoAfiliadoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.idAfiliado}"/>
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <h:outputText id="nombresVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.nombres}"/>
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <h:outputText id="apellidosVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.apellidos}"/>
+
+                                <h:outputText value="Fecha Nacimiento"  class="header-back"/>
+                                <h:outputText id="fechaNacimientoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.fechaNacimiento}">
+                                </h:outputText>
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText id="direccionVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.direccionResidencia}"/>
+
+                                <h:outputText value="Regimen"  class="header-back"/>
+                                <h:outputText id="regimenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeRegimenValor}"/>
+
+                                <h:outputText value="Genero"  class="header-back"/>
+                                <h:outputText id="generoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeGeneroValor}"/>
+
+                                <h:outputText value="Edad"  class="header-back"/>
+                                <h:outputText id="edadVer" value="#{peAfiliadoSugeridoBean.calcularEdad(peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.fechaNacimiento)}"/>
+
+                                <h:outputText value="Email"  class="header-back"/>
+                                <h:outputText id="emailVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.email}"/>
+
+                                <h:outputText value="Teléfono Fijo"  class="header-back"/>
+                                <h:outputText id="telefonoVer" value="#{auCotizaciondBean.objetoAnexo3.asegAfiliadoId.telefonoFijo}"/>
+
+                                <h:outputText value="Celular"  class="header-back"/>
+                                <h:outputText id="celularVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.telefonoMovil}"/>
+
+                                <h:outputText value="Nivel Sisbén"  class="header-back"/>
+                                <h:outputText id="nivelSisbenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.nivelSisben}"/>
+
+                                <h:outputText value="Discapacidad"  class="header-back"/>
+                                <h:outputText id="discapacidadVer" value="#{peAfiliadoSugeridoBean.obtenerBoolean(peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.discapacidad)}"/>
+
+                                <h:outputText value="Tipo Afiliado"  class="header-back"/>
+                                <h:outputText id="tipoAfiliadoVer" 
+                                              value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeTipoAfiliadoValor}"/>
+
+                                <h:outputText value="Estado Afiliacion"  class="header-back"/>
+                                <h:outputText id="estadoAfiliacionVer" 
+                                              value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeEstadoAfiliacionValor}"/>
+
+                                <h:outputText value="Grupo Poblacional"  class="header-back"/>
+                                <h:outputText id="grupoPoblacionalVer" 
+                                              value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.maeGrupoPoblacionalValor}"/>
+
+                                <h:outputText value="IPS primaria"   class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.nombreSede}"/>
+
+                                <h:outputText value="Dirección IPS primaria"   class="header-back"/>
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.direccion}"/>
+
+                                <h:outputText value="Teléfono IPS primaria"  class="header-back" />
+                                <h:outputText value="#{peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <h:outputText value="Ciudad/Municipio IPS primaria"  class="header-back" />
+                                <h:outputText value="#{peAfiliadoSugeridoBean.obtenerMunicipio(peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <h:outputText value="Departamento IPS primaria"  class="header-back" />
+                                <h:outputText 
+                                    value="#{peAfiliadoSugeridoBean.obtenerDepartamento(peAfiliadoSugeridoBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <!--Acompañante-->
+                        <p:panel id="pAcompananteVer" header="Acompañante" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAcompananteVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Nombre Completo"  class="header-back"/>
+                                <h:outputText id="nombreAcompananteVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.nombreAcompanante}" />
+
+                                <h:outputText value="Teléfono Fijo"  class="header-back"/>
+                                <h:outputText id="telefonoAcompananteVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.telefonoAcompanante}"/>
+
+                                <h:outputText value="Celular"  class="header-back"/>
+                                <h:outputText id="celularAmponanteVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.celularAcompanente}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Tipo de solicitud-->
+                        <p:panel id="pTipoSolVer" header="Tipo de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTipoSolVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Servicio de atención"  class="header-back"/>
+                                <h:outputText id="serAtenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.maServicioHabilitadoValor}"/>
+
+                                <h:outputText value="Ámbito"  class="header-back"/>
+                                <h:outputText id="ambitoVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.maeAmbitoAtencionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Solicitud-->
+                        <p:panel id="pSolVer" header="Solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelSolVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Número Solicitud"  class="header-back"/>
+                                <h:outputText id="numSolicitudVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.numero}"/>
+
+                                <h:outputText value="Fecha Orden Medica"  class="header-back"/>
+                                <h:outputText id="fechaOrdenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.fechaSolicitud}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--IPS Solicita-->
+                        <p:panel id="pIpsVer" header="IPS Solicita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelipsVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoIpsVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.maeTipoDocumentoCodigo}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoIpsVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.numeroDocumento}"/>
+
+                                <h:outputText value="Razón Social"  class="header-back"/>
+                                <h:outputText id="razonSocialVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.razonSocial}" />
+
+                                <h:outputText value="Departamento"  class="header-back"/>
+                                <h:outputText id="departamentoIpsVer" value="#{peAfiliadoSugeridoBean.obtenerDepartamento(peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Municipio"  class="header-back"/>
+                                <h:outputText id="municipioIpsVer" value="#{peAfiliadoSugeridoBean.obtenerMunicipio(peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <h:outputText value="Dirección"  class="header-back"/>
+                                <h:outputText id="direccionIpsVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntPrestadorSedeId.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Datos del profesional-->
+                        <p:panel id="pProfesionalVer" header="Información Profesional" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProfesionalVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Tipo Documento"  class="header-back"/>
+                                <h:outputText id="tipoDocumentoProfVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.maeTipoDocumentoValor}"/>
+
+                                <h:outputText value="Número Documento"  class="header-back"/>
+                                <h:outputText id="numeroDocumentoProfVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.documento}"/>
+
+                                <h:outputText value="Primer Nombre"  class="header-back"/>
+                                <h:outputText id="primerNombreProfesionalVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.primerNombre}" />
+
+                                <h:outputText value="Segundo Nombre"  class="header-back"/>
+                                <h:outputText id="segundoNombreProfesionalVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.segundoNombre}" />
+
+                                <h:outputText value="Primer Apellido"  class="header-back"/>
+                                <h:outputText id="primerApellidoProfesionalVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.primerApellido}" />
+
+                                <h:outputText value="Segundo Apellido"  class="header-back"/>
+                                <h:outputText id="segundoApellidoProfesionalVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.segundoApellido}" />
+
+                                <h:outputText value="Número RM"  class="header-back"/>
+                                <h:outputText id="registroProfVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.cntProfesionaleId.registroMedico}"/>
+
+                                <h:outputText value="Especialidad" class="header-back"/>
+                                <h:outputText id="especialidadProfVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.objetoEspecialidad.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Infomarcion de la atencion-->
+                        <p:panel id="pInfoAtenVer" header="Información de la atención" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelInfoAtenVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Origen de la atención"  class="header-back"/>
+                                <h:outputText id="origenAtenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.maeOrigenAtencionValor}" />
+
+                                <h:outputText value="Prioridad de la atención"  class="header-back"/>
+                                <h:outputText id="prioridadAtenVer" value="Prioridad de la atención"/>
+
+                                <h:outputText value="Tipo Servicio Solicitado"  class="header-back"/>
+                                <h:outputText id="servicioAtenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.maServicioSolicitadoValor}"/>
+
+                                <h:outputText value="Ubicación del paciente"  class="header-back"/>
+                                <h:outputText id="ubicacionAtenVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.maeUbicacionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Diagnostico-->
+                        <p:panel id="pDiagnosticoVer" header="Diagnostico" 
+                                 style="margin-bottom:10px;" 
+                                 collapsed="false" 
+                                 toggleable="true">                           
+                            <p:dataTable id="tablaDiagnosticosVer" var="diagnosticoVer" class="tblCustom"
+                                         value="#{peAfiliadoSugeridoBean.objetoAnexo3.auAnexo3DiagnosticosList}" 
+                                         widgetVar="tablaDiagnosticosVer" 
+                                         resizableColumns="true" 
+                                         emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <h:outputText value="#{peAfiliadoSugeridoBean.obtenerBoolean(diagnosticoVer.principal)}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Prescripciones-->
+                        <p:panel id="pPrescripcionVer" header="Prescripciones" 
+                                 style="margin-bottom:10px;" 
+                                 collapsed="false" 
+                                 toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" var="tecnologiasVer" class="tblCustom" 
+                                         value="#{peAfiliadoSugeridoBean.objetoAnexo3.auAnexo3ItemsList}" 
+                                         widgetVar="tablaProcedimientosVer" 
+                                         resizableColumns="false" 
+                                         emptyMessage="No se encontraron procedimientos" 
+                                         style="text-align: center">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{tecnologiasVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Diagnóstico">
+                                    <h:outputText value="#{tecnologiasVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tecnologiasVer.getEstadoStr()}" />
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton rendered="#{tecnologiasVer.auItemBitacorasList.size() > 0}" actionListener="#{peAfiliadoSugeridoBean.verBitacoras(tecnologiasVer)}" icon="ui-icon-folder-collapsed" title="Ver Bitacoras"/>
+                                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{peAfiliadoSugeridoBean.visualizarAuditoriaPrescipcion(tecnologiasVer)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>
+                            </p:dataTable>       
+                        </p:panel>
+                        <!--Programa especial-->
+                        <p:panel id="pProgramaEspecialVer" header="Programa Especial - RIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProgramaEspecialVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Programa Especial"  class="header-back"/>
+                                <h:outputText id="programaVer" value="#{peAfiliadoSugeridoBean.objetoAnexo3.peProgramaEspecialValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Justificacion-->
+                        <p:panel id="pJustifiacionVer" header="Justificación Clínica" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelJustificacionVer" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:inputTextarea rows="5" cols="155" value="#{peAfiliadoSugeridoBean.objetoAnexo3.justificacionClinica}" disabled="true"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Soportes fisicos-->
+                        <p:panel id="pSoporteVer" header="Soportes Fisicos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSoportesVer" var="soportesVer" class="tblCustom" value="#{peAfiliadoSugeridoBean.listaSugeridoAdjuntos}" 
+                                         widgetVar="tablaSoportesVer" 
+                                         resizableColumns="true" 
+                                         emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Tipo" style="font-size: 11px;">
+                                    <h:outputText value="#{soportesVer.maeTipoArchivoValor}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="font-size: 11px; ">
+                                    <h:outputText value="#{soportesVer.nombre}"/>
+                                </p:column>
+                                <p:column style="text-align: center; font-size: 11px;">
+                                    <p:commandButton icon="ui-icon-arrowstop-1-s" 
+                                                     title="Descargar Adjunto" 
+                                                     action="#{peAfiliadoSugeridoBean.descargarAdjuntoHospitalizacion(soportesVer)}" 
+                                                     ajax="false" 
+                                                     process="@this"/>
+                                </p:column>                                  
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Tutelas-->
+                        <p:panel id="pTutelaVer" header="Tutelas" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <p:panelGrid id="panelTutelaVer" style="width:100%;margin:10px 0px">
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerSolicitud').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Listar Bitacora -->
+            <p:dialog header="Bitacora" widgetVar="dialogoVerBitacorass" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVerBitacoras">
+                        <p:panel id="pTablaBitacora" header="Lista Bitacora" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaBitacora" var="bitacora" value="#{peAfiliadoSugeridoBean.objetoAnexo3.objetoTecnologia.auItemBitacorasList}" 
+                                         widgetVar="tablaBitacora" resizableColumns="true" emptyMessage="No se encontraron registros"
+                                         sortBy="#{bitacora.id}" >                                                           
+                                <p:column headerText="Tipo"  filterBy="#{bitacora.tipo}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaBitacora').filter()" style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Solicitud Devolución" itemValue="1"/>
+                                            <f:selectItem itemLabel="Respuesta Devolución" itemValue="2"/>
+                                            <f:selectItem itemLabel="Solicitud Cotización" itemValue="3"/>
+                                            <f:selectItem itemLabel="Respuesta Cotización" itemValue="4"/>
+                                            <f:selectItem itemLabel="Derivación" itemValue="5"/>
+                                            <f:selectItem itemLabel="Rechazo Item" itemValue="6"/>
+                                            <f:selectItem itemLabel="Cambio Estado" itemValue="8"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{bitacora.getStrTipo()}" />
+                                </p:column>
+                                <p:column headerText="Descripcion">
+                                    <h:outputText value="#{bitacora.descripcion}" />
+                                </p:column>
+                                <p:column headerText="Usuario ">
+                                    <h:outputText value="#{bitacora.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora" >
+                                    <h:outputText value="#{bitacora.fechaHoraCrea}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelDevoluciones" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerBitacorass').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <ui:include src="../maestro/seleccion/sel_diagnosticos.xhtml" />
+
+        </center>
+    </ui:define>
+
+</ui:composition>

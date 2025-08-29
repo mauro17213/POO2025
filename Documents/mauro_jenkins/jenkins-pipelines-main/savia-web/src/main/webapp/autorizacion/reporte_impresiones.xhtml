@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .responsivefix {overflow-y: scroll;max-height:100vh;max-width: 95%!important;margin-left: -2.5%!important;left: 5%!important;}
+            @media only screen and (max-width: 960px) { 
+                .responsivefix {height:90vh!important;}
+                .smallModal{
+                    width: 50%!important;
+                    left: 50%!important;
+                    margin-left: -25%!important;}
+            }
+
+        </style>
+
+        <div id="overlay">
+            <div class="loader">Cargando...</div>
+        </div>
+        <center>
+            <h:form id="frmImpresionAutorizacion">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{reporteImpresionBean.modulo.descripcion}">#{reporteImpresionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Desde"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{reporteImpresionBean.fechaInicio}" pattern="yyyy-MM-dd">
+                            <p:ajax event="dateSelect" listener="#{reporteImpresionBean.refrescar()}"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>                        
+                        <p:outputLabel value="Hasta"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{reporteImpresionBean.fechaFin}" pattern="yyyy-MM-dd">
+                            <p:ajax event="dateSelect" listener="#{reporteImpresionBean.refrescar()}"/>
+                        </p:calendar>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{reporteImpresionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{reporteImpresionBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{reporteImpresionBean.accionListar}" title="Exportar" ajax="false" actionListener="#{reporteImpresionBean.exportar}"
+                                         icon="ui-icon-excel"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:barChart id="barrasHorizontales" model="#{reporteImpresionBean.modeloReporte}" style="#{reporteImpresionBean.chartStyle}" />
+            </h:form>
+
+            <script type="text/javascript">
+                //<![CDATA[
+                function start() {
+                    PF('statusDialog').show();
+                }
+
+                function stop() {
+                    PF('statusDialog').hide();
+                }
+                //]]>
+            </script>  
+
+
+        </center>
+    </ui:define>
+</ui:composition>

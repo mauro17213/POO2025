@@ -1,0 +1,360 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>			 
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmInsumos">
+                <p:remoteCommand name="cerrarDialogoSelCodigoMipres" action="#{insumosBean.cerrarDialogoSelCodigoMipres()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{insumosBean.modulo.descripcion}">#{insumosBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{insumosBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{insumosBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{insumosBean.accionCrear}" title="Crear" ajax="false" actionListener="#{insumosBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{insumosBean.lazyInsumos}" paginator="true" rows="#{insumosBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{insumosBean.accionVer}" title="Detalle Afiliado" actionListener="#{insumosBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{insumosBean.accionEditar}" title="Realizar Novedad" actionListener="#{insumosBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{insumosBean.accionBorrar}" title="Borrar" action="#{insumosBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="Tipo" sortBy="#{obj.maeTipoValor}" filterBy="#{obj.maeTipoValor}">
+                        <f:facet name="filter">
+                            <p:inputText label="Tipo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoValor}" title="#{obj.maeTipoValor}"/>
+                    </p:column>
+                    <p:column headerText="Código" sortBy="#{obj.codigo}" filterBy="#{obj.codigo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Código" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.codigo}" title="#{obj.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Descripción" sortBy="#{obj.descripcion}" filterBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcion}" title="#{obj.descripcion}"/>
+                    </p:column>
+                    <p:column headerText="Abreviatura" sortBy="#{obj.abreviatura}" filterBy="#{obj.abreviatura}">
+                        <f:facet name="filter">
+                            <p:inputText label="Abreviatura" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.abreviatura}" title="#{obj.abreviatura}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{insumosBean.getActivo(obj.activo)}" title="#{insumosBean.getActivo(obj.activo)}"/>
+                    </p:column>
+                    <p:column headerText="Cobertura" filterBy="#{obj.cobertura}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" POS " itemValue="1"  />
+                                <f:selectItem itemLabel=" NO POS " itemValue="2" />
+                                <f:selectItem itemLabel=" Condicional " itemValue="3"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{insumosBean.getCobertura(obj.cobertura)}" title="#{insumosBean.getCobertura(obj.cobertura)}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{insumosBean.getAuditoria(insumosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelInsumos" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.objeto.maeTipoValor}" />
+
+                            <p:outputLabel value="Código" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.objeto.codigo}" />
+
+                            <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.objeto.descripcion}" />
+
+                            <p:outputLabel value="Abreviatura" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.objeto.abreviatura}" />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.getActivo(insumosBean.objeto.activo)}" />
+
+                            <p:outputLabel value="Cobertura" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.getCobertura(insumosBean.objeto.cobertura)}" />
+
+                            <p:outputLabel value="Automático" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.getActivo(insumosBean.objeto.automatico)}" />
+
+                            <p:outputLabel value="Código Servicio Habilitación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{insumosBean.objeto.codigoHabilitacion}" />
+
+                        </p:panelGrid>
+                        <p:panel id="pnlVerTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{insumosBean.objeto.listaInsumoMipres}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcionMipres}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true">
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form id="frmCrear">
+                        <p:panelGrid id="panelCrear" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Tipo" for="tipoId" style="font-weight:bold"/>
+                            <p:selectOneMenu id="tipoId" label="Tipo" required="true" value="#{insumosBean.objeto.maeTipoId}" 
+                                             editable="fase" style="width: 170px;" filter="true" filterMatchMode="contains" requiredMessage="Tipo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{insumosBean.listaTipos}" var="TIPO" itemValue="#{TIPO.id}" itemLabel="#{TIPO.nombre}" itemDescription="#{TIPO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{insumosBean.objeto.codigo}" maxlength="16" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                            <p:inputTextarea id="descripcion" label="Descripción" value="#{insumosBean.objeto.descripcion}" maxlength="256" required="true" requiredMessage="Descripción: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9À-ÿ\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea>
+
+                            <p:outputLabel value="Abreviatura" for="abreviatura" style="font-weight:bold" />
+                            <p:inputTextarea id="abreviatura" label="Abreviatura" value="#{insumosBean.objeto.abreviatura}" maxlength="32" required="true" requiredMessage="Abreviatura: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea>
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{insumosBean.objeto.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Cobertura" for="cobertura"/>
+                            <p:selectOneMenu id="cobertura" label="Cobertura" value="#{insumosBean.objeto.cobertura}"
+                                             required="true" requiredMessage="Cobertura: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="POS" itemValue="1" />
+                                <f:selectItem itemLabel="NO POS" itemValue="2" />
+                                <f:selectItem itemLabel="Condicional" itemValue="3" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panel id="pnlTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{insumosBean.consultarMpCodigoInsumo()}" icon="ui-icon-clipboard" title="Códigos Mipres"/>
+                            </div>
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{insumosBean.listaCodigoInsumo}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-close" immediate="true" title="Retirar Código" action="#{insumosBean.borrarCodigoMipres(codigoMipres)}"/>
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="guardarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{insumosBean.guardar()}" update="panelCrear,panelCrear2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Editar -->
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true">
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{insumosBean.getAuditoria(insumosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panelGrid id="panelEditar" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Tipo" for="tipoId" style="font-weight:bold"/>
+                            <p:selectOneMenu id="tipoId" label="Tipo" required="true" value="#{insumosBean.objeto.maeTipoId}" 
+                                             editable="fase" style="width: 170px;" filter="true" filterMatchMode="contains" requiredMessage="Tipo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{insumosBean.listaTipos}" var="TIPO" itemValue="#{TIPO.id}" itemLabel="#{TIPO.nombre}" itemDescription="#{TIPO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{insumosBean.objeto.codigo}" maxlength="16" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                            <p:inputTextarea id="descripcion" label="Descripción" value="#{insumosBean.objeto.descripcion}" maxlength="256" required="true" requiredMessage="Descripción: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9À-ÿ\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea>
+
+                            <p:outputLabel value="Abreviatura" for="abreviatura" style="font-weight:bold"/>
+                            <p:inputTextarea id="abreviatura" label="Abreviatura" value="#{insumosBean.objeto.abreviatura}" maxlength="32" required="true" requiredMessage="Abreviatura: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea>
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{insumosBean.objeto.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Cobertura" for="cobertura" style="font-weight:bold"/>
+                            <p:selectOneMenu id="cobertura" label="Cobertura" value="#{insumosBean.objeto.cobertura}"
+                                             required="true" requiredMessage="Cobertura: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="POS" itemValue="1" />
+                                <f:selectItem itemLabel="NO POS" itemValue="2" />
+                                <f:selectItem itemLabel="Condicional" itemValue="3" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Automático" for="automatico" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="automatico" value="#{insumosBean.objeto.automatico}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close" disabled="true" style="width:60px" />
+
+                            <p:outputLabel value="Código Servicio Habilitación" for="codigoHabilitacion" style="font-weight:bold"/>
+                            <p:inputText id="codigoHabilitacion" label="Código Servicio Habilitación" value="#{insumosBean.objeto.codigoHabilitacion}" required="false" disabled="true" />
+
+                        </p:panelGrid>
+                        <p:panel id="pnlTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{insumosBean.consultarMpCodigoInsumo()}" icon="ui-icon-clipboard" title="Códigos Mipres"/>
+                            </div>
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{insumosBean.listaCodigoInsumo}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-close" immediate="true" title="Retirar Código" action="#{insumosBean.eliminarCodigosMipres(codigoMipres)}"/>
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelEditar2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="modificarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{insumosBean.modificar()}" update="panelEditar,panelEditar2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <ui:include src="../mipres/seleccion/sel_codigo_mipres.xhtml" />
+        </center>
+    </ui:define>
+</ui:composition>

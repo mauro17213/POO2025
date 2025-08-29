@@ -1,0 +1,526 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmDiagnosticos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{diagnosticosBean.modulo.descripcion}">#{diagnosticosBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{diagnosticosBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{diagnosticosBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{diagnosticosBean.accionCrear}" title="Crear" ajax="false" actionListener="#{diagnosticosBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{diagnosticosBean.lazyDiagnosticos}" paginator="true" rows="#{diagnosticosBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{diagnosticosBean.accionVer}" title="Detalle Afiliado" actionListener="#{diagnosticosBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{diagnosticosBean.accionEditar}" title="Realizar Novedad" actionListener="#{diagnosticosBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{diagnosticosBean.accionBorrar}" title="Borrar" action="#{diagnosticosBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="Capítulo" sortBy="#{obj.maeDiagnosticoCapituloValor}" filterBy="#{obj.maeDiagnosticoCapituloValor}">
+                        <f:facet name="filter">
+                            <p:inputText label="Capítulo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeDiagnosticoCapituloValor}" title="#{obj.maeDiagnosticoCapituloValor}"/>
+                    </p:column>
+                    <p:column headerText="Categoría" sortBy="#{obj.maeDiagnosticoCategoriaValor}" filterBy="#{obj.maeDiagnosticoCategoriaValor}">
+                        <f:facet name="filter">
+                            <p:inputText label="Categoría" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeDiagnosticoCategoriaValor}" title="#{obj.maeDiagnosticoCategoriaValor}"/>
+                    </p:column>
+                    <p:column headerText="Código (Diagnóstico)" sortBy="#{obj.codigo}" filterBy="#{obj.codigo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Código (Diagnóstico)" maxlength="8" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.codigo}" title="#{obj.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Nombre (Diagnóstico)" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre (Diagnóstico)" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{diagnosticosBean.getActivo(obj.activo)}" title="#{diagnosticosBean.getActivo(obj.activo)}"/>
+                    </p:column>
+                    <p:column headerText="Sexo Aplica" filterBy="#{obj.sexoAplica}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Masculino " itemValue="0"  />
+                                <f:selectItem itemLabel=" Femenino " itemValue="1" />
+                                <f:selectItem itemLabel=" Ambos " itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{diagnosticosBean.getSexoAplica(obj.sexoAplica)}" title="#{diagnosticosBean.getSexoAplica(obj.sexoAplica)}"/>
+                    </p:column>
+                    <p:column headerText="Edad Inferior" filterBy="#{obj.edadInferior}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="4" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.edadInferior}" title="#{obj.edadInferior}"/>
+                    </p:column>
+                    <p:column headerText="Edad Superior" filterBy="#{obj.edadSuperior}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="4" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.edadSuperior}" title="#{obj.edadSuperior}"/>
+                    </p:column>
+                    <p:column headerText="Grupo Mortalidad" sortBy="#{obj.grupoMortalidad}" filterBy="#{obj.grupoMortalidad}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="3" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.grupoMortalidad}" title="#{obj.grupoMortalidad}"/>
+                    </p:column>
+                    <p:column headerText="Grupo Mortalidad Lista" sortBy="#{obj.grupoMortalidadLista}" filterBy="#{obj.grupoMortalidadLista}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="3" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.grupoMortalidadLista}" title="#{obj.grupoMortalidadLista}"/>
+                    </p:column>
+                    <p:column headerText="Valor Límite Inferior" sortBy="#{obj.valorLimiteInferior}" filterBy="#{obj.valorLimiteInferior}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="4" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.valorLimiteInferior}" title="#{obj.valorLimiteInferior}"/>
+                    </p:column>
+                    <p:column headerText="Valor Límite Superior" sortBy="#{obj.valorLimiteSuperior}" filterBy="#{obj.valorLimiteSuperior}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="4" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.valorLimiteSuperior}" title="#{obj.valorLimiteSuperior}"/>
+                    </p:column>
+                    <p:column headerText="Exento Cobro" filterBy="#{obj.excentoCobro}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{diagnosticosBean.getValorBandera(obj.excentoCobro)}" title="#{diagnosticosBean.getValorBandera(obj.excentoCobro)}"/>
+                    </p:column>
+                    <p:column headerText="Alto Costo" filterBy="#{obj.altoCosto}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{diagnosticosBean.getActivo(obj.altoCosto)}" title="#{diagnosticosBean.getActivo(obj.altoCosto)}"/>
+                    </p:column>
+                    <p:column headerText="Priorizar Crue" filterBy="#{obj.priorizarCrue}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{diagnosticosBean.getValorBandera(obj.priorizarCrue)}" title="#{diagnosticosBean.getValorBandera(obj.priorizarCrue)}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="60%">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style=" text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{diagnosticosBean.getAuditoria(diagnosticosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelDiagnosticos" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Capítulo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.maeDiagnosticoCapituloValor}" />
+
+                            <p:outputLabel value="Categoría" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.maeDiagnosticoCategoriaValor}" />
+
+                            <p:outputLabel value="Código" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.codigo}" />
+
+                            <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.nombre}" />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.getActivo(diagnosticosBean.objeto.activo)}" />
+
+                            <p:outputLabel value="Sexo Aplica" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.getSexoAplica(diagnosticosBean.objeto.sexoAplica)}" />
+
+                            <p:outputLabel value="Edad inferior" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.edadInferior}" />
+
+                            <p:outputLabel value="Edad Superior" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.edadSuperior}" />
+
+                            <p:outputLabel value="Grupo Mortalidad" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.grupoMortalidad}" />
+
+                            <p:outputLabel value="Grupo Mortalidad Lista" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.grupoMortalidadLista}" />
+
+                            <p:outputLabel value="Valor Límite inferior" style="font-weight:bold" />
+                            <p:outputLabel value="#{diagnosticosBean.objeto.valorLimiteInferior}" />
+
+                            <p:outputLabel value="Valor Límite Superior" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.valorLimiteSuperior}" />
+
+                            <p:outputLabel value="Excento Cobro" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.getValorBandera(diagnosticosBean.objeto.excentoCobro)}" />
+
+                            <p:outputLabel value="Alto Costo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.getActivo(diagnosticosBean.objeto.altoCosto)}" />
+
+                            <p:outputLabel value="Priorizar Crue" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.getValorBandera(diagnosticosBean.objeto.priorizarCrue)}" />
+
+                            <p:outputLabel value="Demonimación CAC" style="font-weight:bold"/>
+                            <p:outputLabel value="#{diagnosticosBean.objeto.maCacValor}" />
+                            
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form id="frmCrear">
+                        <p:panelGrid id="panelCrear" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Capítulo" for="capitulo" style="font-weight:bold"/>
+                            <p:selectOneMenu id="capitulo" label="Capítulo" required="true" value="#{diagnosticosBean.objeto.maeDiagnosticoCapituloId}" 
+                                             editable="fase" style="width: 170px;" filter="true" filterMatchMode="contains" requiredMessage="Capítulo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaCapitulo}" var="CAPITULO" itemValue="#{CAPITULO.id}" itemLabel="#{CAPITULO.nombre}" itemDescription="#{CAPITULO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Categoría" for="categoria" style="font-weight:bold"/>
+                            <p:selectOneMenu id="categoria" label="Categoría" required="true" value="#{diagnosticosBean.objeto.maeDiagnosticoCategoriaId}" 
+                                             filter="true" filterMatchMode="contains"
+                                             editable="fase" style="width: 170px;" requiredMessage="Categoría: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaCategoria}" var="CATEGORIA" itemValue="#{CATEGORIA.id}" itemLabel="#{CATEGORIA.nombre}" itemDescription="#{CATEGORIA.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{diagnosticosBean.objeto.codigo}" maxlength="8" required="true" requiredMessage="Código: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" label="Nombre" value="#{diagnosticosBean.objeto.nombre}" maxlength="128" required="true" requiredMessage="Nombre: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9À-ÿ\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea >
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{diagnosticosBean.objeto.activo}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Activo: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Sexo Aplica" for="sexoAplica" style="font-weight:bold"/>
+                            <p:selectOneMenu id="sexoAplica" label="Sexo Aplica" value="#{diagnosticosBean.objeto.sexoAplica}"
+                                             required="true" requiredMessage="Sexo Aplica: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Masculino" itemValue="0" />
+                                <f:selectItem itemLabel="Femenino" itemValue="1" />
+                                <f:selectItem itemLabel="Ambos" itemValue="2" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Edad Inferior" for="edadInferior" style="font-weight:bold"/>
+                            <p:inputText id="edadInferior" label="Edad Inferior" value="#{diagnosticosBean.objeto.edadInferior}" maxlength="4" required="true" requiredMessage="Edad Inferior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Edad Superior" for="edadSuperior" style="font-weight:bold"/>
+                            <p:inputText id="edadSuperior" label="Edad Superior" value="#{diagnosticosBean.objeto.edadSuperior}" maxlength="4" required="true" requiredMessage="Edad Superior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Grupo Mortalidad" for="grupoMortalidad" style="font-weight:bold"/>
+                            <p:inputText id="grupoMortalidad" label="Grupo Mortalidad" value="#{diagnosticosBean.objeto.grupoMortalidad}" maxlength="3" required="false" requiredMessage="Grupo Mortalidad: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Grupo Mortalidad Lista" for="grupoMortalidadLista" style="font-weight:bold"/>
+                            <p:inputText id="grupoMortalidadLista" label="Grupo Mortalidad Lista" value="#{diagnosticosBean.objeto.grupoMortalidadLista}" maxlength="3" required="false" requiredMessage="Grupo Mortalidad Lista: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Valor Límite Inferior" for="valorLimInf" style="font-weight:bold"/>
+                            <p:inputText id="valorLimInf" label="Valor Límite Inferior" value="#{diagnosticosBean.objeto.valorLimiteInferior}"
+                                         maxlength="4" required="false" requiredMessage="Valor Límite Inferior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[0-9]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Valor Límite Superior" for="valorLimSup" style="font-weight:bold"/>
+                            <p:inputText id="valorLimSup" label="Valor Límite Superior" value="#{diagnosticosBean.objeto.valorLimiteSuperior}"
+                                         maxlength="4" required="false" requiredMessage="Valor Límite Superior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[0-9]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Excento Cobro" for="excentoCobro" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="excentoCobro" value="#{diagnosticosBean.objeto.excentoCobro}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Excento Cobro: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Alto Costo" for="altoCosto" style="font-weight:bold" />
+                            <p:selectBooleanButton id="altoCosto" value="#{diagnosticosBean.objeto.altoCosto}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Alto Costo: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Priorizar Crue" for="priorizarCrue" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="priorizarCrue" value="#{diagnosticosBean.objeto.priorizarCrue}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Priorizar Crue: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Denominación CAC" for="denominacionCac" style="font-weight:bold"/>
+                            <p:selectOneMenu id="denominacionCac" label="Denominación CAC" value="#{diagnosticosBean.objeto.maCacId}" 
+                                             filter="true" filterMatchMode="contains"
+                                             editable="fase" style="width: 170px;" required="false" requiredMessage="Denominación CAC: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaDenominacionCac}" var="DENOMINACION_CAC" itemValue="#{DENOMINACION_CAC.id}" itemLabel="#{DENOMINACION_CAC.nombre}" itemDescription="#{DENOMINACION_CAC.descripcion}" />
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrear2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="guardarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{diagnosticosBean.guardar()}" update="panelCrear,panelCrear2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Editar -->
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{diagnosticosBean.getAuditoria(diagnosticosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panelGrid id="panelEditar" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Capítulo" for="capitulo"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="capitulo" label="Capítulo" required="true" value="#{diagnosticosBean.objeto.maeDiagnosticoCapituloId}" 
+                                             editable="fase" style="width: 170px;" filter="true" filterMatchMode="contains" requiredMessage="Capítulo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaCapitulo}" var="CAPITULO" itemValue="#{CAPITULO.id}" itemLabel="#{CAPITULO.nombre}" itemDescription="#{CAPITULO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Categoría" for="categoria"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="categoria" label="Categoría" required="true" value="#{diagnosticosBean.objeto.maeDiagnosticoCategoriaId}" 
+                                             filter="true" filterMatchMode="contains"
+                                             editable="fase" style="width: 170px;" requiredMessage="Categoría: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaCategoria}" var="CATEGORIA" itemValue="#{CATEGORIA.id}" itemLabel="#{CATEGORIA.nombre}" itemDescription="#{CATEGORIA.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Código" for="codigo"  style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{diagnosticosBean.objeto.codigo}" maxlength="8" required="true" requiredMessage="Código: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Nombre" for="nombre"  style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" label="Nombre" value="#{diagnosticosBean.objeto.nombre}" maxlength="128" required="true" requiredMessage="Nombre: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9À-ÿ\_\(\)\-\+\[\]\/\%\?\.\,\#&amp;&quot; ]/i"/>
+                            </p:inputTextarea >
+
+                            <p:outputLabel value="Activo" for="activo"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{diagnosticosBean.objeto.activo}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Activo: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Sexo Aplica" for="sexoAplica"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="sexoAplica" label="Sexo Aplica" value="#{diagnosticosBean.objeto.sexoAplica}"
+                                             required="true" requiredMessage="Sexo Aplica: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Masculino" itemValue="0" />
+                                <f:selectItem itemLabel="Femenino" itemValue="1" />
+                                <f:selectItem itemLabel="Ambos" itemValue="2" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Edad Inferior" for="edadInferior"  style="font-weight:bold"/>
+                            <p:inputText id="edadInferior" label="Edad Inferior" value="#{diagnosticosBean.objeto.edadInferior}" maxlength="4" required="true" requiredMessage="Edad Inferior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Edad Superior" for="edadSuperior"  style="font-weight:bold"/>
+                            <p:inputText id="edadSuperior" label="Edad Superior" value="#{diagnosticosBean.objeto.edadSuperior}" maxlength="4" required="true" requiredMessage="Edad Superior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Grupo Mortalidad" for="grupoMortalidad"  style="font-weight:bold"/>
+                            <p:inputText id="grupoMortalidad" label="Grupo Mortalidad" value="#{diagnosticosBean.objeto.grupoMortalidad}" maxlength="3" required="false" requiredMessage="Grupo Mortalidad: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Grupo Mortalidad Lista" for="grupoMortalidadLista"  style="font-weight:bold"/>
+                            <p:inputText id="grupoMortalidadLista" label="Grupo Mortalidad Lista" value="#{diagnosticosBean.objeto.grupoMortalidadLista}" maxlength="3" required="false" requiredMessage="Grupo Mortalidad Lista: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[a-z0-9_]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Valor Límite Inferior" for="valorLimInf"  style="font-weight:bold"/>
+                            <p:inputText id="valorLimInf" label="Valor Límite Inferior" value="#{diagnosticosBean.objeto.valorLimiteInferior}"
+                                         maxlength="4" required="false" requiredMessage="Valor Límite Inferior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[0-9]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Valor Límite Superior" for="valorLimSup"  style="font-weight:bold"/>
+                            <p:inputText id="valorLimSup" label="Valor Límite Superior" value="#{diagnosticosBean.objeto.valorLimiteSuperior}"
+                                         maxlength="4" required="false" requiredMessage="Valor Límite Superior: Este campo es obligatorio.">
+                                <p:keyFilter regEx="/[0-9]/i"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Excento Cobro" for="excentoCobro"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="excentoCobro" value="#{diagnosticosBean.objeto.excentoCobro}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Excento Cobro: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Alto Costo" for="altoCosto"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="altoCosto" value="#{diagnosticosBean.objeto.altoCosto}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Alto Costo: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Priorizar Crue" for="priorizarCrue"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="priorizarCrue" value="#{diagnosticosBean.objeto.priorizarCrue}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Priorizar Crue: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Denominación CAC" for="denominacionCac" style="font-weight:bold"/>
+                            <p:selectOneMenu id="denominacionCac" label="Denominación CAC" value="#{diagnosticosBean.objeto.maCacId}" 
+                                             filter="true" filterMatchMode="contains"
+                                             editable="fase" style="width: 170px;" required="false" requiredMessage="Denominación CAC: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{diagnosticosBean.listaDenominacionCac}" var="DENOMINACION_CAC" itemValue="#{DENOMINACION_CAC.id}" itemLabel="#{DENOMINACION_CAC.nombre}" itemDescription="#{DENOMINACION_CAC.descripcion}" />
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditar2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="modificarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{diagnosticosBean.modificar()}" update="panelEditar,panelEditar2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

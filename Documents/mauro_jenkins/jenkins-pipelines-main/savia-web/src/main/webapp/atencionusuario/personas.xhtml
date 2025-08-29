@@ -1,0 +1,463 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style>
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>
+
+        <center>
+            <h:form id="frmPersonas">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{ausPersonaBean.modulo.descripcion}">#{ausPersonaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{ausPersonaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{ausPersonaBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{ausPersonaBean.accionCrear}" title="Crear" actionListener="#{ausPersonaBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{ausPersonaBean.lazyAusPersona}" paginator="true" rows="#{ausPersonaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{ausPersonaBean.accionVer}" title="Ver" actionListener="#{ausPersonaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{ausPersonaBean.accionEditar}" title="Editar" actionListener="#{ausPersonaBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{ausPersonaBean.accionBorrar}" title="Borrar" action="#{ausPersonaBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Tipo Documento" >
+                        <f:facet name="filter">
+                            <p:inputText label="Tipo Cocumento" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.mae_tipo_documento_valor}"/>
+                    </p:column>
+
+                    <p:column headerText="Documento" filterBy="#{obj.documento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.documento}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado Persona" filterBy="#{obj.mae_estado_id}" sortBy="#{obj.mae_estado_id}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ausPersonaBean.listaEstadosAusPersona}" var="tipoEstPer" itemValue="#{tipoEstPer.id}" itemLabel="#{tipoEstPer.nombre}" itemDescription="#{tipoEstPer.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.mae_estado_valor}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombres" sortBy="#{obj.nombres}" filterBy="#{obj.nombres}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombres}" title="#{obj.nombres}"/>
+                    </p:column>
+
+                    <p:column headerText="Apellidos" sortBy="#{obj.apellidos}" filterBy="#{obj.apellidos}">
+                        <f:facet name="filter">
+                            <p:inputText label="Apellidos" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.apellidos}" title="#{obj.apellidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Sexo" filterBy="#{obj.mae_sexo_valor}" sortBy="#{obj.mae_sexo_valor}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ausPersonaBean.listaSexo}" var="tipoSex" itemValue="#{tipoSex.id}" itemLabel="#{tipoSex.nombre}" itemDescription="#{tipoSex.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.mae_sexo_valor}"/>
+                    </p:column>
+
+                    <p:column headerText="F.H. Registro" sortBy="#{obj.fechaHoraCrea}" >
+                        <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!--VER -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="70%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVer">
+                        <p:panel id="pPersona" header="INFORMACIÓN PERSONA" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton id="auditoriaPersona" class="btnAuditoria" action="#{ausPersonaBean.getAuditoria(ausPersonaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;" >
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ausPersonaBean.objeto.nombres}" />
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ausPersonaBean.objeto.apellidos}" />
+
+                                <p:outputLabel value="Fecha Nacimiemto" for="fechaNacimiento" style="font-weight:bold" />
+                                <h:outputText  id="fechaNacimiento" value="#{ausPersonaBean.objeto.fechaNacimiento}" title="#{ausPersonaBean.objeto.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sexo" for="sexo" style="font-weight:bold"/>
+                                <p:outputLabel id="sexo" value="#{ausPersonaBean.objeto.mae_sexo_valor}" />
+
+                                <p:outputLabel value="Correo Electrónico" for="email" style="font-weight:bold"/>
+                                <p:outputLabel id="email" value="#{ausPersonaBean.objeto.correoElectronico}" />
+
+                                <p:outputLabel value="Estado" for="estado" style="font-weight:bold"/>
+                                <p:outputLabel id="estado" value="#{ausPersonaBean.objeto.mae_estado_valor}" />
+
+                                <p:outputLabel value="Dirección" for="direccion" style="font-weight:bold"/>
+                                <p:outputLabel id="direccion" value="#{ausPersonaBean.objeto.direccion}" />
+
+                                <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+
+                                <p:outputLabel id="contrato" value="#{ausPersonaBean.objeto.contrato}" />
+
+                                <p:outputLabel value="Régimen" for="regimen" style="font-weight:bold"/>
+                                <p:inputSwitch onLabel="Contributivo" offLabel="Subsidiado" id="regimen" value="#{ausPersonaBean.objeto.esRegimen}" disabled="true">
+                                </p:inputSwitch>
+
+                                <p:outputLabel value="Discapacidad"  style="font-weight:bold"/>
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="discapacidad" value="#{ausPersonaBean.objeto.discapacidad}" disabled="true"/>
+
+                                <p:outputLabel value="Gestante" style="font-weight:bold" />
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="gestante" value="#{ausPersonaBean.objeto.gestante}" disabled="true" />  
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Contactos" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactoPersona" widgetVar="tablaContactoPersonaCrear" var="contacto" value="#{ausPersonaBean.listaausPersonaTelefono}" scrollable="true" style="margin-bottom:20px;" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número">
+                                        <h:outputText value="#{contacto.numero}" />
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>    
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--CREAR -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="95%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmCrear">
+                        <p:panel header="Informaición" toggleable="true" style="height:auto;">
+                            <p:panelGrid id="panelCrear" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                 <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{ausPersonaBean.objeto.mae_tipo_documento_id}" requiredMessage="Tipo Documento: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ausCasoBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                    <p:ajax event="itemSelect"  listener="#{ausPersonaBean.buscarPersonaEnSistema}"/>
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                                <p:inputText id="documento" label="Documento" value="#{ausPersonaBean.objeto.documento}" size="20" maxlength="16" required="true" requiredMessage="Documento: Este campo es obligatorio.">
+                                    <p:ajax event="blur" listener="#{ausPersonaBean.buscarPersonaEnSistema}"></p:ajax>
+                                </p:inputText>
+
+                                <p:outputLabel value="Nombres" for="nombres" style="font-weight:bold"/>
+                                <p:inputText id="nombres" label="Nombres" value="#{ausPersonaBean.objeto.nombres}" size="30" maxlength="32" required="true" requiredMessage="Nombres: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Apellidos" for="apellidos" style="font-weight:bold"/>
+                                <p:inputText id="apellidos" label="Apellidos" value="#{ausPersonaBean.objeto.apellidos}" size="30" maxlength="32" required="true" requiredMessage="Apellidos: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Sexo" for="sexo" style="font-weight:bold"/>
+                                 <p:selectOneMenu id="sexo" label="Sexo" editable="fase"  value="#ausPersonaBean.objeto.mae_sexo_id}" required="true" requiredMessage="Sexo: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{ausPersonaBean.listaSexo}" var="tipSex" itemValue="#{tipSex.id}" itemLabel="#{tipSex.nombre}" itemDescription="#{tipSex.descripcion}"/>                                            
+                                </p:selectOneMenu>
+                                                              
+
+                                <p:outputLabel value="Fecha Nacimiemto" for="fechaNacimiento" style="font-weight:bold"/>
+                                <p:calendar id="fechaNacimiento" yearRange="c-100:c" label="Fecha Nacimiento"  navigator="true" pattern="yyyy-MM-dd"  value="#{ausPersonaBean.objeto.fechaNacimiento}" size="7" maxlength="10"></p:calendar>     
+
+                                <p:outputLabel value="Correo Electrónico" for="email" style="font-weight:bold"/>
+                                <p:inputText id="email" label="Correo Electrónico" value="#{ausPersonaBean.objeto.correoElectronico}" size="30" maxlength="16" >
+                                </p:inputText>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:selectOneMenu id="estado" label="Estado" editable="fase" value="#{ausPersonaBean.objeto.mae_estado_id}" required="true" requiredMessage="Estado persona: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{ausPersonaBean.listaEstadosAusPersona}" var="tipEst" itemValue="#{tipEst.id}" itemLabel="#{tipEst.nombre}" itemDescription="#{tipEst.descripcion}"/>                                    
+                                </p:selectOneMenu>
+                                                              
+
+                                <p:outputLabel value="Ubicación" for="ubicacion" style="font-weight:bold"/>
+                                <p:selectOneMenu id="ubicacion" label="Ubicacion" editable="fase" value="#{ausPersonaBean.objeto.personaUbicacion.id}" filter="true" filterMatchMode="contains" required="true" requiredMessage="Ubicación: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{ausPersonaBean.ubicaciones}" var="tipEst" itemValue="#{tipEst.id}" itemLabel="#{tipEst.nombre}" itemDescription="#{tipEst.descripcion}"/>                                    
+                                </p:selectOneMenu>
+                               
+
+                                <p:outputLabel value="Dirección" for="direccion" style="font-weight:bold"/>
+                                <p:inputText id="direccion" label="Dirección" value="#{ausPersonaBean.objeto.direccion}" size="30" maxlength="32">
+                                </p:inputText>
+
+                                <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold" />
+                                <p:inputText id="contrato" label="Contrato" value="#{ausPersonaBean.objeto.contrato}" size="30" maxlength="16">
+                                </p:inputText>
+
+                                <p:outputLabel value="Régimen" for="regimen" style="font-weight:bold"/> 
+                                <p:inputSwitch onLabel="Contributivo" offLabel="Subsidiado" id="regimen" value="#{ausPersonaBean.objeto.esRegimen}" >
+                                </p:inputSwitch>
+
+                                <p:outputLabel value="Discapacidad" style="font-weight:bold" />
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="discapacidad" value="#{ausPersonaBean.objeto.discapacidad}" />
+
+                                <p:outputLabel value="Gestante" style="font-weight:bold" />
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="gestante" value="#{ausPersonaBean.objeto.gestante}" />  
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Contactos" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactoPersona" widgetVar="tablaContactoPersonaCrear" var="contacto" value="#{ausPersonaBean.listaausPersonaTelefono}" scrollable="true" style="margin-bottom:20px;" emptyMessage="No se encontraron registros">
+                                    <f:facet name="header">
+                                        <div style="position:relative; width:60%; height:27px;">
+                                            <div style="position:absolute; left:0px; bottom:0px;">
+                                                <p:remoteCommand name="crearContactoRemote" action ="#{ausPersonaBean.crearTelefono()}" immediate="true"/>
+                                                <p:commandButton value="Agregar Contacto" title="Agregar Contacto"  type="button" immediate="true" process="@this" onclick="crearContactoRemote()" icon="ui-icon-document"/>
+                                            </div>
+                                        </div>
+                                    </f:facet>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Borrar"/>
+                                        </f:facet>
+                                        <p:commandButton title="Borrar" rendered="#{contacto.id == null}" immediate="true" action="#{ausPersonaBean.borrarContacto(contacto)}" icon="ui-icon-trash">
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+                                    <p:column headerText="Número">
+                                        <h:outputText value="#{contacto.numero}" />
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>    
+                        </p:panel>
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action="#{ausPersonaBean.guardar()}" process="@all" update="panelCrear" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>  
+            </p:dialog> 
+            <!--EDITAR-->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="70%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">  
+                    <h:form id="frmEditar">
+                        <p:panel header="Informaición" toggleable="true" style="height:auto;">
+                            <p:panelGrid id="panelEditar" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{ausPersonaBean.objeto.mae_tipo_documento_id}" requiredMessage="Tipo Documento: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ausPersonaBean.listaTiposDocumento}" var="tipDoc" itemValue="#{tipDoc.id}" itemLabel="#{tipDoc.nombre}" itemDescription="#{tipDoc.descripcion}" />
+                                    <p:ajax event="change"  listener="#{ausPersonaBean.buscarPersonaEnSistema}"></p:ajax>
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                                <p:inputText id="documento" label="Documento" value="#{ausPersonaBean.objeto.documento}" size="20" maxlength="16" required="true" requiredMessage="Documento: Este campo es obligatorio.">
+                                    <p:ajax event="blur" listener="#{personaBean.buscarPersonaEnSistema}"></p:ajax>
+                                </p:inputText>
+
+                                <p:outputLabel value="Nombres" for="nombres" style="font-weight:bold"/>
+                                <p:inputText id="nombres" label="Nombres" value="#{ausPersonaBean.objeto.nombres}" size="30" maxlength="32" required="true" requiredMessage="Nombres: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Apellidos" for="apellidos" style="font-weight:bold"/>
+                                <p:inputText id="apellidos" label="Apellidos" value="#{ausPersonaBean.objeto.apellidos}" size="30" maxlength="32" required="true" requiredMessage="Apellidos: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Fecha Nacimiemto" for="fechaNacimiento" style="font-weight:bold"/>
+                                <p:calendar id="fechaNacimiento" yearRange="c-100:c" label="Fecha Nacimiento"  navigator="true" pattern="yyyy-MM-dd"  value="#{ausPersonaBean.objeto.fechaNacimiento}" size="7" maxlength="10"></p:calendar>     
+
+                                <p:outputLabel value="Sexo" for="sexo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="sexo" label="Sexo" value="#{ausPersonaBean.objeto.mae_sexo_id}" editable="fase" required="true" requiredMessage="Sexo: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{ausPersonaBean.listaSexo}" var="tipSex" itemValue="#{tipSex.id}" itemLabel="#{tipSex.nombre}" itemDescription="#{tipSex.descripcion}"/>
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Correo Electrónico" for="email" style="font-weight:bold"/>
+                                <p:inputTextarea rows="1" id="email" label="Correo Electrónico" value="#{ausPersonaBean.objeto.correoElectronico}" maxlength="64" >
+                                </p:inputTextarea>
+
+                                <p:outputLabel value="Estado" for="estado" style="font-weight:bold"/>
+                                <p:selectOneMenu id="estado" label="Estado" value="#{ausPersonaBean.objeto.mae_estado_id}" editable="fase" required="true" requiredMessage="Estado: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{ausPersonaBean.listaEstadosAusPersona}" var="tipEst" itemValue="#{tipEst.id}" itemLabel="#{tipEst.nombre}" itemDescription="#{tipEst.descripcion}"/>                                    
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Dirección" for="direccion" style="font-weight:bold"/>
+                                <p:inputText id="direccion" label="Dirección" value="#{ausPersonaBean.objeto.direccion}" size="30" maxlength="32">
+                                </p:inputText>
+
+                                <p:outputLabel value="Estrato" for="estrato" style="font-weight:bold"/>
+                                <p:selectOneMenu id="estrato" label="Estrato" value="#{ausPersonaBean.objeto.estrato}" editable="fase">  
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" /> 
+                                    <f:selectItems value="#{ausPersonaBean.listaTiposEstratos}"/>
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                <p:inputText id="contrato" label="Contrato" value="#{ausPersonaBean.objeto.contrato}" size="30" maxlength="16">
+                                </p:inputText>
+
+                                <p:outputLabel value="Régimen" for="regimen" style="font-weight:bold"/>
+                                <p:inputSwitch onLabel="Contributivo" offLabel="Subsidiado" id="regimen" value="#{ausPersonaBean.objeto.esRegimen}" >
+                                </p:inputSwitch>
+
+                                <p:outputLabel value="Discapacidad"  style="font-weight:bold"/>
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="discapacidad" value="#{ausPersonaBean.objeto.discapacidad}" />
+
+                                <p:outputLabel value="Gestante"  style="font-weight:bold"/>
+                                <p:inputSwitch onLabel="SI" offLabel="NO" id="gestante" value="#{ausPersonaBean.objeto.gestante}" />  
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Contactos" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactoPersonaEditar" widgetVar="tablaContactoPersonaEditar" var="contacto" value="#{ausPersonaBean.listaausPersonaTelefono}" scrollable="true" style="margin-bottom:20px;" emptyMessage="No se encontraron registros">
+                                    <f:facet name="header">
+                                        <div style="position:relative; width:60%; height:27px;">
+                                            <div style="position:absolute; left:0px; bottom:0px;">
+                                                <p:remoteCommand name="crearContactoRemote" action ="#{ausPersonaBean.crearTelefono()}" immediate="true"/>
+                                                <p:commandButton value="Agregar Contacto" title="Agregar Contacto"  type="button" immediate="true" process="@this" onclick="crearContactoRemote()" icon="ui-icon-document"/>
+                                            </div>
+                                        </div>
+                                    </f:facet>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Borrar"/>
+                                        </f:facet>
+                                        <p:commandButton title="Borrar" rendered="#{contacto.id == null}" immediate="true" action="#{ausPersonaBean.borrarContacto(contacto)}" icon="ui-icon-trash">
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+                                    <p:column headerText="Número">
+                                        <h:outputText value="#{contacto.numero}" />
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>    
+                        </p:panel>
+                         <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action="#{ausPersonaBean.modificar()}" process="@all" update="panelEditar" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>  
+            </p:dialog>
+            <!-- agregar contanto -->
+            <p:dialog header="Crear Contacto" widgetVar="dialogoCrearContacto" appendTo="@(body)" width="50%" modal="true"> 
+                <h:form id="frmCrearContacto">
+                    <p:panel id="pCrearContacto" header="Número" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelCrearContacto" >
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                     <p:outputLabel value="Número" for="numero" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="numero" label="Número" value="#{ausPersonaBean.ausPersonaTelefono.numero}" size="30" maxlength="16" required="true" style="width: 90%;" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                     <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="observacion" label="Observación" value="#{ausPersonaBean.ausPersonaTelefono.observacion}" size="30" maxlength="128"  style="width: 90%;"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:separator />
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Adicionar" type="button" onclick="adicionarContactoRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="adicionarContactoRemote" action ="#{ausPersonaBean.adicionarTelefono}" update="frmCrearContacto"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearContacto').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

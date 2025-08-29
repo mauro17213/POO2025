@@ -1,0 +1,345 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="./../home.xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/cntjuridica.css"/>
+        <center>
+            <h:form id="frmGestion">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gruposBean.modulo.descripcion}">#{gruposBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gruposBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{gruposBean.listar}" icon="pi pi-sync" class="boton-normal btn1" />
+                        <p:commandButton rendered="#{gruposBean.accionCrear}" title="Crear" ajax="true" actionListener="#{gruposBean.crear()}" icon="pi pi-file-o" class="boton-normal btn1"  />
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" class="listaDatos" value="#{gruposBean.lazyGrupos}" paginator="true" rows="#{gruposBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="false"
+                             scrollWidth="140%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="Opciones" style="text-align: center;">
+                        <p:commandButton rendered="#{gruposBean.accionVer}" title="Ver" actionListener="#{gruposBean.ver(obj.id)}" icon="pi pi-search" class="btn-icono" />
+                        <p:commandButton rendered="#{gruposBean.accionEditar}" title="Editar" actionListener="#{gruposBean.editar(obj.id)}" icon="pi pi-file-edit" class="btn-icono" />
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}" >
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Descripción" >
+                        <h:outputText value="#{obj.descripcion}" title="#{obj.descripcion}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" >
+                        <h:outputText value="#{obj.activoStr}" title="#{obj.activoStr}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+
+            <!-- Dialogo para ver grupo -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true">
+                <div class="bodyDialog">
+                    <h:form class="frmAuditoria">
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{gruposBean.getAuditoria(gruposBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    
+                    <h:form id="frmVer" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfoVer" header="Información del grupo" style="margin-bottom:10px;" toggleable="true">
+                                <p:panelGrid id="panelVer" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Id" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{gruposBean.objeto.id}" />
+
+                                    <h:outputText value="Nombre" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{gruposBean.objeto.nombre}" />
+
+                                    <h:outputText value="Descripción" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{gruposBean.objeto.descripcion}" />
+
+                                    <h:outputText value="Activo" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{gruposBean.objeto.activoStr}"  />
+
+
+                                </p:panelGrid>
+                            </p:panel>
+
+                            <p:panel header="Usuarios" style="margin-bottom:10px;" toggleable="true">
+                                <p:scrollPanel mode="native">
+                                    <p:dataTable id="tblUsuGrupo" var="usu" value="#{gruposBean.objeto.listaUsuarioGrupo}"   class="listaDatos"  paginator="true" rows="#{gruposBean.tamanoPagina}" 
+                                                 emptyMessage="No se encontraron registros"
+                                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                                 rowsPerPageTemplate="5,10,30,50,100"                                                  
+                                                 widgetVar="tablaPlanCampo" scrollable="false" >
+
+                                        <p:column headerText="Usuario">
+                                            <h:outputText value="#{usu.gnUsuarioId.usuario}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Nombre">
+                                            <h:outputText value="#{usu.gnUsuarioId.nombre}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Correo Electrónico">
+                                            <h:outputText value="#{usu.gnUsuarioId.correoElectronico}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Activo">
+                                            <h:outputText value="#{usu.gnUsuarioId.activoStr}"/>
+                                        </p:column>
+
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">  
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:dialog>  
+
+            <!-- Dialogo para crear nuevo grupo -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true">
+                <div class="bodyDialog">
+                    <h:form id="frmCrear" class="formDialogo">   
+                        <div>
+                            <p:panel id="pnlInformacion" header="Información del grupo" style="margin-bottom:10px;" toggleable="true">
+                                <p:panelGrid id="panelCrear" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Nombre " style="font-weight:bold" class="header-back" />
+                                    <p:inputText id="ccodigo" value="#{gruposBean.objeto.nombre}"  required="true" requiredMessage="Debe diligenciar el nombre del proceso." />
+
+                                    <h:outputText value="Activo " style="font-weight:bold" class="header-back" />
+                                    <p:selectBooleanButton id="blActivo" value="#{gruposBean.objeto.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                    <h:outputText value="Descripción " style="font-weight:bold" class="header-back" />
+                                    <p:column class="ui-g-9" style="margin-right: 4px;">
+                                        <p:inputTextarea id="cdescripcion" value="#{gruposBean.objeto.descripcion}" required="true" requiredMessage="Debe diligenciar la descripción."
+                                                     rows="5" cols="140" maxlength="2048"  />
+                                    </p:column>
+                                    
+                                </p:panelGrid>
+                            </p:panel>
+
+                            <p:panel header="Usuarios" style="margin-bottom:10px;" toggleable="true">
+                                <p:scrollPanel mode="native">   
+                                    <div align="right" style="padding: 0.4rem;"> 
+                                        <p:commandButton rendered="#{gruposBean.accionAdicional1}" title="Agregar Usuario" immediate="true" actionListener="#{gruposBean.verListaUsuario(0)}" icon="pi pi-user-plus" class="btn-icono" />
+                                    </div>
+                                    <p:dataTable id="tblUsuGrupo" var="usu" value="#{gruposBean.objeto.listaUsuarioGrupo}"   class="listaDatos"  paginator="true" rows="#{gruposBean.tamanoPagina}" 
+                                                 emptyMessage="No se encontraron registros" lazy="false"
+                                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                                 rowsPerPageTemplate="5,10,30,50,100"                                                  
+                                                 widgetVar="tablaPlanCampo" scrollable="false" >
+
+                                        <p:column headerText="Usuario">
+                                            <h:outputText value="#{usu.gnUsuarioId.usuario}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Nombre">
+                                            <h:outputText value="#{usu.gnUsuarioId.nombre}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Correo Electrónico">
+                                            <h:outputText value="#{usu.gnUsuarioId.correoElectronico}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Activo">
+                                            <h:outputText value="#{usu.gnUsuarioId.activoStr}"/>
+                                        </p:column>
+
+
+                                        <p:column headerText="Opciones">
+                                            <p:commandButton title="Quitar" action="#{gruposBean.quitarUsuario(usu)}" icon="ui-icon-trash" immediate="true" update=":frmCrear:tblUsuGrupo" >
+                                                <p:confirm header="Confirmación" message="Está seguro que desea quitar el registro?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </div>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">  
+                                        <p:commandButton value="Guardar" class="boton btn-azul" actionListener="#{gruposBean.guardar()}" validateClient="true" process="@all" update="frmCrear, pnlInformacion" />   
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>
+
+            <!-- Dialogo para editar grupo -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true">
+                <div class="bodyDialog">
+                    <h:form class="frmAuditoria">
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{procesoBean.getAuditoria(procesoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    
+                    <h:form id="frmEditar" class="formDialogo">  
+                        <div>
+                            <p:panel id="pnlInformacion" header="Información del proceso" style="margin-bottom:10px;" toggleable="true">
+                                <p:panelGrid id="panelCrear" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Nombre " style="font-weight:bold" class="header-back" />
+                                    <p:inputText id="ccodigo" value="#{gruposBean.objeto.nombre}" required="true" requiredMessage="Debe diligenciar el nombre del proceso." />
+
+                                    <h:outputText value="Activo " style="font-weight:bold" class="header-back" />
+                                    <p:selectBooleanButton id="blActivo" value="#{gruposBean.objeto.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                    <h:outputText value="Descripción " style="font-weight:bold" class="header-back" />
+                                    <p:column class="ui-g-9" style="margin-right: 4px;">
+                                        <p:inputTextarea id="cdescripcion" value="#{gruposBean.objeto.descripcion}" required="true" requiredMessage="Debe diligenciar la descripción."
+                                                     rows="5" cols="140" maxlength="2048"  />
+                                    </p:column>  
+
+                                </p:panelGrid>
+                            </p:panel>
+
+                            <p:panel header="Usuarios" style="margin-bottom:10px;" toggleable="true">
+                                <p:scrollPanel mode="native">   
+                                    <div align="right" style="padding: 0.4rem;"> 
+                                        <p:commandButton rendered="#{gruposBean.accionAdicional1}" title="Agregar Usuario" immediate="true" actionListener="#{gruposBean.verListaUsuario(1)}" icon="pi pi-user-plus" class="btn-icono" />
+                                    </div>
+                                    <p:dataTable id="tblEditUsuGrupo" var="usu"   value="#{gruposBean.objeto.listaUsuarioGrupo}"  class="listaDatos"  paginator="true" rows="#{gruposBean.tamanoPagina}" 
+                                                 emptyMessage="No se encontraron registros"
+                                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                                 rowsPerPageTemplate="5,10,30,50,100"                                                  
+                                                 widgetVar="tablaPlanCampo" scrollable="false" >
+
+                                        <p:column headerText="Usuario">
+                                            <h:outputText value="#{usu.gnUsuarioId.usuario}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Nombre">
+                                            <h:outputText value="#{usu.gnUsuarioId.nombre}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Correo Electrónico">
+                                            <h:outputText value="#{usu.gnUsuarioId.correoElectronico}"/>
+                                        </p:column>
+
+                                        <p:column headerText="Activo">
+                                            <h:outputText value="#{usu.gnUsuarioId.activoStr}"/>
+                                        </p:column>
+
+
+                                        <p:column headerText="Opciones">
+                                            <p:commandButton title="Quitar" action="#{gruposBean.eliminarUsuarioGrupo(usu.id)}" icon="ui-icon-trash" immediate="true" update=":frmEditar:tblEditUsuGrupo" >
+                                                <p:confirm header="Confirmación" message="Está seguro que desea quitar el registro?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">  
+                                        <p:commandButton value="Modificar" class="boton btn-azul" actionListener="#{gruposBean.modificar()}" validateClient="true" process="@all" update="frmEditar, pnlInformacion" />   
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>                        
+                    </h:form>
+                </div>
+            </p:dialog>
+
+            <!-- Dialogo listar usuarios -->
+            <p:dialog header="Consultar Usuarios" widgetVar="dialogoUsuariosLista" appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true">
+                <div class="bodyDialog">
+                    <h:form id="frmUsuariosLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{gruposBean.accionListar}" title="Refrescar" actionListener="#{gruposBean.refrescarUsuarios()}" oncomplete="PF('tablaWidgetUsuarios').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelUsuariosLista" style="height:auto;" columns="1">
+
+                            <p:dataTable id="tablaRegistrosUsuarios" class="listaDatos" widgetVar="tablaWidgetUsuarios" var="obj" value="#{gruposBean.lazyUsuarios}" rowKey="#{obj.id}"
+                                         rows="#{gruposBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{gruposBean.onRowSelectUsuario}"/>
+                                <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetUsuarios').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombre}"/>
+                                </p:column>
+
+                            </p:dataTable>
+
+                        </p:panelGrid>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">  
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoUsuariosLista').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>  
+                        
+                    </h:form>
+                </div>
+            </p:dialog>
+
+
+        </center>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,247 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <h:outputStylesheet name="css/gp.css"/>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                td {
+                    border: 1px solid #e5e2e2!important;
+                }
+            </style>
+            <h:form id="frmCargaMasivas">
+                <p:toolbar> 
+                    <f:facet name="left" >
+                        <span title="#{auEntregaCargaBean.modulo.descripcion}">#{auEntregaCargaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{auEntregaCargaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{auEntregaCargaBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{auEntregaCargaBean.accionCrear}" title="Crear" actionListener="#{auEntregaCargaBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{auEntregaCargaBean.lazyAuEntregaCarga}" paginator="true" rows="#{auEntregaCargaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <!--ver sucesos-->
+                        <p:commandButton rendered="#{auEntregaCargaBean.accionVer}" title="Ver Sucesos"
+                                         ajax="true"
+                                         actionListener="#{auEntregaCargaBean.consultarSucesos(obj.id)}"
+                                         icon="ui-icon-script">
+                        </p:commandButton>
+                        <!--descar excel-->
+                        <p:commandButton  rendered="#{auEntregaCargaBean.accionVer}" title="Descargar Archivo"
+                                          ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                            <p:fileDownload value="#{auEntregaCargaBean.descargarArchivo(obj)}" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Id" filterBy="#{obj.id}">   
+                        <f:facet name="filter">
+                            <p:inputText label="Id" maxlength="64" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Tecnología" filterBy="#{obj.tipoTecnologia}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Procedimiento " itemValue="1"  />
+                                <f:selectItem itemLabel=" Medicamento " itemValue="2"  />
+                                <f:selectItem itemLabel=" Insumo " itemValue="3"  />
+                                <f:selectItem itemLabel=" Paquete " itemValue="4"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoTecnologiaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Archivo" filterBy="#{obj.nombre}" sortBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre Archivo" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" En Proceso " itemValue="1"  />
+                                <f:selectItem itemLabel=" Procesado " itemValue="2"  />
+                                <f:selectItem itemLabel=" Cancelado " itemValue="3"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Registros" sortBy="#{obj.registros}">
+                        <h:outputText value="#{obj.registros}"/>
+                    </p:column>
+
+                    <p:column headerText="Exitosos" sortBy="#{obj.exitosos}">
+                        <h:outputText value="#{obj.exitosos}"/>
+                    </p:column>
+
+                    <p:column headerText="Fallidos" sortBy="#{obj.fallidos}">
+                        <h:outputText value="#{obj.fallidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Inicio" sortBy="#{obj.fechaHoraInicio}">
+                        <h:outputText value="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fin" sortBy="#{obj.fechaHoraFin}">
+                        <h:outputText value="#{obj.fechaHoraFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>                     
+
+                    <p:column headerText="Responsable" filterBy="#{obj.usuarioCrea}" sortBy="#{obj.usuarioCrea}">
+                        <f:facet name="filter">
+                            <p:inputText label="Responsable" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+            <!-- Crear -->
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrear" >
+                        <p:panelGrid id="panelCrear" columns="1" layout="grid" styleClass="showcase-text-align-center"  >                            
+
+                            <p:row>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="Tipo Archivo" for="tipoTecnologia" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:selectOneMenu id="tipoTecnologia" label="Tipo Tecnología" required="true" value="#{auEntregaCargaBean.objeto.tipoTecnologia}"  
+                                             editable="fase" requiredMessage="Tipo Tecnología: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel="Procedimientos" itemValue="1"  />
+                                        <f:selectItem itemLabel="Medicamentos" itemValue="2"  />
+                                        <f:selectItem itemLabel="Insumos" itemValue="3" />
+                                        <f:selectItem itemLabel="Paquetes" itemValue="4" />
+                                        <p:ajax event="change" listener="#{auEntregaCargaBean.cargarDato}" update="tipoTecnologia"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-12">
+                                    <p:fileUpload id="cargarDocumento" label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                                fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                                invalidFileMessage="Tipo inválido de archivo"   
+                                                listener="#{auEntregaCargaBean.cargarAdjunto}" mode="advanced" dragDropSupport="false"
+                                                required="true" requiredMessage="Se debe agregar un Documento." 
+                                                sizeLimit="10000000" fileLimit="1" allowTypes="/(\.|\/)(xls)$/"  multiple="false"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver sucesos -->            
+            <p:dialog header="Ver Sucesos" widgetVar="dialogoVerSucesos" width="80%" appendTo="@(body)" modal="true" >
+                <h:form id="frmVerSucesos">
+                    <div align="right">
+                        <p:commandButton title="Refrescar" actionListener="#{auEntregaCargaBean.refrescarDetalles()}"
+                                         oncomplete="PF('widgetSucesos').filter()" icon="ui-icon-refresh"/>                        
+                    </div>
+                    <h:panelGroup id ="hPanelSucesos">
+                        <p:panelGrid id="panelSucesosLista" style="height:auto;" columns="4"
+                                     columnClasses="ui-grid-col-12"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+                            <p:dataTable id="tablaSucesos" 
+                                         widgetVar="widgetSucesos" 
+                                         var="objSuceso" 
+                                         value="#{auEntregaCargaBean.lazyDetalle}" 
+                                         rowKey="#{objSuceso.id}"
+                                         rows="#{auEntregaCargaBean.tamanoPagina}" 
+                                         paginator="true" 
+                                         lazy="true" 
+                                         reflow="true" style="max-height: 62vh;overflow-y: scroll;"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron sucesos">
+
+
+                                <p:column headerText="Fila"  filterBy="#{objSuceso.fila}">
+                                    <f:facet name="filter">
+                                        <p:inputNumber label="Fila" maxlength="128" 
+                                                       style="width: 95%;" decimalPlaces="0" thousandSeparator=""
+                                                       minValue="0" maxValue="100000"
+                                                       onkeypress="
+                                                               if (event.keyCode === 13) {
+                                                                   onchange();
+                                                                   return false;
+                                                               }"  
+                                                       onchange="PF('widgetSucesos').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objSuceso.fila}"/>
+                                </p:column>
+
+                                <p:column headerText="Estado" filterBy="#{objSuceso.estado}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('widgetSucesos').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Exitoso" itemValue="1" />
+                                            <f:selectItem itemLabel="Fallido" itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objSuceso.estadoStr()}"/>
+                                </p:column>
+
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{objSuceso.detalleFallo}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                            <f:facet name="footer">
+                                <p:row style="text-align:center;">
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" 
+                                                         onclick="PF('dialogoVerSucesos').hide()" 
+                                                         immediate="true" 
+                                                         style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:panelGroup>
+
+                </h:form>
+            </p:dialog>         
+        </center>
+    </ui:define>
+</ui:composition>

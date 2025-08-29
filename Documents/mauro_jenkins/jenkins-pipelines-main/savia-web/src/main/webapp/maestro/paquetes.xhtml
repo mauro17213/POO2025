@@ -1,0 +1,421 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmPaquetes">
+                <p:remoteCommand name="cerrarDialogoMedicamento" action="#{paquetesBean.cerrarDialogoMaMedicamento()}"/>
+                <p:remoteCommand name="cerrarDialogoInsumo" action="#{paquetesBean.cerrarDialogoMaInsumo()}"/>
+                <p:remoteCommand name="cerrarDialogoTecnologia" action="#{paquetesBean.cerrarDialogoMaTecnologia()}"/>
+                <p:remoteCommand name="cerrarDialogoSelCodigoMipres" action="#{paquetesBean.cerrarDialogoSelCodigoMipres()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{paquetesBean.modulo.descripcion}">#{paquetesBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{paquetesBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{paquetesBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{paquetesBean.accionCrear}" title="Crear" ajax="false" actionListener="#{paquetesBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{paquetesBean.lazyPaquetes}" paginator="true" rows="#{paquetesBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{paquetesBean.accionVer}" title="Detalle Afiliado" actionListener="#{paquetesBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{paquetesBean.accionEditar}" title="Realizar Novedad" actionListener="#{paquetesBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{paquetesBean.accionBorrar}" title="Borrar" action="#{paquetesBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Código" sortBy="#{obj.codigo}" filterBy="#{obj.codigo}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.codigo}" title="#{obj.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="512" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{paquetesBean.getActivo(obj.activo)}" title="#{paquetesBean.getActivo(obj.activo)}"/>
+                    </p:column>
+                    <p:column headerText="Incluye" sortBy="#{obj.incluye}" filterBy="#{obj.incluye}">
+                        <f:facet name="filter">
+                            <p:inputText label="Incluye" maxlength="1024" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.incluye}" title="#{obj.incluye}"/>
+                    </p:column>
+                    <p:column headerText="Excluye" sortBy="#{obj.excluye}" filterBy="#{obj.excluye}">
+                        <f:facet name="filter">
+                            <p:inputText label="Excluye" maxlength="1024" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.excluye}" title="#{obj.excluye}"/>
+                    </p:column>
+                    <p:column headerText="Observación" sortBy="#{obj.observacion}" filterBy="#{obj.observacion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Observación" maxlength="1024" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.observacion}" title="#{obj.observacion}"/>
+                    </p:column>
+                    <p:column headerText="Ambito Id" sortBy="#{obj.maeAmbitoId}" filterBy="#{obj.maeAmbitoId}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="11" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeAmbitoId}" title="#{obj.maeAmbitoId}"/>
+                    </p:column>
+                    <p:column headerText="Ambito Código" sortBy="#{obj.maeAmbitoCodigo}" filterBy="#{obj.maeAmbitoCodigo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Ambito Código" maxlength="8" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeAmbitoCodigo}" title="#{obj.maeAmbitoCodigo}"/>
+                    </p:column>
+                    <p:column headerText="Ambito Valor" sortBy="#{obj.maeAmbitoValor}" filterBy="#{obj.maeAmbitoValor}">
+                        <f:facet name="filter">
+                            <p:inputText label="Ambito Valor" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.maeAmbitoValor}" title="#{obj.maeAmbitoValor}"/>
+                    </p:column>
+                    <p:column headerText="Requisitos Técnicos" sortBy="#{obj.requisitosTecnicos}" filterBy="#{obj.requisitosTecnicos}">
+                        <f:facet name="filter">
+                            <p:inputText label="Requisitos Técnicos" maxlength="1024" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.requisitosTecnicos}" title="#{obj.requisitosTecnicos}"/>
+                    </p:column>
+                    <p:column headerText="Es Alto Costo" filterBy="#{obj.esAltoCosto}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Si " itemValue="1"  />
+                                <f:selectItem itemLabel=" No " itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{paquetesBean.getValorBandera(obj.esAltoCosto)}" title="#{paquetesBean.getValorBandera(obj.esAltoCosto)}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="60%">
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{paquetesBean.getAuditoria(paquetesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelInsumos" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Código" style="font-weight:bold" />
+                            <p:outputLabel value="#{paquetesBean.objeto.codigo}" />
+
+                            <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.nombre}" />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.getActivo(paquetesBean.objeto.activo)}" />
+
+                            <p:outputLabel value="Incluye" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.incluye}" />
+
+                            <p:outputLabel value="Excluye" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.excluye}" />
+
+                            <p:outputLabel value="Observación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.observacion}" />
+
+                            <p:outputLabel value="Ámbito" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.maeAmbitoValor}" />
+
+                            <p:outputLabel value="Requisitos Técnicos" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.objeto.requisitosTecnicos}" />
+
+                            <p:outputLabel value="Tecnología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.retornarCadena(paquetesBean.objeto.maTecnologia.codigoPropio ,paquetesBean.objeto.maTecnologia.propioDescripcion)}" />
+
+                            <p:outputLabel value="Es Alto Costo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{paquetesBean.getValorBandera(paquetesBean.objeto.esAltoCosto)}" />
+
+                        </p:panelGrid>
+                        <p:panel id="pnlVerTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{paquetesBean.objeto.listaPaqueteMipres}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcionMipres}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmCrear">
+                        <p:panelGrid id="panelCrear" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{paquetesBean.objeto.codigo}" maxlength="32" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            <p:inputText id="nombre" label="Nombre" value="#{paquetesBean.objeto.nombre}" maxlength="512" required="true" requiredMessage="Nombre: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{paquetesBean.objeto.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Incluye" for="incluye" style="font-weight:bold"/>
+                            <p:inputText id="incluye" label="Incluye" value="#{paquetesBean.objeto.incluye}" maxlength="1024" required="false" requiredMessage="Incluye: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Excluye" for="excluye" style="font-weight:bold"/>
+                            <p:inputText id="excluye" label="Excluye" value="#{paquetesBean.objeto.excluye}" maxlength="1024" required="false" requiredMessage="Excluye: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{paquetesBean.objeto.observacion}" maxlength="1024" required="true" requiredMessage="Observación: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Ambito" for="ambitoId" style="font-weight:bold"/>
+                            <p:selectOneMenu id="ambitoId" label="Ambito" required="true" value="#{paquetesBean.objeto.maeAmbitoId}" 
+                                             editable="fase" requiredMessage="Ambito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{paquetesBean.listaAmbito}" var="TIPO" itemValue="#{TIPO.id}" itemLabel="#{TIPO.nombre}" itemDescription="#{TIPO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Tecnologia" for="tecnologia" style="font-weight:bold"/>
+                            <p:column >
+                                <p:commandButton immediate="true" action="#{paquetesBean.consultarMaTecnologia()}" icon="ui-icon-home" title="Tecnologia" style="width:60px"/>
+                                <p:outputLabel id="tecnologia" value="#{paquetesBean.retornarCadena(paquetesBean.objeto.maTecnologia.codigoPropio ,paquetesBean.objeto.maTecnologia.propioDescripcion)}"/>
+                            </p:column>
+                            
+                            <p:outputLabel value="Es Alto Costo" for="esAltoCosto" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="esAltoCosto" value="#{paquetesBean.objeto.esAltoCosto}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Requisitos Técnicos" for="requisitosTecnicos" style="font-weight:bold"/>
+                            <p:inputText id="requisitosTecnicos" label="Requisitos Técnicos" value="#{paquetesBean.objeto.requisitosTecnicos}" maxlength="1024" required="false" requiredMessage="Requisitos Técnicos: Este campo es obligatorio."/>
+
+                        </p:panelGrid>
+                        <p:panel id="pnlTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{paquetesBean.consultarMpCodigoInsumo()}" icon="ui-icon-clipboard" title="Códigos Mipres"/>
+                            </div>
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{paquetesBean.listaCodigoInsumo}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-close" immediate="true" title="Retirar Código" action="#{paquetesBean.borrarCodigoMipres(codigoMipres)}"/>
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="guardarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{paquetesBean.guardar()}" update="panelCrear,panelCrear2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Editar -->
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{paquetesBean.getAuditoria(paquetesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panelGrid id="panelEditar" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{paquetesBean.objeto.codigo}" maxlength="32" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            <p:inputText id="nombre" label="Nombre" value="#{paquetesBean.objeto.nombre}" maxlength="512" required="true" requiredMessage="Nombre: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{paquetesBean.objeto.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Incluye" for="incluye" style="font-weight:bold"/>
+                            <p:inputText id="incluye" label="Incluye" value="#{paquetesBean.objeto.incluye}" maxlength="1024" required="false" requiredMessage="Incluye: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Excluye" for="excluye" style="font-weight:bold"/>
+                            <p:inputText id="excluye" label="Excluye" value="#{paquetesBean.objeto.excluye}" maxlength="1024" required="false" requiredMessage="Excluye: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{paquetesBean.objeto.observacion}" maxlength="1024" required="true" requiredMessage="Observación: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Ambito" for="ambitoId" style="font-weight:bold"/>
+                            <p:selectOneMenu id="ambitoId" label="Ambito" required="true" value="#{paquetesBean.objeto.maeAmbitoId}" 
+                                             editable="fase"  requiredMessage="Ambito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{paquetesBean.listaAmbito}" var="TIPO" itemValue="#{TIPO.id}" itemLabel="#{TIPO.nombre}" itemDescription="#{TIPO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Tecnologia" for="tecnologia" style="font-weight:bold"/>
+                            <p:column>
+                                <p:commandButton immediate="true" action="#{paquetesBean.consultarMaTecnologia()}" icon="ui-icon-home" title="Tecnologia" style="width:60px"/>
+                                <p:outputLabel id="tecnologia" value="#{paquetesBean.retornarCadena(paquetesBean.objeto.maTecnologia.codigoPropio ,paquetesBean.objeto.maTecnologia.propioDescripcion)}" />
+                            </p:column>
+
+                            <p:outputLabel value="Es Alto Costo" for="esAltoCosto" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="esAltoCosto" value="#{paquetesBean.objeto.esAltoCosto}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Requisitos Técnicos" for="requisitosTecnicos" style="font-weight:bold"/>
+                            <p:inputText id="requisitosTecnicos" label="Requisitos Técnicos" value="#{paquetesBean.objeto.requisitosTecnicos}" maxlength="1024" required="false" requiredMessage="Requisitos Técnicos: Este campo es obligatorio."/>
+
+                        </p:panelGrid>
+                        <p:panel id="pnlTecnologiaMipres" header="Códigos Mipres" style="margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{paquetesBean.consultarMpCodigoInsumo()}" icon="ui-icon-clipboard" title="Códigos Mipres"/>
+                            </div>
+                            <p:dataTable id="tablaTecnologiaCodigoMipres" 
+                                         style="margin: 10px;" value="#{paquetesBean.listaCodigoInsumo}" 
+                                         var="codigoMipres" widgetVar="tablaTecnologiaCodigoMipres" rowKey="#{codigoMipres.id}">
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-close" immediate="true" title="Retirar Código" action="#{paquetesBean.eliminarCodigosMipres(codigoMipres)}"/>
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{codigoMipres.codigoMipres}"/>
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{codigoMipres.descripcion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelEditar2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="modificarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{paquetesBean.modificar()}" update="panelEditar,panelEditar2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <ui:include src="../maestro/seleccion/sel_medicamentos.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_tecnologias.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_insumos.xhtml" />
+            <ui:include src="../mipres/seleccion/sel_codigo_mipres.xhtml" />
+        </center>
+    </ui:define>
+</ui:composition>

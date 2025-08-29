@@ -1,0 +1,471 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+
+            .ui-selectonemenu-panel{
+                overflow: auto !important;
+                width: 200px !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+             .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>
+        <center>
+            <h:form id="frmServicioGestion">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{ausServicioGestionBean.modulo.descripcion}">#{ausServicioGestionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{ausServicioGestionBean.accionAdicional3}" title="Vencidos" actionListener="#{ausServicioGestionBean.contarVencidos()}" icon="ui-icon-alert"/>
+                        <p:commandButton rendered="#{ausServicioGestionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{ausServicioGestionBean.refrescar()}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{ausServicioGestionBean.lazyServicioGestion}" paginator="true" rows="#{ausServicioGestionBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center; width: 10%;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>  
+                        <p:commandButton rendered="#{ausServicioGestionBean.accionAdicional1}" title="Gestionar" actionListener="#{ausServicioGestionBean.verGestion(obj.id)}" icon="ui-icon-folder-open"/> 
+                    </p:column>
+                    <p:column headerText="Dias Vencimiento" sortBy="#{obj.fechaVencimiento}"  style="text-align: center; width: 10%">
+                        <i class="pi pi-circle-on" style="color: #{ausServicioGestionBean.getColorVencimiento(obj)}"/>
+                        <h:outputText value="#{obj.diasVencidos}" title="#{obj.diasVencidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Número Solicitud" sortBy="#{obj.casosId.id}" filterBy="#{obj.casosId.id}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Solicitud" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Radicado" sortBy="#{obj.casosId.radicado}" filterBy="#{obj.casosId.radicado}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Radicado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.radicado}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Documento" filterBy="#{obj.casosId.asuPersonasId.mae_tipo_documento_id}" sortBy="#{obj.casosId.asuPersonasId.mae_tipo_documento_id}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ausServicioGestionBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.asuPersonasId.mae_tipo_documento_valor}"/>
+                    </p:column>
+
+                    <p:column headerText="Documento" filterBy="#{obj.casosId.asuPersonasId.documento}" sortBy="#{obj.casosId.asuPersonasId.documento}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.asuPersonasId.documento}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombres" sortBy="#{obj.casosId.asuPersonasId.nombres}" filterBy="#{obj.casosId.asuPersonasId.nombres}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.asuPersonasId.nombres}" title="#{obj.casosId.asuPersonasId.nombres}"/>
+                    </p:column>
+
+                    <p:column headerText="Apellidos" sortBy="#{obj.casosId.asuPersonasId.apellidos}" filterBy="#{obj.casosId.asuPersonasId.apellidos}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Apellidos" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.asuPersonasId.apellidos}" title="#{obj.casosId.asuPersonasId.apellidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Especialidad" sortBy="#{obj.maServicioValor}" filterBy="#{obj.maServicioValor}" style="width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Especialidad" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.maServicioValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Motivo" filterBy="#{obj.maeServicioMotivoId}" sortBy="#{obj.maeServicioMotivoId}" style="text-align: center; width: 10%;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                <f:selectItems value="#{ausServicioGestionBean.listaTipoMotivoServicio}" var="tipMot" itemValue="#{tipMot.id}" itemLabel="#{tipMot.nombre}" itemDescription="#{tipMot.descripcion}"/> 
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeServicioMotivoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Diagnóstico" filterBy="#{obj.maDiagnostico.nombre}" sortBy="#{obj.maDiagnostico.id}" style="text-align: center; width: 10%;">
+                        <f:facet name="filter">
+                            <p:inputText label="Diagnóstico" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.getMaDiagnosticoNombreCorto()}"/>
+                        <p:commandButton rendered="#{obj.getMaDiagnosticoNombreCorto().length() > 20 }" actionListener="#{ausServicioGestionBean.mostrarMensajeGeneral(obj.maDiagnostico.nombre)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>   
+                    </p:column>
+
+                    <p:column headerText="" filterBy="#{obj.maeEstadoId}" style="text-align: center; width: 13%">
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu label="Estado Servicio" onchange="PF('tablaWidget').filter()" scrollHeight="150" styleClass="custom-filter">
+                                <f:selectItems value="#{ausServicioGestionBean.listaEstadoServicioEstadoAsignado}" var="tipEst" itemValue="#{tipEst.id}" itemLabel="#{tipEst.nombre}" itemDescription="#{tipEst.descripcion}"/>
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeEstadoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="" filterBy="#{obj.casosId.maeSolicitudOrigenId}"  style="width: 13%;">
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu label="Origen" onchange="PF('tablaWidget').filter()" scrollHeight="150" styleClass="custom-filter" >
+                                <f:selectItems value="#{ausServicioGestionBean.listaTipoSolicitudOrigen}" var="origen" itemValue="#{origen.id}" itemLabel="#{origen.nombre}" itemDescription="#{origen.descripcion}"/>
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.maeSolicitudOrigenValor}"/>
+                    </p:column>
+
+                    <p:column headerText="" filterBy="#{obj.casosId.maeSolicitudRiesgoVidalId}"  style="width: 13%;">
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu label="Riesgo de Vida" onchange="PF('tablaWidget').filter()" scrollHeight="150" styleClass="custom-filter">
+                                <f:selectItems value="#{ausServicioGestionBean.listaTipoSolicitudRiesgoVida}" var="riesgo" itemValue="#{riesgo.id}" itemLabel="#{riesgo.nombre}" itemDescription="#{riesgo.descripcion}"/>
+                            </p:selectCheckboxMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.casosId.maeSolicitudRiesgoVidalValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha Creación Servicio" sortBy="#{obj.fechaHoraCrea}" style="width: 10%;"> 
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!--GESTION-->
+            <p:scrollPanel mode="native" style="height:500px">
+                <p:dialog header="Gestión Servicio"  widgetVar="dialogoGestion" appendTo="@(body)" modal="true" width="90%" dynamic="true">
+                    <p:scrollPanel mode="native" style="height:500px">
+                        <h:form id="frmGestion">
+                            <p:panel id="pPersona" header="INFORMACIÓN PERSONA" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+
+                                <p:panelGrid id="panelPersona" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid"
+                                             style="border:0px none; background-color:transparent;"> 
+
+                                    <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.mae_tipo_documento_valor}" />
+
+                                    <p:outputLabel value="Documento" style="font-weight:bold" />
+                                    <p:outputLabel value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.documento}" />
+
+                                    <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.nombres}" />
+
+                                    <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.apellidos}" />
+
+                                    <p:outputLabel value="Fecha Nacimiemto" for="fechaNacimiento" style="font-weight:bold" />
+                                    <h:outputText  id="fechaNacimiento"  value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.fechaNacimiento}" title="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.fechaNacimiento}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+
+                                    <p:outputLabel value="Sexo" for="sexo" style="font-weight:bold"/>
+                                    <p:outputLabel id="sexo" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.mae_sexo_valor}" />
+
+                                    <p:outputLabel value="Edad" for="edad" style="font-weight:bold"/>
+                                    <p:outputLabel id="edad" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.edad}" />
+
+                                    <p:outputLabel value="Correo Electrónico" for="email" style="font-weight:bold"/>
+                                    <p:outputLabel id="email" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.correoElectronico}" />
+
+                                    <p:outputLabel value="Estado" for="estado" style="font-weight:bold"/>
+                                    <p:outputLabel id="estado" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.mae_estado_valor}" />
+
+                                    <p:outputLabel value="Ubicación" for="ubicacion" style="font-weight:bold"/>
+                                    <p:outputLabel  id="ubicacion" value="#{ausServicioGestionBean.getUbicacionRecursiva(ausServicioGestionBean.objeto.casosId.ubicacion.id)}"/>
+
+                                    <p:outputLabel value="Dirección" for="direccion" style="font-weight:bold"/>
+                                    <p:outputLabel id="direccion" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.direccion}" />
+
+                                    <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                    <p:outputLabel id="contrato" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.contrato}" />
+
+                                    <p:outputLabel value="Régimen" for="regimen" style="font-weight:bold"/>
+                                    <p:inputSwitch onLabel="Contributivo" offLabel="Subsidiado" id="regimen" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.regimen}" disabled="true">
+                                    </p:inputSwitch>
+
+                                    <p:outputLabel value="Discapacidad"  style="font-weight:bold"/>
+                                    <p:inputSwitch onLabel="SI" offLabel="NO" id="discapacidad" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.discapacidad}" disabled="true"/>
+
+                                    <p:outputLabel value="Gestante"  style="font-weight:bold"/>
+                                    <p:inputSwitch onLabel="SI" offLabel="NO" id="gestante" value="#{ausServicioGestionBean.objeto.casosId.asuPersonasId.gestante}" disabled="true" />  
+                                </p:panelGrid>
+                            </p:panel>
+
+                            <p:panel id="pGestionSeguimiento" header="SEGUIMIENTO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                <p:dataTable id="tablaSeguimientos" widgetVar="tablaSeguimientos" var="seguimientoIn" value="#{ausServicioGestionBean.seguimientoRadicado}" scrollable="true"  style="margin-bottom:20px; margin-top: 20px;" emptyMessage="No se encontraron registros">
+                                    <f:facet name="header">
+                                        <div>
+                                            SEGUIMIENTOS
+                                        </div>
+                                    </f:facet>
+
+                                    <p:column headerText="Estado">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Estado"/>
+                                        </f:facet>
+                                        <h:outputText value="#{seguimientoIn.maeEstadoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Observacion">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Observacion" />
+                                        </f:facet>
+                                        <h:outputText value="#{seguimientoIn.observacion}"/>
+                                    </p:column> 
+
+                                    <p:column headerText="Fecha Creación" style="text-align: center;">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Fecha Creación"/>
+                                        </f:facet>
+                                        <h:outputText value="#{seguimientoIn.fechaHoraCrea}"/>
+                                    </p:column>
+                                </p:dataTable> 
+                            </p:panel>
+
+                            <p:panel id="pServicio" header="Estado del servicio" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                <p:panelGrid id="panelServicio" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid"
+                                             style="border:0px none; background-color:transparent;">             
+
+                                    <p:outputLabel value="Estado" for="estadoServicio" style="font-weight:bold"/>
+                                    <p:selectOneMenu id="estadoServicio" label="Estado" value="#{ausServicioGestionBean.objeto.maeEstadoId}" required="true" requiredMessage="Estado: Este campo es obligatorio." style="width:150px;">                                       
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />  
+                                        <f:selectItems value="#{ausServicioGestionBean.listaEstadosServicioGestion}" var="tipEst" itemValue="#{tipEst.id}" itemLabel="#{tipEst.nombre}" itemDescription="#{tipEst.descripcion}"/>  
+                                    </p:selectOneMenu>
+
+                                    <p:outputLabel value="Observación" for="observacionServicio" style="font-weight:bold"/>
+                                    <p:inputTextarea id="observacionServicio" label="Descripción" value="#{ausServicioGestionBean.objeto.descripcion}" cols="60" maxlength="511"/>
+                                    
+                                    <p:outputLabel value="Fecha Cita" for="fechaAplica" style="font-weight:bold" rendered="#{ausServicioGestionBean.objeto.asignacionCita}"/>
+                                    <p:outputLabel value="Fecha Aplica" for="fechaAplica" style="font-weight:bold" rendered="#{!ausServicioGestionBean.objeto.asignacionCita}"/>
+                                    <p:calendar id="fechaAplica" yearRange="c-100:c"  navigator="true" pattern="yyyy-MM-dd HH:mm:ss"  value="#{ausServicioGestionBean.objeto.fechaAplica}" size="7" maxlength="10" required="false" requiredMessage="Fecha Aplica: Este campo es obligatorio." /> 
+                                  
+                                </p:panelGrid>
+                            </p:panel>  
+                            <p:panel id="pDescripcionServicio" header="Descripción del servicio" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                <p:panelGrid id="panelDescripcionServicio" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid"
+                                             style="border:0px none; background-color:transparent;">             
+
+                                    <p:outputLabel value="Procedimiento" for="procedimiento" style="font-weight:bold"/>
+                                    <p:outputLabel id="procedimiento" value="#{ausServicioGestionBean.objeto.maTecnologiaValor}" />
+
+                                    <p:outputLabel value="Diagnóstico" for="diagnostico" style="font-weight:bold"/>
+                                    <p:outputLabel id="diagnostico" value="#{ausServicioGestionBean.objeto.maDiagnostico.nombre}"/>
+
+                                    <p:outputLabel value="Especialidad" for="especialidad" style="font-weight:bold"/>
+                                    <p:outputLabel id="especialidad" value="#{ausServicioGestionBean.objeto.maServicioValor}" />
+                                </p:panelGrid>
+                            </p:panel>
+                            <p:spacer></p:spacer> 
+                            <p:panel id="pAnexosServicios" header="Anexos servicios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                <p:dataTable  id="tablaAnexosServicios" var="anexSer" value="#{ausServicioGestionBean.objeto.adjuntosList}" widgetVar="tablaAnexosServicios" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron regsitros">                                                           
+                                    <f:facet name="header">
+                                        <div>
+                                            <p:fileUpload id="inptAnexo" label="Agregar Adjunto Servicio" uploadLabel="Subir"  cancelLabel="Cancelar"  
+                                                          fileLimitMessage="Máximo número de archivos excedido" 
+                                                          invalidFileMessage="Tipo inválido de archivo"                                              
+                                                          listener="#{ausServicioGestionBean.handleFileUpload}" 
+                                                          mode="advanced" 
+                                                          dragDropSupport="true" auto="false" 
+                                                          fileLimit="5"
+                                                          multiple="true"
+                                                          allowTypes="/(\.|\/)(pdf|jpe?g)$/"/>  
+                                        </div>
+                                        <div>
+                                            ADJUNTOS SERVICIOS
+                                        </div>
+                                    </f:facet>      
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{anexSer.nombre}" />
+                                    </p:column>
+                                    <p:column headerText="Fecha Hora Carga">
+                                        <h:outputText value="#{anexSer.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Acciones"/>
+                                        </f:facet>  
+                                        <p:commandButton action="#{ausServicioGestionBean.descargarAnexo(anexSer)}"
+                                                         icon="ui-icon-arrowthickstop-1-s" styleClass="btn-primary" title="Descargar anexo"
+                                                         ajax="false" process="@this"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                            <p:spacer></p:spacer> 
+                            <p:panel id="pHistoricosSerivicio" header="Historicos Servicios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                <p:dataTable id="servicios" widgetVar="servicios" var="servicioIn" value="#{ausServicioGestionBean.objeto.servicioGestionesList}" scrollable="true"
+                                             scrollWidth="100%"  style="margin-bottom:20px;" emptyMessage="No se encontraron regsitros">
+                                    <f:facet name="header">
+                                        HISTORICO SERVICIO
+                                    </f:facet>
+
+                                    <p:column headerText="Estado">
+                                        <f:facet name="filter">
+                                            <p:inputText label="Estado" />
+                                        </f:facet>
+                                        <h:outputText value="#{servicioIn.maeEstadoValor}"/>
+                                    </p:column>
+
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Usuario Creador"/>
+                                        </f:facet>    
+                                        <h:outputText value="#{servicioIn.usuarioCrea}"/>
+                                    </p:column>
+
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Fecha Creación"/>
+                                        </f:facet>    
+                                        <h:outputText value="#{servicioIn.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="Observación"/>
+                                        </f:facet>    
+                                        <h:outputText value="#{servicioIn.observacion}"/>
+                                    </p:column>
+
+                                </p:dataTable> 
+                            </p:panel>
+
+                            <p:panelGrid  style="width:100%;margin:10px 0px">
+                                <f:facet name="footer">
+                                    <p:row>
+                                        <p:column colspan="4" style="text-align: center">
+                                            <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                                <p:commandButton value="Guardar" type="button" onclick="modificarGestionRemote()" validateClient="true"/>
+                                                <p:remoteCommand name="modificarGestionRemote" action="#{ausServicioGestionBean.modificarGestion}" update="frmGestion" />
+                                                <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoGestion').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </h:form>
+                    </p:scrollPanel>
+                </p:dialog>
+            </p:scrollPanel>
+            <p:dialog header="SERVICIOS VENCIDOS" widgetVar="dialogoServicioVencidos" appendTo="@(body)" modal="true"> 
+                <h:form id="frmServiciosVencidos">
+                    <p:panelGrid id="panelServiciosVencidos" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid"
+                                 style="border:0px none; background-color:transparent;">
+
+                        <p:outputLabel value="Número servicios vencidos" style="font-weight:bold"/>
+                        <p:outputLabel title="Servicios vencidos" value="#{ausServicioGestionBean.cantidadVencidos}"/>
+
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Filtrar vencidos" actionListener="#{ausServicioGestionBean.listarVencidos()}"/>                                       
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoServicioVencidos').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmObservacion" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{ausServicioGestionBean.mensajeGeneral}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

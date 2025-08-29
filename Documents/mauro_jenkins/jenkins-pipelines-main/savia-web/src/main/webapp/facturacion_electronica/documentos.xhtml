@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style>
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>
+
+        <center>
+            <h:form id="frmDocumentos">
+                <p:toolbar>
+                    <f:facet name="left">
+                        <span title="#{feDocumentoBean.modulo.descripcion}">#{feDocumentoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{feDocumentoBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{feDocumentoBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{feDocumentoBean.lazyFeDocumento}" paginator="true" rows="#{feDocumentoBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="NIT Emisor" filterBy="#{obj.prestadorNit}" sortBy="#{obj.prestadorNit}">
+                        <f:facet name="filter">
+                            <p:inputText label="NIT Emisor" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.prestadorNit}" title="#{obj.prestadorNit}"/>
+                    </p:column>
+
+                    <p:column headerText="Número Documento" filterBy="#{obj.documentoNumero}" sortBy="#{obj.documentoNumero}">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Documento" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.documentoNumero}" title="#{obj.documentoNumero}"/>
+                    </p:column>
+
+
+                    <p:column headerText="Tipo Documento" filterBy="#{obj.documentoTipo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Factura" itemValue="0"></f:selectItem>
+                                <f:selectItem itemLabel="Nota Débito" itemValue="1"></f:selectItem>
+                                <f:selectItem itemLabel="Nota Crédito" itemValue="2"></f:selectItem>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{feDocumentoBean.getTipoDocumentoDescripcion(obj.documentoTipo)}" title="#{obj.documentoTipo}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Fecha Documento" sortBy="#{obj.fechaDocumento}">
+                        <h:outputText value="#{obj.fechaDocumento}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Plataforma FE" sortBy="#{obj.fechaRadicacion}">
+                        <h:outputText value="#{obj.fechaRadicacion}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Plataforma Misional" sortBy="#{obj.fechaHoraCrea}">
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+        </center>
+    </ui:define>
+</ui:composition>

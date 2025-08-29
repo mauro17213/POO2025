@@ -1,0 +1,184 @@
+  <?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <f:facet name="first">
+            <h:outputStylesheet name="css/default.css"/>
+            <h:outputStylesheet name="css/cssLayout.css"/>
+            <h:outputStylesheet name="css/inicio.css"/>
+            <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
+            <link rel="icon" type="image/x-icon" href="/savia/resources/images/icono.png"/>
+            <!-- CSS only -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"/>
+            <title>Consultar Casos</title>
+        </f:facet>
+        <style type="text/css">
+            #frmBusquedaSolicitud .ui-toolbar.ui-widget-header, 
+            #frmSolicitudConsultar .ui-toolbar.ui-widget-header,
+            #toolbarTituloModulo.ui-toolbar.ui-widget-header{
+                background-color: #99D1C7 !important;
+                background-image: none !important;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+
+            }
+            #frmBusquedaSolicitud .ui-button, 
+            #frmSolicitudConsultar .ui-button {
+                background: #04997C !important;
+                color: white;
+            }
+            .ui-selectonemenu-items-wrapper,
+            .ui-autocomplete-panel
+            {
+                width:350px !important;
+            } 
+
+            #frmSolicitudConsultar td{
+                border-bottom: none;
+            }
+
+
+            .ui-autocomplete-panel .ui-autocomplete-list
+            {
+                overflow: auto !important;
+                height: 200px !important;
+            }
+
+            .ui-panelgrid .ui-panelgrid-cell {
+                border-width: 1px;
+                border-style: none;
+                border-color: inherit;
+                padding: 4px 10px;
+            }
+
+            .texto-adjuntos{ font-style: italic; font-weight: bold; }
+
+            .mensaje-radicado {
+                background: #08c;
+                opacity: 0.9;
+                width: 500px; 
+                height: 50px; 
+                color: #FFFFFF; 
+                text-align: center;
+                border-radius: 5px 5px 5px 5px;
+                -moz-border-radius: 5px 5px 5px 5px;
+                -webkit-border-radius: 5px 5px 5px 5px;
+                border: 0px solid #fff5ff;
+            }
+
+            .texto-radicado {
+                padding: 18px;
+                display: block;
+            }
+
+            .boton {
+                float: right;
+            }
+            .ui-outputlabel {
+                font-weight: bold;
+            }
+
+            .ui-orderlist .ui-orderlist-list {
+                height: auto;
+            }
+        </style>
+
+    </h:head>
+    <p:growl id="mensajeGeneral" showSummary="false" showDetail="true" sticky="false">
+        <p:autoUpdate />
+    </p:growl>
+    <h:body style=" background-color: #FFFFFF; background-size: 100%; ">
+        <f:view>
+            <p:toolbar id="toolbarTituloModulo">
+                <f:facet id="tituloSeccion" name="left">
+                    <span title="Funcionalidad que permite consultar caso">Consultar Casos</span> 
+                </f:facet>
+            </p:toolbar>
+            <p:ajaxStatus onstart="PF('statusDialog').show()" onsuccess="PF('statusDialog').hide()" />
+            <p:dialog widgetVar="statusDialog" modal="true" draggable="false" closable="false" resizable="false" showHeader="false">
+                <p:graphicImage name="images/ajax-loader.gif" />
+            </p:dialog>
+            <p:panelGrid id="panelActualizacionDatosCaso" style="width: 80%;" >   
+                <p:panelGrid id="panelDatosLogo"  class="ui-fluid" columns="1" layout="grid" styleClass="showcase-text-align-center">                   
+                    <div style="padding: 2px 0 0 5px;">
+                        <h:graphicImage value="/resources/images/logo_savia_formulario.png" style="height: 82px; width: 165px" title="Actualización Caso" />
+                    </div>
+                </p:panelGrid>
+                <h:form id="frmBusquedaSolicitud">
+                    <div id="mensajeBusqueda" align="left">
+                        <p:messages id="msgs"/>
+                    </div>
+                    <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+                        <p:outputLabel value="Tipo de Identificación" for="tipoDocumento" style="font-weight:bold"/>
+                        <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{atencionConsultaCasoBean.objeto.ausPersonasId.mae_tipo_documento_id}" requiredMessage="Tipo Documento: Este campo es obligatorio."  editable="fase" style="width: 200px;" >
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{atencionConsultaCasoBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Número de Identificación" for="numeroIdentificacion" styleClass="ui-widget-header" style="font-weight:bold"/>
+                        <p:inputText value="#{atencionConsultaCasoBean.objeto.asuPersonasId.documento}" label="Número de identificación" 
+                                     id="numeroIdentificacion" maxlength="16" required="true" 
+                                     requiredMessage="Número de identificación : Este campo es obligatorio."/>
+
+                        <p:outputLabel value="Fecha de Nacimiento" for="fechaNacimiento" styleClass="ui-widget-header" style="font-weight:bold"/>
+                        <p:calendar value="#{atencionConsultaCasoBean.objeto.asuPersonasId.fechaNacimiento}" id="fechaNacimiento" label="Fecha de nacimiento" navigator="true" pattern="yyyy-MM-dd" yearRange="c-100:c" 
+                                    size="30" maxlength="30" required="true" requiredMessage="Fecha de nacimiento : Este campo es obligatorio.">
+                        </p:calendar>
+
+                    </p:panelGrid>
+
+                    <p:panelGrid id="panelDatosBusquedaAfiliadoBotones" style="width: 100%;">
+                        <p:commandButton  update="frmBusquedaSolicitud" actionListener="#{atencionConsultaCasoBean.buscarSolicitudesCaso()}" value="Consultar"/>       
+                        <p:commandButton  update="frmSolicitudConsultar" value="Cancelar" immediate="true" style="margin-left: 5px;" actionListener="#{atencionConsultaCasoBean.limpiarFormularioBusqueda()}"/>
+                    </p:panelGrid>
+                </h:form>
+
+                <h:form id="frmSolicitudConsultar" style="margin-top: 20px;" >
+                    <p:dataTable rendered="#{atencionConsultaCasoBean.mostrarTablaSolicitudes}" id="tablaSolicitudes" var="obj" value="#{atencionConsultaCasoBean.lazyAusCaso}" paginator="true" rows="#{atencionConsultaCasoBean.tamanoPagina}" 
+                                 emptyMessage="No se encontraron registros"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="5,10,15,20,50,100" lazy="true"
+                                 widgetVar="tablaWidget"
+                                 rowKey="#{obj.id}" reflow="true">                    
+                        <p:column style="width: 40%" headerText="Número de solicitud" filterBy="#{obj.id}" sortBy="#{obj.id}">
+                            <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                        </p:column>
+                        <p:column style="width: 30%" headerText="Tipo de solicitud">
+                            <h:outputText value="#{obj.maeSolicitudTipoValor}" />
+                        </p:column>
+                        <p:column style="width: 40%" headerText="Tipo de documento" >
+                            <h:outputText value="#{obj.asuPersonasId.mae_tipo_documento_valor}"/>
+                        </p:column>
+                        <p:column style="width: 30%" headerText="Documento">
+                            <h:outputText value="#{obj.asuPersonasId.documento}" />
+                        </p:column>
+                        <p:column style="width: 30%" headerText="Nombres">
+                            <h:outputText value="#{obj.asuPersonasId.nombres}" />
+                        </p:column>
+                        <p:column style="width: 30%" headerText="Apellidos">
+                            <h:outputText value="#{obj.asuPersonasId.apellidos}" />
+                        </p:column>
+                        <p:column style="width: 70%" headerText="Correo Electronico">
+                            <h:outputText value="#{obj.asuPersonasId.correoElectronico}" />
+                        </p:column>
+                        <p:column style="width: 30%" headerText="Estado del caso">
+                            <h:outputText value="#{obj.maeSolicitudEstadoValor}" />
+                        </p:column>
+
+                        <p:column style="width: 35%" headerText="Fecha de registro" sortBy="#{obj.fechaHoraCrea}">
+                            <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}">
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                            </h:outputText>
+                        </p:column> 
+                    </p:dataTable>
+                </h:form>
+            </p:panelGrid>
+        </f:view>
+    </h:body>
+</html>
+

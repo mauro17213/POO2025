@@ -1,0 +1,370 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <script type="text/javascript">
+            function mayus(e) {
+                e.value = e.value.toUpperCase();
+            }
+            ;
+        </script>
+        <center>
+            <h:form id="frmPersonal">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{tuPersonalBean.modulo.descripcion}">#{tuPersonalBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{tuPersonalBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{tuPersonalBean.listar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{tuPersonalBean.accionCrear}" title="Crear" actionListener="#{tuPersonalBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{tuPersonalBean.lazyTuPersonal}" paginator="true" rows="#{tuPersonalBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             scrollable="true"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center; width: 100px">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{tuPersonalBean.accionVer}" title="Ver" actionListener="#{tuPersonalBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{tuPersonalBean.accionEditar}" title="Editar" actionListener="#{tuPersonalBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{tuPersonalBean.accionBorrar}" title="Borrar" action="#{tuPersonalBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Tipo documento" sortBy="#{obj.maeTipoDocumentoValor}" style="width: 100px">                        
+                        <h:outputText value="#{obj.maeTipoDocumentoValor}" title="#{obj.maeTipoDocumentoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Número documento" filterBy="#{obj.numeroDocumento}" style="width: 100px">
+                        <f:facet name="filter">
+                            <p:inputText label="Número documento" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroDocumento}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Completo" filterBy="#{obj.nombreCompleto}" style="width: 100px">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre Completo" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombreCompleto}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Personal" sortBy="#{obj.tipoPersonal}" style="width: 100px">                        
+                        <h:outputText value="#{obj.tipoPersonalStr}" title="#{obj.tipoPersonalStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Cargo" sortBy="#{obj.maeGnCargoValor}" style="width: 100px">                        
+                        <h:outputText value="#{obj.maeGnCargoValor}" title="#{obj.maeGnCargoValor}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!--VER -->
+            <p:dialog widgetVar="dialogoVer" appendTo="@(body)" position="center" width="80%" modal="true" style="max-height:75%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Ver</b>
+                </header>
+                <h:form id="frmAuditoriaGeneralVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{tuPersonalBean.objeto.datosAuditoria}"/>
+                </h:form>
+                <p:scrollPanel mode="native" style="height:490px">
+                    <h:form id="frmVer">
+                        <p:panel id="panelVerPersonala" header="Personal" style="margin-bottom:10px;" collapsed="false" toggleable="true" >
+                            <p:outputPanel class="frmPersonal" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{tuPersonalBean.getAuditoria(tuPersonalBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid columns="4" id="panelDatosTutela" style="width:100%;">
+                                <p:outputLabel value="Número Personal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.id}" />
+                                <p:outputLabel value="Tipo Personal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.tipoPersonalStr}" />
+                                <p:outputLabel value="Cargo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.maeGnCargoValor}"/>
+                                <p:outputLabel value="Número Tarjeta Profesional" style="font-weight:bold"/>
+                                <p:outputLabel  value="#{tuPersonalBean.objeto.numeroTarjetaProfesional}"/>
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.maeTipoDocumentoValor}" />
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.numeroDocumento}" />
+                                <p:outputLabel value="Primer Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.primerNombre}" />
+                                <p:outputLabel value="Segundo Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.segundoNombre}" />
+                                <p:outputLabel value="Primer Apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.primerApellido}" />
+                                <p:outputLabel value="Segundo Apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuPersonalBean.objeto.segundoApellido}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panel id="pnlAdjuntoFirma" header="ADJUNTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable  id="tablaAdjuntoRescate" var="anexSer" value="#{tuPersonalBean.objeto.tuMemorialFirmasList}" widgetVar="tablaSugeridosAnexos" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{anexSer.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{anexSer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--CREAR -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:490px">
+                    <h:form id="frmCrear">
+                        <p:panel id="pPersonaCrear" header="PERSONA" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="4" id="panelPersonaCrear" style="width:100%;margin:10px 0px">
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{tuPersonalBean.objeto.maeTipoDocumentoId}" requiredMessage="Tipo Documento: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{tuPersonalBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                                <p:inputText id="documento" label="Documento" value="#{tuPersonalBean.objeto.numeroDocumento}" size="20" maxlength="16" required="true" requiredMessage="Documento: Este campo es obligatorio.">
+
+                                </p:inputText>
+                                <p:outputLabel value="Primer Nombre" for="primerNombre" style="font-weight:bold"/>
+                                <p:inputText id="primerNombre" label="Primer Nombre" value="#{tuPersonalBean.objeto.primerNombre}" onkeyup="return mayus(this)" size="30" maxlength="62" required="true" requiredMessage="Primer Nombre: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Segundo Nombre" for="segundoNombre" style="font-weight:bold"/>
+                                <p:inputText id="segundoNombre" label="Segundo Nombre" value="#{tuPersonalBean.objeto.segundoNombre}" onkeyup="return mayus(this)" size="30" maxlength="62" required="false" requiredMessage="Segundo Nombre: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Primer Apellido" for="primerApellido" style="font-weight:bold"/>
+                                <p:inputText id="primerApellido" label="Primer Apellido" value="#{tuPersonalBean.objeto.primerApellido}" onkeyup="return mayus(this)" size="30" maxlength="62" required="true" requiredMessage="Primer Apellido: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Segundo Apellido" for="segundoApellido" style="font-weight:bold"/>
+                                <p:inputText id="segundoApellido" label="Segundo Apellido" value="#{tuPersonalBean.objeto.segundoApellido}" onkeyup="return mayus(this)" size="30" maxlength="62" required="false" requiredMessage="Segundo Apellido: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Tipo Personal" for="tipoPersonal" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoPersonal" value="#{tuPersonalBean.objeto.tipoPersonal}" required="true" requiredMessage="Tipo Personal: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Abogado" itemValue="1"/>
+                                    <f:selectItem itemLabel="Asistente" itemValue="2"/>
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Cargo" for="cargo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="cargo" label="Cargo" required="true" value="#{tuPersonalBean.objeto.maeGnCargoId}" requiredMessage="Cargo: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{tuPersonalBean.listaCargoPersonal}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Número Tarjeta Profesional" for="numeroTarjetaProfesional" style="font-weight:bold"/>
+                                <p:inputText id="numeroTarjetaProfesional" label="Número Tarjeta Profesional" value="#{tuPersonalBean.objeto.numeroTarjetaProfesional}" size="30" maxlength="62" required="true" requiredMessage="Número Tarjeta Profesional: Este campo es obligatorio.">
+                                </p:inputText>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+
+                        <p:panel id="pCrearServicio" header="ADJUNTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable  id="tablaCrearAnexosFirma" var="anexSer" value="#{tuPersonalBean.objeto.tuMemorialFirmasList}" widgetVar="tablaCrearAnexosEstados" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron registros">                                                           
+                                <f:facet name="header">
+                                    <p:fileUpload id="anexo5" label="Agregar archivo" uploadLabel="Subir" cancelLabel="Cancelar"
+                                                  fileLimitMessage="Máximo número de archivos excedido (#{tuPersonalBean.maxCantAnexos})"
+                                                  invalidFileMessage="Tipo de archivo Iinválido"
+                                                  invalidSizeMessage="El Tamaño de archivo permitido es hasta #{tuPersonalBean.convertirBytesParaMegasTamAdjunto()} ."
+                                                  listener="#{tuPersonalBean.handleFileUploadMemorial}"
+                                                  mode="advanced"
+                                                  update="tablaCrearAnexosFirma"
+                                                  dragDropSupport="true" auto="false" multiple="true"
+                                                  fileLimit="#{tuPersonalBean.maxCantAnexos}" sizeLimit="#{tuPersonalBean.sizeLimitByAnexo}"
+                                                  allowTypes="/(\.|\/)(jpe?g|png)$/" /> 
+                                    <div>
+                                        ADJUNTOS ESTADOS
+                                    </div>
+                                </f:facet>
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet> 
+                                    <p:commandButton title="Borrar" rendered="#{anexSer.id == null}" action="#{tuPersonalBean.borrarAdjuntoFirmaMemoria(anexSer)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{anexSer.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{anexSer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" process="@form" immediate="true" onclick="guardarRemote()" validateClient="true"/>   
+                                        <p:remoteCommand name="guardarRemote" action ="#{tuPersonalBean.guardar}" update="frmCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>  
+            </p:dialog> 
+            <!--EDITAR -->
+            <p:dialog widgetVar="dialogoEditar" appendTo="@(body)" modal="true" dynamic="true" width="90%">
+                <header style="font-size: 30px;">
+                    <b>Editar</b>
+                </header>
+                <h:form id="frmAuditoriaGeneralEditar" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{tuPersonalBean.objeto.datosAuditoria}"/>
+                </h:form>
+                <p:scrollPanel mode="native" style="height:490px">
+                    <h:form id="frmEditar">
+                        <p:panel id="pPersonaEditar" header="PERSONAL" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:remoteCommand name="verInfoAuditoria" action="#{tuPersonalBean.getAuditoria(tuPersonalBean.objeto.auditoriaStrHTML)}" immediate="true"/>
+                                <p:commandButton id="auditoria" type="button" immediate="true" process="@this" onclick="verInfoAuditoria()" class="btnAuditoria" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid columns="4" id="panelPersonaEditar" style="width:100%;margin:10px 0px">
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{tuPersonalBean.objeto.maeTipoDocumentoId}" requiredMessage="Tipo Documento: Este campo es obligatorio."  editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{tuPersonalBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                                <p:inputText id="documento" label="Documento" value="#{tuPersonalBean.objeto.numeroDocumento}" size="20" maxlength="16" required="true" requiredMessage="Documento: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Primer Nombre" for="primerNombre" style="font-weight:bold"/>
+                                <p:inputText id="primerNombre" label="Primer Nombre" value="#{tuPersonalBean.objeto.primerNombre}" onkeyup="return mayus(this)" size="30" maxlength="62" required="true" requiredMessage="Primer Nombre: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Segundo Nombre" for="segundoNombre" style="font-weight:bold"/>
+                                <p:inputText id="segundoNombre" label="Segundo Nombre" value="#{tuPersonalBean.objeto.segundoNombre}" onkeyup="return mayus(this)" size="30" maxlength="62" required="false" requiredMessage="Segundo Nombre: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Primer Apellido" for="primerApellido" style="font-weight:bold"/>
+                                <p:inputText id="primerApellido" label="Primer Apellido" value="#{tuPersonalBean.objeto.primerApellido}" onkeyup="return mayus(this)" size="30" maxlength="62" required="true" requiredMessage="Primer Apellido: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Segundo Apellido" for="segundoApellido" style="font-weight:bold"/>
+                                <p:inputText id="segundoApellido" label="Segundo Apellido" value="#{tuPersonalBean.objeto.segundoApellido}" onkeyup="return mayus(this)" size="30" maxlength="62" required="false" requiredMessage="Segundo Apellido: Este campo es obligatorio.">
+                                </p:inputText>
+                                <p:outputLabel value="Tipo Personal" for="tipoPersonal" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoPersonal" value="#{tuPersonalBean.objeto.tipoPersonal}" required="true" requiredMessage="Tipo Personal: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Abogado" itemValue="1"/>
+                                    <f:selectItem itemLabel="Asistente" itemValue="2"/>
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Cargo" for="cargo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="cargo" label="Cargo" required="true" value="#{tuPersonalBean.objeto.maeGnCargoId}" requiredMessage="Cargo: Este campo es obligatorio."  editable="fase" style="width: 200px;" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{tuPersonalBean.listaCargoPersonal}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                </p:selectOneMenu>
+                                <p:outputLabel value="Número Tarjeta Profesional" for="numeroTarjetaProfesional" style="font-weight:bold"/>
+                                <p:inputText id="numeroTarjetaProfesional" label="Número Tarjeta Profesional" value="#{tuPersonalBean.objeto.numeroTarjetaProfesional}" size="30" maxlength="62" required="true" requiredMessage="Número Tarjeta Profesional: Este campo es obligatorio.">
+                                </p:inputText>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panel id="pCrearServicio" header="ADJUNTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable  id="tablaCrearAnexosFirma" var="anexSer" value="#{tuPersonalBean.objeto.tuMemorialFirmasList}" widgetVar="tablaCrearAnexosEstados" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron registros">                                                           
+                                <f:facet name="header">
+                                    <p:fileUpload id="anexo5" label="Agregar archivo" uploadLabel="Subir" cancelLabel="Cancelar"
+                                                  fileLimitMessage="Máximo número de archivos excedido (#{tuPersonalBean.maxCantAnexos})"
+                                                  invalidFileMessage="Tipo de archivo Iinválido"
+                                                  invalidSizeMessage="El Tamaño de archivo permitido es hasta #{tuPersonalBean.convertirBytesParaMegasTamAdjunto()} ."
+                                                  listener="#{tuPersonalBean.handleFileUploadMemorial}"
+                                                  mode="advanced"
+                                                  update="tablaCrearAnexosFirma"
+                                                  dragDropSupport="true" auto="false" multiple="true"
+                                                  fileLimit="#{tuPersonalBean.maxCantAnexos}" sizeLimit="#{tuPersonalBean.sizeLimitByAnexo}"
+                                                  allowTypes="/(\.|\/)(jpe?g|png)$/" /> 
+                                    <div>
+                                        ADJUNTOS ESTADOS
+                                    </div>
+                                </f:facet>
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet> 
+                                    <p:commandButton title="Borrar" action="#{tuPersonalBean.borrarAdjuntoFirmaMemoria(anexSer)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{anexSer.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{anexSer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action="#{tuPersonalBean.modificar}" update="frmEditar" />
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

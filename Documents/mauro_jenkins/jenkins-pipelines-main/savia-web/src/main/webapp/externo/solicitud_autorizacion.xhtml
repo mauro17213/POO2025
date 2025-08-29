@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <f:facet name="first">
+            <h:outputStylesheet name="css/default.css"/>
+            <h:outputStylesheet name="css/cssLayout.css"/>
+            <h:outputStylesheet name="css/inicio.css"/>
+            <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
+            <link rel="icon" type="image/x-icon" href="/savia/resources/images/icono.png"/>
+            <title>Solicitud de Autorización</title>
+        </f:facet>
+        <style type="text/css">
+            #frmBusquedaAfiliado .ui-toolbar.ui-widget-header, 
+            #frmSolicitudAutorizacion .ui-toolbar.ui-widget-header,
+            #toolbarTituloModulo.ui-toolbar.ui-widget-header{
+                background-color: #99D1C7 !important;
+                background-image: none !important;
+            }
+
+            #frmBusquedaAfiliado .ui-button, 
+            #frmSolicitudAutorizacion .ui-button {
+                background: #04997C !important;
+                color: white;
+            }
+            .ui-selectonemenu-items-wrapper,
+            .ui-autocomplete-panel
+            {
+                width:350px !important;
+            } 
+
+
+            .ui-autocomplete-panel .ui-autocomplete-list
+            {
+                overflow: auto !important;
+                height: 200px !important;
+            }
+
+            .ui-panelgrid .ui-panelgrid-cell {
+                border-width: 1px;
+                border-style: none;
+                border-color: inherit;
+                padding: 4px 10px;
+            }
+
+            .texto-adjuntos {
+                font-style: italic;
+                font-weight: bold;
+            }
+
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+
+            }
+
+            .mensaje-radicado {
+                background: #08c;
+                opacity: 0.9;
+                width: 500px; 
+                height: 50px; 
+                color: #FFFFFF; 
+                text-align: center;
+                border-radius: 5px 5px 5px 5px;
+                -moz-border-radius: 5px 5px 5px 5px;
+                -webkit-border-radius: 5px 5px 5px 5px;
+                border: 0px solid #fff5ff;
+            }
+
+            .texto-radicado {
+                padding: 18px;
+                display: block;
+            }
+
+            .boton {
+                float: right;
+            }
+        </style>
+        <script type="text/javascript">
+
+            window.onload = function () {
+                cerrarMensaje('mensajeRadi');
+            }
+
+            var cerrarMensaje = mensaje => {
+                document.getElementById(mensaje).style.display = "none";
+            }
+
+            var abrirMensaje = mensaje => {
+                document.getElementById(mensaje).style.display = "block";
+            }
+        </script>
+    </h:head>
+    <p:growl id="mensajeGeneral" showSummary="false" showDetail="true" sticky="false">
+        <p:autoUpdate />
+    </p:growl>
+    <h:body style=" background-color: #FFFFFF; background-size: 100%; ">
+        <f:view>
+            <p:toolbar id="toolbarTituloModulo">
+                <f:facet id="tituloSeccion" name="left">
+                    <span title="Solicitud de Autorización">Solicitud de Autorización </span> 
+                </f:facet>
+            </p:toolbar>
+
+            <p:ajaxStatus onstart="PF('statusDialog').show()" onsuccess="PF('statusDialog').hide()" />
+            <p:dialog widgetVar="statusDialog" modal="true" draggable="false" closable="false" resizable="false" showHeader="false">
+                <p:graphicImage name="images/ajax-loader.gif" />
+            </p:dialog>
+            <p:panelGrid id="panelSolicitudAutorizaion" style="width: 80%;" >   
+                <p:panelGrid id="panelDatosLogo" columns="1" class="ui-fluid">                   
+                    <div style="padding: 2px 0 0 5px;">
+                        <h:graphicImage value="/resources/images/logo_savia_formulario.png" style="height: 82px; width: 165px" title="Actualización Afiliado" />
+                    </div>
+                </p:panelGrid>
+
+                <h:form id="frmBusquedaAfiliado">
+                    <p:panelGrid id="panelDatosBusquedaAfiliado"  columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid"
+                                 style="border:0px none; background-color:transparent;">
+
+                        <p:outputLabel value="Tipo de identificación" for="tipodocumento" style="font-weight:bold"/>
+                        <p:selectOneMenu id="tipodocumento" label="Tipos identificación" value="#{solicitudAutorizacionBean.afiliado.documentoTipo}"  editable="false" required="true" requiredMessage="Tipos Identificación : Este campo es obligatorio.">
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{solicitudAutorizacionBean.listaTiposDocumento}" var="tipoDocumento" itemValue="#{tipoDocumento.valor}" itemLabel="#{tipoDocumento.nombre}" itemDescription="#{tipoDocumento.descripcion}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Número de identificación" for="numeroIdentificacion" style="font-weight:bold"/>
+                        <p:inputText id="numeroIdentificacion" label="Número Identificación" value="#{solicitudAutorizacionBean.afiliado.documentoNumero}" maxlength="16" required="true" requiredMessage="Número Identificación : Este campo es obligatorio."/>
+
+                        <p:outputLabel value="Fecha de nacimiento" for="fechaNacimiento" style="font-weight:bold"/>
+                        <p:calendar value="#{solicitudAutorizacionBean.afiliado.fechaNacimiento}" 
+                                    id="fechaNacimiento" 
+                                    label="Fecha Nacimiento" 
+                                    navigator="true" 
+                                    pattern="yyyy-MM-dd" 
+                                    yearRange="c-100:c" 
+                                    size="30" 
+                                    maxlength="10" 
+                                    required="true" 
+                                    requiredMessage="Fecha Nacimiento : Este campo es obligatorio."
+                                    maxdate="#{solicitudAutorizacionBean.fechaMaxima}">
+                        </p:calendar>
+                    </p:panelGrid>
+                    <p:spacer></p:spacer>
+                    <p:panelGrid id="panelDatosBusquedaAfiliadoBotones" style="width: 100%;">
+
+                        <p:commandButton  actionListener="#{solicitudAutorizacionBean.buscarAfiliadoServicio}" 
+                                          value="Enviar"
+
+                                          update="frmBusquedaAfiliado"/>       
+                        <p:commandButton  update="frmSolicitudAutorizacion" 
+                                          value="Cancelar" 
+                                          immediate="true" 
+                                          style="margin-left: 5px;"
+
+                                          actionListener="#{solicitudAutorizacionBean.limpiarFormularioBusqueda()}" />
+
+                    </p:panelGrid>
+                </h:form>
+
+                <h:form id="frmSolicitudAutorizacion">
+                    <p:spacer width="0" height="10"/>
+
+                    <p:panelGrid  columns="4" id="panelDatosEncontradosAfiliado" 
+                                  columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                  layout="grid"
+                                  styleClass="ui-panelgrid-blank ui-fluid"
+                                  style="border:0px none; background-color:transparent;"
+                                  rendered="#{solicitudAutorizacionBean.habilitarSeccionResultados}">  
+
+                        <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                        <p:outputLabel value="#{solicitudAutorizacionBean.afiliado.primerNombre} #{solicitudAutorizacionBean.afiliado.segundoNombre}" id="primerNombre"/>
+
+                        <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                        <p:outputLabel value="#{solicitudAutorizacionBean.afiliado.primerApellido} #{solicitudAutorizacionBean.afiliado.segundoApellido}" id="primerApellido"/>
+
+                        <p:outputLabel value="Teléfono" for="telefono" style="font-weight:bold"/>
+                        <p:inputText 
+                            id="telefono" 
+                            label="Teléfono" 
+                            value="#{solicitudAutorizacionBean.objeto.contactoTelefono}" 
+                            maxlength="7" 
+                            required="true" 
+                            requiredMessage="Teléfono: Este campo es obligatorio."/>
+
+                        <p:outputLabel value="Deseo recibir notificaciones mediante: " style="font-weight:bold"/>
+                        <p:selectBooleanCheckbox value="#{solicitudAutorizacionBean.objeto.enviarCorreo}" itemLabel="Correo electrónico">            
+                        </p:selectBooleanCheckbox>
+
+                        <p:outputLabel value="Celular" for="celular" style="font-weight:bold"/>
+                        <p:inputText 
+                            id="celular" 
+                            label="Celular" 
+                            value="#{solicitudAutorizacionBean.objeto.contactoCelular}" 
+                            maxlength="10" 
+                            required="true" 
+                            requiredMessage="Celular: Este campo es obligatorio."/>
+
+                        <p:outputLabel value="Correo electrónico" for="correoElectronico" style="font-weight:bold"/>
+                        <p:inputText id="correoElectronico" label="Correo electrónico" value="#{solicitudAutorizacionBean.objeto.contactoCorreoElectronico}" required="true" requiredMessage="Correo electrónico: Este campo es obligatorio.">
+                            <f:validator validatorId="validarCorreo"/>
+                        </p:inputText>
+
+                        <p:outputLabel value="Tramite interno" for="tramiteInterno" style="font-weight:bold"/>
+                        <p:selectOneMenu id="tramiteInterno" label="Tramite interno" editable="false" value="#{solicitudAutorizacionBean.objeto.tramiteInterno}" style="margin-right: 10px; width: 282px;" >
+                            <f:selectItem itemLabel="NO APLICA" itemValue="NO APLICA" />
+                            <f:selectItem itemLabel="Metrosalud" itemValue="Metrosalud" />
+                            <f:selectItem itemLabel="La María" itemValue="La María" />
+                            <f:selectItem itemLabel="Instituto del Corazón" itemValue="Instituto del Corazón" />
+                            <f:selectItem itemLabel="Emmsa" itemValue="Emmsa" />
+                            <f:selectItem itemLabel="Instituto Neurológico" itemValue="Instituto Neurológico" />
+                            <f:selectItem itemLabel="Bellosalud" itemValue="Bellosalud" />
+                            <f:selectItem itemLabel="San Rafael de Itagüí" itemValue="San Rafael de Itagüí"/>
+                            <f:selectItem itemLabel="San Juan de Dios de Rionegro" itemValue="San Juan de Dios de Rionegro" />
+                            <f:selectItem itemLabel="San Juan de Dios de la Ceja" itemValue="San Juan de Dios de la Ceja" />
+                            <f:selectItem itemLabel="ESE de Caldas" itemValue="ESE de Caldas" />
+                            <f:selectItem itemLabel="Sta fe de Antioquia" itemValue="Sta fe de Antioquia" />
+                            <f:selectItem itemLabel="Ese de Yarumal" itemValue="Ese de Yarumal" />
+                            <f:selectItem itemLabel="César Uribe Piedrahita" itemValue="César Uribe Piedrahita"/>
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Documento identidad" for="adjuntoDocumento" style="font-weight:bold"/>
+                        <p:fileUpload id="adjuntoDocumento" label="Adjunto documento identidad" mode="advanced"
+                                      skinSimple="true"
+                                      value="#{solicitudAutorizacionBean.archivoDocumento}"
+                                      listener="#{solicitudAutorizacionBean.cargarArchivoDocumento}"
+                                      multiple="false"
+                                      auto="true"
+                                      invalidFileMessage="Tipo inválido de archivo"
+                                      fileLimitMessage="Máximo número de archivos excedido."
+                                      uploadLabel="Subir"  cancelLabel="Cancelar"
+                                      allowTypes="/(\.|\/)(pdf|PDF|jpe?g|png)$/"
+                                      widgetVar="subirDocumento"
+                                      update="lblDocumento cmdDocumento"
+                                      required="true"/>
+
+                        <p:outputLabel id="lblDocumento" styleClass="texto-adjuntos" value="#{solicitudAutorizacionBean.nombreDocumento}" style="font-weight:bold"/>
+                        <p:commandButton id="cmdDocumento" icon="ui-icon-close" 
+                                         action="#{solicitudAutorizacionBean.borrarArchivo(solicitudAutorizacionBean.tipoAdjuntoDocumento)}"
+                                         style="#{solicitudAutorizacionBean.mostrarBorrarDocumento ?  'display: initial;' : 'display: none;'} width: 30px"
+                                         update="lblDocumento cmdDocumento"/>
+
+                        <p:outputLabel value="Historia clínica" for="adjuntoHistoria" style="font-weight:bold"/>
+                        <p:fileUpload id="adjuntoHistoria" label="Adjunto história clínica" mode="advanced"
+                                      value="#{solicitudAutorizacionBean.archivoHistoriaClini}"
+                                      listener="#{solicitudAutorizacionBean.cargarArchivoHistoria}"
+                                      multiple="false"
+                                      auto="true"
+                                      invalidFileMessage="Tipo inválido de archivo"
+                                      fileLimitMessage="Máximo número de archivos excedido."
+                                      uploadLabel="Subir"  cancelLabel="Cancelar"
+                                      allowTypes="/(\.|\/)(pdf|PDF|jpe?g|png)$/"
+                                      widgetVar="subirHistoria"
+                                      update="lblHistoria cmdHistoria"
+                                      required="true"/>
+
+                        <p:outputLabel id="lblHistoria" styleClass="texto-adjuntos" value="#{solicitudAutorizacionBean.nombreHistoriaClini}"/>
+                        <p:commandButton id="cmdHistoria" icon="ui-icon-close" 
+                                         action="#{solicitudAutorizacionBean.borrarArchivo(solicitudAutorizacionBean.tipoAdjuntoHistoria)}"
+                                         style="#{solicitudAutorizacionBean.mostrarBorrarHistoriaClini ?  'display: initial;' : 'display: none;'} width: 30px"
+                                         update="lblHistoria cmdHistoria"/>
+
+                        <p:outputLabel value="Fórmula" for="adjuntoFormula" style="font-weight:bold"/>
+                        <p:fileUpload id="adjuntoFormula" label="Adjunto formula médica" mode="advanced"
+                                      value="#{solicitudAutorizacionBean.archivoFormula}"
+                                      listener="#{solicitudAutorizacionBean.cargarArchivoFormula}"
+                                      multiple="false"
+                                      auto="true"
+                                      invalidFileMessage="Tipo inválido de archivo"
+                                      fileLimitMessage="Máximo número de archivos excedido."
+                                      uploadLabel="Subir"  cancelLabel="Cancelar"
+                                      allowTypes="/(\.|\/)(pdf|PDF|jpe?g|png)$/"
+                                      widgetVar="subirFormula"
+                                      update="lblFormula cmdFormula"/>
+
+                        <p:outputLabel id="lblFormula" styleClass="texto-adjuntos" value="#{solicitudAutorizacionBean.nombreFormula}" style="font-weight:bold"/>
+                        <p:commandButton id="cmdFormula" icon="ui-icon-close" 
+                                         action="#{solicitudAutorizacionBean.borrarArchivo(solicitudAutorizacionBean.tipoAdjuntoFormula)}" 
+                                         style="#{solicitudAutorizacionBean.mostrarBorrarFormula ? 'display: initial;' : 'display: none;'} width: 30px"
+                                         update="lblFormula cmdFormula"/>
+                    </p:panelGrid>
+                    <p:panelGrid id="panelObservacion" 
+                                 rendered="#{solicitudAutorizacionBean.habilitarSeccionResultados}"
+                                 columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                        <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                        <p:inputTextarea value="#{solicitudAutorizacionBean.objeto.observacion}" 
+                                         style="width: 99%;"
+                                         label="Observacion" 
+                                         id="observacion" 
+                                         maxlength="1000"/>
+                    </p:panelGrid>
+
+                    <p:panelGrid id="panelDatosEditablesAfiliadoBotones" rendered="#{solicitudAutorizacionBean.habilitarSeccionResultados}" style="width: 100%;">
+
+                        <p:commandButton immediate="true"  action="#{solicitudAutorizacionBean.limpiarFormulario()}" value="Limpiar" style="margin-left: 5px;"/>
+                        <p:commandButton action="#{solicitudAutorizacionBean.guardar()}"   
+                                         value="Guardar"  update="frmSolicitudAutorizacion"
+                                         style="margin-left: 5px;"/>
+
+                    </p:panelGrid>
+                </h:form>
+            </p:panelGrid>
+        </f:view>
+    </h:body>
+</html>

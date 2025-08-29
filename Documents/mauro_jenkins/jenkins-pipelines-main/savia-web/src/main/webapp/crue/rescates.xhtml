@@ -1,0 +1,2651 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+
+            circulo {
+                width: 10px;
+                height: 10px;
+                -moz-border-radius: 50%;
+                -webkit-border-radius: 50%;
+                border-radius: 50%;
+                background: #5cb85c;
+            }
+
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <center>
+            <h:form id="frmRescate">
+                <p:remoteCommand name="cerrarDialogoGestion" action="#{rescateBean.cerrarGestionar()}"/>
+                <p:remoteCommand name="cerrarGestion" action="#{rescateBean.salirGestion()}"/>
+                <p:remoteCommand name="resetFiltros" action="#{rescateBean.cerrarGestionar()}" onstart="PF('tablaGestion').clearFilters();" onsuccess="PF('tablaGestion').clearFilters();"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{rescateBean.modulo.descripcion}">#{rescateBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{rescateBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{rescateBean.listar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" value="#{rescateBean.lazyRegistros}" paginator="true" rows="#{rescateBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="Acciones" style="text-align: center;">
+                        <p:commandButton  rendered="#{rescateBean.accionVer}" actionListener="#{rescateBean.ver(obj.id)}"  title="Ver" icon="ui-icon-search"/>
+                        <p:commandButton  rendered="#{rescateBean.accionAdicional1 and rescateBean.validarGestionar(obj.estado)}" actionListener="#{rescateBean.gestionar(obj.id)}" title="Gestionar" icon="ui-icon-script"/>
+                        <p:commandButton rendered="#{rescateBean.accionAdicional2 and rescateBean.validarGestionar(obj.estado)}" title="Cancelar" actionListener="#{rescateBean.cancelar(obj.id)}" icon="ui-icon-closethick">
+                            <p:confirm header="Confirmación" message="Está seguro que desea cancelar el rescate?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Número Rescate" sortBy="#{obj.id}" filterBy="#{obj.id}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:inputText label="Nro. Rescate" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Dias Vencimiento" style="text-align: center;">
+                        <p:outputLabel value="#{rescateBean.obtenerDiasVencimiento(obj)}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Tipo de rescate" sortBy="#{obj.tipoRescate}" filterBy="#{obj.tipoRescate}" style="text-align: center;">
+                       <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{rescateBean.listadoTipoRescates}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.nombre}"/>                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{obj.tipoRescateStr}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Fuente Origen" filterBy="#{obj.fuenteOrigen}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" - - " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Hospitalización" itemValue="1"  />
+                                <f:selectItem itemLabel="Anexo2" itemValue="2"  />
+                                <f:selectItem itemLabel="Anexo3" itemValue="3"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.fuenteOrigenStr}" title="#{obj.codigoSolicitud()}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" sortBy="#{obj.estado}" filterBy="#{obj.estado}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 90%;" >
+                                <f:selectItem itemLabel=" - - " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Pendiente" itemValue="1"  />
+                                <f:selectItem itemLabel="En Gestión" itemValue="5"  />
+                                <f:selectItem itemLabel="Rescatado" itemValue="2"  />
+                                <f:selectItem itemLabel="Rechazado" itemValue="3"  />
+                                <f:selectItem itemLabel="Cancelado" itemValue="4"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{obj.estadoStr}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Motivo" filterBy="#{obj.maeMotivoRescateCodigo}">
+                          <f:facet name="filter">
+                              <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 90%;" >
+                                  <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                  <f:selectItems value="#{rescateBean.listaMaeMotivos}" var="motivo" itemLabel="#{motivo.descripcionCorta}" itemValue="#{motivo.valor}" itemDescription="#{motivo.descripcion}"/>
+                              </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeMotivoRescateValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha Ingreso" sortBy="#{obj.fechaHoraCrea}" filterBy="#{obj.fechaHoraCrea}">     
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Rescate" sortBy="#{obj.fechaHoraRescate}" filterBy="#{obj.fechaHoraRescate}">     
+                        <h:outputText value="#{obj.fechaHoraRescate}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>                    
+
+                    <p:column headerText="Fecha Direccionamiento">     
+                        <h:outputText value="#{obj.fechaHoraDireccionamiento}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column> 
+                    
+                    <p:column headerText="Tipo Doc. Afiliado" sortBy="#{obj.asegAfiliado.maeTipoDocumento}" filterBy="#{obj.asegAfiliado.maeTipoDocumento}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 90%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{rescateBean.listaTiposDocumentoPersona}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.asegAfiliado.maeTipoDocumentoValor}" title="#{obj.asegAfiliado.maeTipoDocumentoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Nro. Doc. Afiliado" sortBy="#{obj.asegAfiliado.numeroDocumento}" filterBy="#{obj.asegAfiliado.numeroDocumento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliado.numeroDocumento}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Completo Afiliado" sortBy="#{obj.asegAfiliado.nombreCompleto}" filterBy="#{obj.asegAfiliado.nombreCompleto}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliado.nombreCompleto}"/>
+                        <i class="pi pi-circle-on" style="color: #{obj.colorAnexo2Anexo3}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre IPS Origen" sortBy="#{obj.cntPrestadorSedeOrigen.nombreSede}" filterBy="#{obj.cntPrestadorSedeOrigen.nombreSede}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.cntPrestadorSedeOrigen.nombreSede}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre IPS Destino" sortBy="#{obj.cntPrestadorSedeDestino.nombreSede}" filterBy="#{obj.cntPrestadorSedeDestino.nombreSede}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.cntPrestadorSedeDestino.nombreSede}"/>
+                    </p:column>
+
+                    <p:column headerText="Programa" sortBy="#{obj.pePrograma.descripcionPrograma}" filterBy="#{obj.pePrograma.descripcionPrograma}">
+                        <f:facet name="filter">
+                            <p:inputText label="Programa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.pePrograma.descripcionPrograma}"/>
+                    </p:column>
+                </p:dataTable>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!--ver rescate-->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <h:form id="frmAuditoriaVerRes" class="frmAuditoria" style="margin-top: -15px; text-align: right;">                   
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria2" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rescateBean.getAuditoria(rescateBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmVer">
+                        <p:panel header="Rescate" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid columns="6"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-6,ui-grid-col-2,ui-grid-col-4,ui-grid-col-6"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">                                                                      
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Estado rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.estadoStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha ingreso" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>                                        
+                                        </p:outputLabel> 
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.fechaHoraRescate}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>                                        
+                                        </p:outputLabel>  
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Programa" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.pePrograma.descripcionPrograma}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.descripcionCorto}"/>
+                                        <p:commandButton rendered="#{rescateBean.objeto.descripcionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(rescateBean.objeto.descripcion)}" icon="ui-icon-comment"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fuente Origen" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                       <p:outputLabel value="#{rescateBean.objeto.fuenteOrigenStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                       <p:outputLabel value="Número" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.codigoSolicitud()}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Solicitud" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:commandButton title="Ver Solicitud" style="width: 34px" actionListener="#{rescateBean.verSolicitud()}" icon="ui-icon ui-icon-search"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- VER_Afiliado -->
+                        <p:panel id="pnlAfiliado" header="Información del afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoDocumentoValor}"/>                                        
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.numeroDocumento}" style="width: 181px;"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.nombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.apellidos}"/>
+
+                                <p:outputLabel value="Género" style="font-weight:bold"/>
+                                <h:outputText value="#{rescateBean.objeto.asegAfiliado.maeGeneroValor}"/>
+
+                                <p:outputLabel value="Edad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.edad}"/>
+
+                                <p:outputLabel value="Fecha nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeRegimenValor}"/>
+
+                                <p:outputLabel value="Nivel sisbén" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeNivelSisbenValor}"/>
+
+                                <p:outputLabel value="Tiene discapacidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.discapacidad ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Tipo afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoAfiliadoValor}"/>
+
+                                <p:outputLabel value="Estado afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeEstadoAfiliacionValor}"/>
+
+                                <p:outputLabel value="Existe BDUA" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.registroBdua ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Código unico" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Grupo poblacional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeGrupoPoblacionalValor}"/>
+
+                                <p:outputLabel value="Grupo etnico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeEtniaValor}"/>
+
+                                <p:outputLabel value="IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+
+                                <p:outputLabel value="Dirección IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.direccion}"/>
+
+                                <p:outputLabel value="Teléfono IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Tipo Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoDocumentoCfValor}" />
+
+                                <p:outputLabel value="Número Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.numeroDocumentoCf}" />
+
+                                <p:outputLabel value="Modelo Liquidación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeModeloLiquidacionValor}" />
+
+                                <p:outputLabel value="Fecha Movilidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaMovilidad}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Reactivación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaReactivacion}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Retiro" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaEgresoEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Afiliación EPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaAfiliacionEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Municipio Afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.afiliacionUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Municipio Residencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.residenciaUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.direccionResidencia}"/>
+
+                                <p:outputLabel value="Zona" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeZonaValor}"/>
+
+                                <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoFijoAfiliado}"/>
+
+                                <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoMovilAfiliado}"/>
+
+                                <p:outputLabel value="Email" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.email}"/>
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display: grid">
+                                        <b>IPS Atención Primaria</b>
+                                        <hr color="#0F6ED3" style="width: 100%" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Sede IPS Primaria" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                            <!--p:panel header="IPS Atención Primaria" style="margin-bottom:10px;" toggleable="true">
+                                <p:panelGrid  columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                    
+                                </p:panelGrid>
+                            </p:panel-->
+                        </p:panel>
+                        <!-- IPS origen-->
+                        <p:panel id="pnlIPSOrigen" header="Información IPS Origen" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelIPSOrigen" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.maeTipoDocumentoValor}"/>                     
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" />    
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.codigoMinSalud}"/>                     
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.nombreSede}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.cntPrestadorSedeOrigen.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.cntPrestadorSedeOrigen.ubicacionId)}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- IPS destino-->
+                        <p:panel id="pnlIPSDestino" header="Información IPS Destino" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelIPSDestino" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.maeTipoDocumentoValor}"/>                     
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.codigoMinSalud}"/>                     
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.nombreSede}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.cntPrestadorSedeDestino.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.cntPrestadorSedeDestino.ubicacionId)}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlMotivo" header="Motivo de la consulta" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelMotivo" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:outputLabel value="#{rescateBean.objeto.motivoConsulta}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlGestion" header="Gestionar" style="margin-bottom:10px;" toggleable="true">                            
+                            <p:dataTable id="tablaGestion" style="margin: 10px;" var="gest" widgetVar="tablaGestion"
+                                         value="#{rescateBean.lazyRegistrosGestiones}"
+                                         paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros"
+                                         rows="5"
+                                         sortBy="#{gest.fechaHoraCrea}"> 
+
+                                <p:column headerText="Tipo" filterBy="#{gest.tipo}" style="width: 10%;text-align: center">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaGestion').filter()" style="width: 90%;" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"/>
+                                            <f:selectItem itemLabel="Cambio Estado" itemValue="0" />
+                                            <f:selectItem itemLabel="Gestión" itemValue="1"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{gest.tipoStr}"/>
+                                </p:column>
+
+                                <p:column rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" 
+                                          headerText="Motivo" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.maeMotivoRescateValor}"/>
+                                </p:column>
+                                
+                                <p:column rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" 
+                                          headerText="Fecha Hora Direccionamiento" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.fechaHoraDireccionamiento}"/>
+                                </p:column>
+                                
+                                <p:column headerText="Observación" filterBy="#{gest.observacion}" style="text-align: center">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Observación" maxlength="128" style="width: 95%;" onchange="PF('tablaGestion').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{gest.observacionCorto}"/>
+                                    <p:commandButton rendered="#{gest.observacionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(gest.observacion)}" icon="ui-icon-comment"/>
+                                </p:column>
+
+                                <p:column headerText="Usuario Crea" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.usuarioCrea}">
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="Fecha Hora Crea" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>                               
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pnlAdjuntosVer" header="Adjuntos" style="width:100%;margin:10px 0px" toggleable="true">
+                            <br/>
+                            <p:dataTable var="adj" value="#{rescateBean.objeto.auSolicitudAdjuntosList}" widgetVar="tablaArchivo">
+                                <p:column headerText="Origen">
+                                    <p:outputLabel value="#{adj.origenStr}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <p:outputLabel value="#{adj.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha">
+                                    <p:outputLabel value="#{adj.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Acciones"  style="text-align: center">
+                                    <p:commandButton icon="ui-icon-arrowstop-1-s" 
+                                                     title="Descargar Adjunto" 
+                                                     ajax="false" 
+                                                     action="#{rescateBean.descargarAdjuntoAnexo(adj)}"
+                                                     process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Opción Adicional 1 - Gestionar -->
+            <p:dialog header="Gestionar" widgetVar="dialogoGestionar" appendTo="@(body)" modal="true" width="90%" 
+                      dynamic="true" class="modal-no-scroll" onHide="cerrarDialogoGestion()">
+                <h:form id="frmAuditoriaGesRes" class="frmAuditoria" style="margin-top: -15px; text-align: right;">                   
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria2" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rescateBean.getAuditoria(rescateBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmGestionar1">
+                        <p:panel header="Rescate" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">                                                                  
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.id}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.estadoStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha ingreso" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.fechaHoraCrea}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>                                        
+                                        </p:outputLabel>   
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Rescate" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.fechaHoraRescate}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>                                        
+                                        </p:outputLabel> 
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Programa" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.pePrograma.descripcionPrograma}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.descripcionCorto}"/>
+                                        <p:commandButton rendered="#{rescateBean.objeto.descripcionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(rescateBean.objeto.descripcion)}" icon="ui-icon-comment"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fuente Origen" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.fuenteOrigenStr}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{rescateBean.objeto.codigoSolicitud()}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Solicitud" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:commandButton title="Ver Solicitud" style="width: 34px" actionListener="#{rescateBean.verSolicitud()}" icon="ui-icon ui-icon-search"/>
+                                    </p:column>
+                                </p:row>
+                                
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- VER_Afiliado -->
+                        <p:panel id="pnlAfiliado" header="Información del afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoDocumentoValor}"/>                                        
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.numeroDocumento}" style="width: 181px;"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.nombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.apellidos}"/>
+
+                                <p:outputLabel value="Género" style="font-weight:bold"/>
+                                <h:outputText value="#{rescateBean.objeto.asegAfiliado.maeGeneroValor}"/>
+
+                                <p:outputLabel value="Edad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.edad}"/>
+
+                                <p:outputLabel value="Fecha nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.regimen == '1' ? 'Subsidiado' : rescateBean.objeto.asegAfiliado.regimen == '2' ? 'Contributivo' : ''}"/>
+
+                                <p:outputLabel value="Nivel sisbén" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeNivelSisbenValor}"/>
+
+                                <p:outputLabel value="Tiene discapacidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.discapacidad ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Tipo afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoAfiliadoValor}"/>
+
+                                <p:outputLabel value="Estado afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeEstadoAfiliacionValor}"/>
+
+                                <p:outputLabel value="Existe BDUA" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.registroBdua ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Código unico" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Grupo poblacional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeGrupoPoblacionalValor}"/>
+
+                                <p:outputLabel value="Grupo etnico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeEtniaValor}"/>
+
+                                <p:outputLabel value="IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+
+                                <p:outputLabel value="Dirección IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.direccion}"/>
+
+                                <p:outputLabel value="Teléfono IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Tipo Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoDocumentoCfValor}" />
+
+                                <p:outputLabel value="Número Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.numeroDocumentoCf}" />
+
+                                <p:outputLabel value="Modelo Liquidación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeModeloLiquidacionValor}" />
+
+                                <p:outputLabel value="Fecha Movilidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaMovilidad}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Reactivación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaReactivacion}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Retiro" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaEgresoEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Afiliación EPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.fechaAfiliacionEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Municipio Afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.afiliacionUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Municipio Residencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.residenciaUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.direccionResidencia}"/>
+
+                                <p:outputLabel value="Zona" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeZonaValor}"/>
+
+                                <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoFijoAfiliado}"/>
+
+                                <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoMovilAfiliado}"/>
+
+                                <p:outputLabel value="Email" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.email}"/>
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display: grid">
+                                        <b>IPS Atención Primaria</b>
+                                        <hr color="#0F6ED3" style="width: 100%" />
+                                    </p:column>
+                                </p:row>
+                                 <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Sede IPS Primaria"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                            <!--p:panel   header="IPS Atención Primaria" style="margin-bottom:10px;" toggleable="true">
+                                <p:panelGrid  columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                   
+                                </p:panelGrid>
+                            </p:panel-->
+                        </p:panel>
+                        <!-- IPS origen-->
+                        <p:panel id="pnlIPSOrigen" header="Información IPS Origen" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelIPSOrigen" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.maeTipoDocumentoValor}"/>                     
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorOrigen.codigoMinSalud}"/>                     
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.nombreSede}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.cntPrestadorSedeOrigen.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.cntPrestadorSedeOrigen.ubicacionId)}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeOrigen.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- IPS destino-->
+                        <p:panel id="pnlIPSDestino" header="Información IPS Destino" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelIPSDestino" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.maeTipoDocumentoValor}"/>                     
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorDestino.codigoMinSalud}"/>                     
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.nombreSede}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objeto.cntPrestadorSedeDestino.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objeto.cntPrestadorSedeDestino.ubicacionId)}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objeto.cntPrestadorSedeDestino.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlMotivo" header="Motivo de la consulta" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelMotivo" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:outputLabel value="#{rescateBean.objeto.motivoConsulta}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlGestion" header="Gestionar" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton id="btnGestionar" immediate="true" rendered="#{rescateBean.validarAgregarGestion()}"
+                                                 action="#{rescateBean.crearGestion()}" icon="ui-icon-plusthick" title="Agregar Gestión"/>
+                            </div>
+                            <p:dataTable id="tablaGestion" style="margin: 10px;" var="gest" widgetVar="tablaGestion"
+                                         value="#{rescateBean.lazyRegistrosGestiones}"
+                                         paginator="true" reflow="true"  lazy="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" rows="5"
+                                         emptyMessage="No se encontraron registros"
+                                         sortBy="#{gest.fechaHoraCrea}"> 
+
+                                <p:column headerText="Tipo" filterBy="#{gest.tipo}" style="width: 10%;text-align: center">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaGestion').filter()" style="width: 90%;" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"/>
+                                            <f:selectItem itemLabel="Cambio Estado" itemValue="0" />
+                                            <f:selectItem itemLabel="Gestión" itemValue="1"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{gest.tipoStr}"/>
+                                </p:column>
+                                
+                                <p:column rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" 
+                                          headerText="Motivo" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.maeMotivoRescateValor}"/>
+                                </p:column>
+
+                                <p:column rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" 
+                                          headerText="Fecha Hora Direccionamiento" style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.fechaHoraDireccionamiento}"/>
+                                </p:column>
+                                
+                                <p:column headerText="Observación" filterBy="#{gest.observacion}" style="text-align: center">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Observación" maxlength="128" style="width: 95%;" onchange="PF('tablaGestion').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{gest.observacionCorto}"/>
+                                    <p:commandButton rendered="#{gest.observacionCorto.length() > 0 }" 
+                                                     actionListener="#{rescateBean.mostrarMensaje(gest.observacion)}" icon="ui-icon-comment"/>
+                                </p:column>
+
+                                <p:column headerText="Usuario Crea"  style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.usuarioCrea}">
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="Fecha Hora Crea"  style="width: 10%;text-align: center">
+                                    <h:outputText value="#{gest.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>                               
+
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pnlAdjuntosGestion" header="Adjuntos" style="width:100%;margin:10px 0px" toggleable="true">
+                            <div align="right">
+                                <p:commandButton rendered="#{rescateBean.objeto.estado == 1 or rescateBean.objeto.estado == 5 }" title="Adjuntos" action="#{rescateBean.abrirAdjuntos()}" icon="ui-icon-folder-open"/>
+                            </div>
+                            <p:dataTable var="adj" value="#{rescateBean.objeto.auSolicitudAdjuntosList}" widgetVar="tablaArchivo">
+                                <p:column headerText="Acciones"  style="text-align: center">
+                                    <p:commandButton icon="ui-icon-arrowstop-1-s" 
+                                                     title="Descargar Adjunto" 
+                                                     ajax="false" 
+                                                     action="#{rescateBean.descargarAdjuntoAnexo(adj)}"
+                                                     process="@this"/>
+                                </p:column>
+                                <p:column headerText="Origen">
+                                    <p:outputLabel value="#{adj.origenStr}"/>
+                                </p:column>
+                                <p:column headerText="Tipo">
+                                    <p:outputLabel value="#{adj.maeTipoArchivoValor}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <p:outputLabel value="#{adj.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha">
+                                    <p:outputLabel value="#{adj.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionar').hide();cerrarDialogoGestion()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>                   
+                </p:scrollPanel>
+            </p:dialog>           
+            <!--crear gestion-->
+            <p:dialog header="Gestionar" widgetVar="dialogoAgregarGestionar" appendTo="@(body)" modal="true" dynamic="true" closable="false" width="800">
+                <h:form id="frmGestionar2">
+                    <p:panel id="pnlGestionEstado" header="Gestionar" style="width:100%;margin:10px 0px" toggleable="true">
+                        <p:panelGrid columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;"> 
+
+                            <p:outputLabel value="Estado" for="somDestinoA" style="font-weight:bold"/>
+                            <p:selectOneMenu id="somDestinoA" required="true" value="#{rescateBean.estadoRescate}" 
+                                             style="width: 95%;" requiredMessage="Estado: este campo es obligatorio">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Rescatado" itemValue="2"  />
+                                <f:selectItem itemLabel="Rechazado" itemValue="3"  />
+                                <f:selectItem itemLabel="En Gestión" itemValue="5"/>
+                                <p:ajax event="change" process="@this" update="frmGestionar2"/>
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Fecha Hora Rescate" for="fechaRescate" style="font-weight:bold"/>
+                            <p:datePicker id="fechaRescate" yearRange="c-100:c" label="Fecha Orden Medica"
+                                          disabled="#{rescateBean.estadoRescate ne 2}" style="width: 98%;" inputStyle="width: 99%;"
+                                          readonlyInput="true"
+                                          locale="es" monthNavigator="true" pattern="yyyy-MM-dd HH:mm" showTime="true"
+                                          value="#{rescateBean.objeto.fechaHoraRescate}" size="30" maxlength="10" maxdate="#{rescateBean.obtenerFechaActual()}"
+                                          required="true" requiredMessage="Fecha Rescate: Este campo es obligatorio" />
+
+                            <p:outputLabel rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" value="Motivo" for="motivoSelector" style="font-weight:bold"/>
+                            <p:selectOneMenu rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" id="motivoSelector" required="true" value="#{rescateBean.objetoGestion.maeMotivoRescateId}" 
+                                             style="width: 95%;" requiredMessage="Motivo este campo es obligatorio">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{rescateBean.listaMaeMotivos}" var="motivo" itemLabel="#{motivo.descripcionCorta}" itemValue="#{motivo.id}" itemDescription="#{motivo.descripcion}"/>
+                            </p:selectOneMenu>
+                            
+                            <p:outputLabel rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" value="Fecha Hora Direccionamiento" for="fechaDireccionamiento" style="font-weight:bold"/>
+                            <p:datePicker rendered="#{rescateBean.estadoRescate eq 2 and rescateBean.objeto.tipoRescate eq 2}" id="fechaDireccionamiento" yearRange="c-100:c" label="Fecha Hora Direccionamiento"
+                                          style="width: 98%;" inputStyle="width: 99%;"
+                                          readonlyInput="true"
+                                          locale="es" monthNavigator="true" pattern="yyyy-MM-dd HH:mm" showTime="true"
+                                          value="#{rescateBean.objetoGestion.fechaHoraDireccionamiento}" size="30" maxlength="10"
+                                          required="true" requiredMessage="Fecha Hora Direccionamiento: Este campo es obligatorio" />
+                            
+                            <p:outputLabel value="Comentario" for="txtaDescripEstado" style="font-weight:bold"/>
+                            <p:inputTextarea id="txtaDescripEstado" style="width: 98%;" autoResize="false" rows="4" required="true"  
+                                             requiredMessage="Comentario: este campo es obligatorio"
+                                             maxlength="2000"
+                                             value="#{rescateBean.objetoGestion.observacion}" 
+                                             counter="display3" counterTemplate="{0} caracteres faltantes."/>
+                            <h:outputText id="display3" />
+
+                        </p:panelGrid> 
+                    </p:panel>    
+
+                    <p:panelGrid style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="6" style="text-align: center">                                        
+                                    <p:commandButton value="Guardar" action="#{rescateBean.guardarGestion()}" partialSubmit="true"  process="@form"/>
+                                    <p:commandButton value="Salir" type="button" onclick="cerrarGestion();PF('dialogoAgregarGestionar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!--Anular Solitud-->
+            <p:dialog header="Cancelar rescate" widgetVar="dialogoCancelarRescate" appendTo="@(body)" modal="true" dynamic="true">
+                <h:form id="frmCancelarRescate">
+                    <p:panelGrid id="panelCancelarRescate" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid"
+                                 style="border:0px none; background-color:transparent;">
+                    <p:row>
+                        <p:column class="ui-g-2">
+                            <p:outputLabel value="Comentario" for="comentarioCancelarRescate" style="font-weight:bold"/>
+                        </p:column>
+                        <p:column class="ui-g-10" style="display:grid">
+                            <p:inputTextarea id="comentarioCancelarRescate" rows="5" cols="100" value="#{rescateBean.objeto.descripcion}" counter="display1CancelarRescate" maxlength="2024" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                        <br/>
+                        <h:outputText id="display1CancelarRescate" />
+                        </p:column>
+                    </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid columns="2">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column class="ui-g-12" style="text-align: center">
+                                    <p:commandButton value="Cancelar Rescate" actionListener="#{rescateBean.cancelarRescate()}"/>                                       
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoCancelarRescate').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+            <!--Ver Solicitud-->
+            <p:dialog widgetVar="dialogoVerSolicitud" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+
+                <header style="font-size: 30px;">
+                    <b>Ver Solicitud</b>
+                </header>
+                <h:form id="frmAuditoriaVerSolicitud" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height: 500px" >
+                    <h:form id="frmVerSolicitud">
+                        <p:panelGrid id="panelEstadoVer" rendered="#{rescateBean.objetoAnexo3.estado == 3}" 
+                                     columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;">
+
+                            <p:outputLabel value="Motivo Estado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objetoAnexo3.estadoStr}" style="color: red;font-weight: bold;"/>
+
+                            <p:outputLabel value="Observación Rechazo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objetoAnexo3.maeEstadoMotivoValor}" style="color: red;font-weight: bold;"/>
+                            <!-- se culta campo mientras habilitan la resolucion 2335-->
+                            <p:outputLabel value="Consecutivo" style="font-weight:bold;"/>
+                            <p:outputLabel value="#{rescateBean.objetoAnexo3.consecutivo}"/>
+                        </p:panelGrid> 
+
+                        <!--solicitud-->
+                        <p:panel id="pDatoSolicitudVer" header="Datos de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTipoSol" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Número solicitud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.id}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.estadoStr}"/>
+
+                                <p:outputLabel value="Responsable" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.usuarioCrea}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Afiliado-->
+                        <p:panel id="pAfiliadoVer" header="Afiliado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAfiliadoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="tipoDocumentoVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeTipoDocumentoCodigo}"/>
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="numeroDocumentoVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.numeroDocumento}" />
+
+                                <p:outputLabel value="Contrato Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel id="codigoAfiliadoVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.idAfiliado}"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel id="nombresVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.nombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel id="apellidosVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.apellidos}"/>
+
+                                <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel id="fechaNacimientoVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.fechaNacimiento}">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel id="direccionVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.direccionResidencia}"/>
+
+                                <p:outputLabel value="Regimen" style="font-weight:bold"/>
+                                <p:outputLabel id="regimenVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeRegimenValor}"/>
+
+                                <p:outputLabel value="Genero" style="font-weight:bold"/>
+                                <p:outputLabel id="generoVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeGeneroValor}"/>
+
+                                <p:outputLabel value="Edad" style="font-weight:bold"/>
+                                <p:outputLabel id="edadVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.edad}"/>
+
+                                <p:outputLabel value="Email" style="font-weight:bold"/>
+                                <p:outputLabel id="emailVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.email}"/>
+
+                                <p:outputLabel value="Teléfono Fijo" style="font-weight:bold"/>
+                                <p:outputLabel id="telefonoVer" value="#{auCotizaciondBean.objetoAnexo3.asegAfiliadoId.telefonoFijo}"/>
+
+                                <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                <p:outputLabel id="celularVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.telefonoMovil}"/>
+
+                                <p:outputLabel value="Nivel Sisbén" style="font-weight:bold"/>
+                                <p:outputLabel id="nivelSisbenVer" value="#{rescateBean.objetoAnexo3.asegAfiliadoId.nivelSisben}"/>
+
+                                <p:outputLabel value="Discapacidad" style="font-weight:bold"/>
+                                <p:outputLabel id="discapacidadVer" value="#{rescateBean.obtenerValorBoolean(rescateBean.objetoAnexo3.asegAfiliadoId.discapacidad)}"/>
+
+                                <p:outputLabel value="Tipo Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel id="tipoAfiliadoVer" 
+                                               value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeTipoAfiliadoValor}"/>
+
+                                <p:outputLabel value="Estado Afiliacion" style="font-weight:bold"/>
+                                <p:outputLabel id="estadoAfiliacionVer" 
+                                               value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeEstadoAfiliacionValor}"/>
+
+                                <p:outputLabel value="Grupo Poblacional" style="font-weight:bold"/>
+                                <p:outputLabel id="grupoPoblacionalVer" 
+                                               value="#{rescateBean.objetoAnexo3.asegAfiliadoId.maeGrupoPoblacionalValor}"/>
+
+                                <p:outputLabel value="IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.nombreSede}"/>
+
+                                <p:outputLabel value="Dirección IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.direccion}"/>
+
+                                <p:outputLabel value="Teléfono IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objetoAnexo3.asegAfiliadoId.primariaPrestadorSede.ubicacionId)}"/>
+
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <p:panel header="Información adicional del afiliado" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Dirección alternativa" style="font-weight:bold"/>
+                                <p:outputLabel  value="${auSolicitudBean.objeto.direccionAlternativa}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acompañante-->
+                        <p:panel id="pAcompananteVer" header="Acompañante" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelAcompananteVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre Completo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel id="nombreAcompananteVer" value="#{rescateBean.objetoAnexo3.nombreAcompanante}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Teléfono Fijo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel id="telefonoAcompananteVer" value="#{rescateBean.objetoAnexo3.telefonoAcompanante}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                         <p:outputLabel id="celularAmponanteVer" value="#{rescateBean.objetoAnexo3.celularAcompanente}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Tipo de solicitud-->
+                        <p:panel id="pTipoSolVer" header="Tipo de solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTipoSolVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Servicio de atención" style="font-weight:bold"/>
+                                <p:outputLabel id="serAtenVer" value="#{rescateBean.objetoAnexo3.maServicioHabilitadoValor}"/>
+
+                                <p:outputLabel value="Ámbito" style="font-weight:bold"/>
+                                <p:outputLabel id="ambitoVer" value="#{rescateBean.objetoAnexo3.maeAmbitoAtencionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Solicitud-->
+                        <p:panel id="pSolVer" header="Solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelSolVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Número Solicitud" style="font-weight:bold"/>
+                                <p:outputLabel id="numSolicitudVer" value="#{rescateBean.objetoAnexo3.numero}"/>
+
+                                <p:outputLabel value="Fecha Orden Medica" style="font-weight:bold"/>
+                                <p:outputLabel id="fechaOrdenVer" value="#{rescateBean.objetoAnexo3.fechaSolicitud}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--IPS Solicita-->
+                        <p:panel id="pIpsVer" header="IPS Solicita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelipsVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="tipoDocumentoIpsVer" value="#{rescateBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.maeTipoDocumentoCodigo}"/>
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="numeroDocumentoIpsVer" value="#{rescateBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel id="razonSocialVer" value="#{rescateBean.objetoAnexo3.cntPrestadorSedeId.cntPrestador.razonSocial}" />
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel id="departamentoIpsVer" value="#{rescateBean.obtenerDepartamento(rescateBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <p:outputLabel value="Municipio" style="font-weight:bold"/>
+                                <p:outputLabel id="municipioIpsVer" value="#{rescateBean.obtenerMunicipio(rescateBean.objetoAnexo3.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel id="direccionIpsVer" value="#{rescateBean.objetoAnexo3.cntPrestadorSedeId.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Datos del profesional-->
+                        <p:panel id="pProfesionalVer" header="Información Profesional" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProfesionalVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="tipoDocumentoProfVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.maeTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel id="numeroDocumentoProfVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.documento}"/>
+
+                                <p:outputLabel value="Primer Nombre" style="font-weight:bold"/>
+                                <p:outputLabel id="primerNombreProfesionalVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.primerNombre}" />
+
+                                <p:outputLabel value="Segundo Nombre" for="segundoNombreProfesionalVer" style="font-weight:bold"/>
+                                <p:outputLabel id="segundoNombreProfesionalVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.segundoNombre}" />
+
+                                <p:outputLabel value="Primer Apellido" style="font-weight:bold"/>
+                                <p:outputLabel id="primerApellidoProfesionalVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.primerApellido}" />
+
+                                <p:outputLabel value="Segundo Apellido" style="font-weight:bold"/>
+                                <p:outputLabel id="segundoApellidoProfesionalVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.segundoApellido}" />
+
+                                <p:outputLabel value="Número RM" style="font-weight:bold"/>
+                                <p:outputLabel id="registroProfVer" value="#{rescateBean.objetoAnexo3.cntProfesionaleId.registroMedico}"/>
+
+                                <p:outputLabel value="Especialidad" for="especialidadProfVer" style="font-weight:bold"/>
+                                <p:outputLabel id="especialidadProfVer" value="#{rescateBean.objetoAnexo3.objetoEspecialidad.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Infomarcion de la atencion-->
+                        <p:panel id="pInfoAtenVer" header="Información de la atención" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelInfoAtenVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Origen de la atención" style="font-weight:bold"/>
+                                <p:outputLabel id="origenAtenVer" value="#{rescateBean.objetoAnexo3.maeOrigenAtencionValor}" />
+
+                                <p:outputLabel value="Prioridad de la atención" style="font-weight:bold"/>
+                                <p:outputLabel id="prioridadAtenVer" value="Prioridad de la atención"/>
+
+                                <p:outputLabel value="Tipo Servicio Solicitado" style="font-weight:bold"/>
+                                <p:outputLabel id="servicioAtenVer" value="#{rescateBean.objetoAnexo3.maServicioSolicitadoValor}"/>
+
+                                <p:outputLabel value="Ubicación del paciente" for="ubicacionAtenVer" style="font-weight:bold"/>
+                                <p:outputLabel id="ubicacionAtenVer" value="#{rescateBean.objetoAnexo3.maeUbicacionValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Diagnostico-->
+                        <p:panel id="pDiagnosticoVer" header="Diagnostico" style="margin-bottom:10px;" collapsed="false" toggleable="true">                           
+                            <p:dataTable id="tablaDiagnosticosVer" var="diagnosticoVer" value="#{rescateBean.objetoAnexo3.auAnexo3DiagnosticosList}" widgetVar="tablaDiagnosticosVer" resizableColumns="true" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticosValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <h:outputText value="#{rescateBean.obtenerValorBoolean(diagnosticoVer.principal)}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Modalidad y finalidad de tecnologia-->
+                        <p:panel header="Información de tecnología" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Modalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel  value="${auSolicitudBean.objeto.maeModalidadTecnologiaValor}" />
+
+                                <p:outputLabel value="Finalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="${auSolicitudBean.objeto.maeFinalidadTecnologiaValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Prescripciones-->
+                        <p:panel id="pPrescripcionVer" header="Prescripciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" var="tecnologiasVer" value="#{rescateBean.objetoAnexo3.auAnexo3ItemsList}" lazy="false" widgetVar="tablaProcedimientosVer" resizableColumns="true" emptyMessage="No se encontraron procedimientos" style="text-align: center">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{tecnologiasVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Diagnóstico">
+                                    <h:outputText value="#{tecnologiasVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tecnologiasVer.getEstadoStr()}" />
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton rendered="#{tecnologiasVer.auItemBitacorasList.size() > 0}" actionListener="#{rescateBean.verBitacoras(tecnologiasVer)}" icon="ui-icon-folder-collapsed" title="Ver Bitacoras"/>
+                                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rescateBean.getAuditoria(tecnologiasVer.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>
+                            </p:dataTable>       
+                        </p:panel>
+                        <!--Programa especial-->
+                        <p:panel id="pProgramaEspecialVer" header="Programa Especial - RIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelProgramaEspecialVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:outputLabel value="Programa Especial" style="font-weight:bold"/>
+                                <p:outputLabel id="programaVer" value="#{rescateBean.objetoAnexo3.peProgramaEspecialValor}"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Justificacion-->
+                        <p:panel id="pJustifiacionVer" header="Justificación Clínica" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelJustificacionVer" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:inputTextarea rows="5" cols="155" value="#{rescateBean.objetoAnexo3.justificacionClinica}" disabled="true"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Soportes fisicos-->
+                        <p:panel id="pSoporteVer" header="Soportes Fisicos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSoportesVer" var="soportesVer" value="#{rescateBean.objetoAnexo3.auSolicitudAdjuntosList}" lazy="false" widgetVar="tablaSoportesVer" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Archivos adjuntos">
+                                    <h:outputText value="#{soportesVer.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{soportesVer.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{rescateBean.descargarAdjuntoAnexo(soportesVer)}" />
+                                    </p:commandButton>
+                                </p:column>                                    
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Tutelas-->
+                        <p:panel id="pTutelaVer" header="Tutelas" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <p:dataTable id="tablaTutelasVer" var="tutelaVer" value="#{rescateBean.objetoAnexo3.auAnexo3TutelasList}" lazy="false" widgetVar="tablaTutelaCrear" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Número Tutela">
+                                    <h:outputText value="#{tutelaVer.numeroTutela}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{tutelaVer.estadoProceso}" />
+                                </p:column>
+                                <p:column headerText="Exonerado">
+                                    <h:outputText value="#{auSolicitudBean.obtenerString(tutelaVer.exoneracionCopago)}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Ver" actionListener="#{auSolicitudBean.verTutela(tutelaVer)}" icon="ui-icon-search"/>                                 
+                                </p:column>
+                            </p:dataTable> 
+
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerSolicitud').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--ver anexo2-->
+            <p:dialog widgetVar="dialogoVerAnexo2" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true" class="modal-no-scroll">
+                <header style="font-size: 30px;">
+                    <b>Ver</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmVerAnexo2">
+                        <p:panel header="Información" style="margin-bottom:10px;" toggleable="true" rendered="#{rescateBean.validarEstadoAnuladoAnexo2(rescateBean.objetoAnexo2.estado)}">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.estadoStr}" style="color: red" />
+
+                                <p:outputLabel value="Motivo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.motivo}" style="color: red"/>
+                                 <!-- se culta campo mientras habilitan la resolucion 2335-->
+                                <p:outputLabel value="Consecutivo" style="font-weight:bold;"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.consecutivo}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel header="Tipo de solicitud" style="margin-bottom:10px;" toggleable="true">
+                            <p:outputPanel id="panelBotonesVer" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{rescateBean.getAuditoria(rescateBean.objetoAnexo2.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Número solicitud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.id}"/>
+
+                                <p:outputLabel value="Tipo solicitud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.tipoStr}"/>
+
+                                <p:outputLabel value="Estado Solicitud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.estadoStr}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <!-- VER_Afiliado -->
+                        <p:panel id="pnlAfiliado" header="Información del afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeTipoDocumentoValor}"/>                                        
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.numeroDocumento}" style="width: 181px;"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.nombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.apellidos}"/>
+
+                                <p:outputLabel value="Género" style="font-weight:bold"/>
+                                <h:outputText value="#{rescateBean.objetoAnexo2.asegAfiliado.maeGeneroValor}"/>
+
+                                <p:outputLabel value="Edad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.edad}"/>
+
+                                <p:outputLabel value="Fecha nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.regimen == '1' ? 'Subsidiado' : rescateBean.objetoAnexo2.asegAfiliado.regimen == '2' ? 'Contributivo' : ''}"/>
+
+                                <p:outputLabel value="Nivel sisbén" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeNivelSisbenValor}"/>
+
+                                <p:outputLabel value="Tiene discapacidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.discapacidad ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Tipo afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeTipoAfiliadoValor}"/>
+
+                                <p:outputLabel value="Estado afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeEstadoAfiliacionValor}"/>
+
+                                <p:outputLabel value="Existe BDUA" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.registroBdua ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Código unico" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Grupo poblacional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeGrupoPoblacionalValor}"/>
+
+                                <p:outputLabel value="Grupo etnico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeEtniaValor}"/>
+
+                                <p:outputLabel value="IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+
+                                <p:outputLabel value="Dirección IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.direccion}"/>
+
+                                <p:outputLabel value="Teléfono IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.telefonoAdministrativo}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento IPS primaria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Tipo Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeTipoDocumentoCfValor}" />
+
+                                <p:outputLabel value="Número Documento CF" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.numeroDocumentoCf}" />
+
+                                <p:outputLabel value="Modelo Liquidación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeModeloLiquidacionValor}" />
+
+                                <p:outputLabel value="Fecha Movilidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.fechaMovilidad}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Reactivación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.fechaReactivacion}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Retiro" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.fechaEgresoEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Afiliación EPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.fechaAfiliacionEps}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Municipio Afiliación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.afiliacionUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Municipio Residencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.residenciaUbicacion.nombre}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.direccionResidencia}"/>
+
+                                <p:outputLabel value="Zona" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.maeZonaValor}"/>
+
+                                <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoFijoAfiliado}"/>
+
+                                <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.telefonoMovilAfiliado}"/>
+
+                                <p:outputLabel value="Email" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.email}"/>
+                                
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display: grid">
+                                        <b>IPS Atención Primaria</b>
+                                        <hr color="#0F6ED3" style="width: 100%" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Sede IPS Primaria" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                         <p:outputLabel value="#{rescateBean.objetoAnexo2.asegAfiliado.primariaPrestadorSede.nombreSede}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Direccion alternativa -->
+                        <p:panel style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="2"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Dirección alternativa" style="font-weight:bold"/>
+                                <p:outputLabel value="#{solicitudesUrgenciasBean.objeto.direccionAlternativa}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- IPS -->
+                        <p:panel id="pnlIPS" header="Información IPS" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelIPS" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.cntPrestador.maeTipoDocumentoValor}"/>                     
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.cntPrestador.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.nombreSede}"/>                                        
+
+                                <p:outputLabel value="Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Ciudad/Municipio"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objetoAnexo2.cntPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Departamento"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objetoAnexo2.cntPrestadorSede.ubicacionId)}"/>
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntPrestadorSede.direccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlPersona" header="Profesional que realiza la atención" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelPersona" style="width:100%;margin:10px 0px">
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.maeTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.documento}" style="width: 40%;" />
+
+                                <p:outputLabel value="Primer nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.primerNombre}"/>
+
+                                <p:outputLabel value="Segundo nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.segundoNombre}"/>
+
+                                <p:outputLabel value="Primer apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.primerApellido}"/>
+
+                                <p:outputLabel value="Segundo apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.segundoApellido}"/>
+
+                                <p:outputLabel value="Registro Médico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.cntProfesionales.registroMedico}" style="width: 94%;"/>
+
+                                <p:outputLabel value="Especialidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoProfesionalPrestador.maEspecialidadValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlOrigen" header="Origen de la atención" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelOrigen"  columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:outputLabel value="#{solicitudesUrgenciasBean.objeto.maeOrigenAtencionValor}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Condicion y destino de la persona" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{solicitudesUrgenciasBean.objeto.maeCondicionDestinoValor}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Via de ingreso de la persona al servicio de salud" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{solicitudesUrgenciasBean.objeto.maeViaIngresoValor}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlAdjuntos" header="Adjuntos" style="width:100%;margin:10px 0px" toggleable="true">
+                            <br/>
+                            <p:dataTable var="adj" value="#{rescateBean.objetoAnexo2.listaAuSolicitudAdjunto}" widgetVar="tablaArchivo">
+                                <p:column headerText="Tipo">
+                                    <p:outputLabel value="#{adj.maeTipoArchivoValor}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <p:outputLabel value="#{adj.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Fecha">
+                                    <p:outputLabel value="#{adj.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Acciones"  style="text-align: center">
+                                    <p:commandButton icon="ui-icon-arrowstop-1-s" 
+                                                     title="Descargar Adjunto" 
+                                                     ajax="false" 
+                                                     action="#{rescateBean.descargarAdjuntoAnexo(adj)}"
+                                                     process="@this"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <!-- Información de la Atención -->
+                        <p:panel id="pnlTriage" header="Información de la atención" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelTriage" columns="6"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-6"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Paciente remitido" for="somRemiteA" style="font-weight:bold"/>
+                                <p:selectOneRadio id="somRemiteA" disabled="true" value="#{rescateBean.objetoAnexo2.remitido}"  layout="grid" columns="2">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+
+                                <p:outputLabel value="NIT" for="somNitAtencion" style="font-weight:bold"/>
+                                <p:outputLabel id="somNitAtencion"
+                                               value="#{rescateBean.objetoAnexo2.remiteNit}" style="width: 94%;"/>  
+
+                                <p:outputLabel value="Nombre de prestador Remitente" for="somNombreIPSAtencion" style="font-weight:bold"/>
+                                <p:outputLabel id="somNombreIPSAtencion"
+                                               value="#{rescateBean.objetoAnexo2.remiteNombre}" style="width: 94%;"/>  
+
+                                <p:outputLabel value="Número atención IPS" for="somcodigoAtencionIps" style="font-weight:bold"/>
+                                <p:outputLabel id="somcodigoAtencionIps" value="#{rescateBean.objetoAnexo2.codigoAtencionIps}" style="width: 94%;"/>  
+
+                                <p:outputLabel value="Fecha y Hora de atención" for="somfechaHoraAtencionA" style="font-weight:bold"/>
+                                <p:outputLabel id="somfechaHoraAtencionA" 
+                                               value="#{rescateBean.objetoAnexo2.fechaHoraAtencion}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha y Hora de reporte" for="somfechaHoraReporteA" style="font-weight:bold"/>
+                                <p:outputLabel id="somfechaHoraReporteA" 
+                                               value="#{rescateBean.objetoAnexo2.fechaHoraReporte}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Banderas de colores(Triage)" for="somTriage" style="font-weight:bold"/>
+                                <p:outputLabel id="somTriage" value="Nivel #{ rescateBean.objetoAnexo2.triage} " style="width: 80%;"/>
+                                <img src="#{rescateBean.obtenerTriage(rescateBean.objetoAnexo2.triage)}" width="20" title="#{rescateBean.objetoAnexo2.triageStr}"/>
+
+                                <p:outputLabel value="Usuario Crea" for="somUsuarioCrea" style="font-weight:bold"/>
+                                <p:outputLabel id="somUsuarioCrea" value="#{rescateBean.objetoAnexo2.usuarioCrea}" >
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Hora Crea" for="somfechaHoraCrea" style="font-weight:bold"/>
+                                <p:outputLabel id="somfechaHoraCrea" value="#{rescateBean.objetoAnexo2.fechaHoraCrea}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlMotivo" header="Motivo de la consulta" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelMotivo" columns="2" layout="grid" styleClass="showcase-text-align-center" >
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.motivo}"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlDiagnostico" header="Diagnósticos" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:dataTable id="tablaDiagnosticos" style="margin: 10px;" value="#{rescateBean.objetoAnexo2.listaAuAnexo2Diagnostico}" var="diag" widgetVar="tablaDiagnosticos">
+                                <p:column headerText="Código" filterBy="#{diag.maDiagnosticosCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código CIE 10" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{diag.maDiagnosticosCodigo}"/>
+                                </p:column>
+                                <p:column headerText="Descripción" filterBy="#{diag.maDiagnosticosValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Descripción" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{diag.maDiagnosticosValor}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Diagnostico" filterBy="#{diag.maeTipoDiagnosticoValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tipo Diagnostico" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{diag.maeTipoDiagnosticoValor}"/>
+                                </p:column>
+                                <p:column headerText="Principal" filterBy="#{diag.principal ? 'SI' : ''}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Principal" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{diag.principal ? 'SI' : ''}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <!-- Destino -->
+                        <p:panel id="pnlDestino" header="Destino del Paciente" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelDestino"  columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.maeDestinoPacienteValor}" style="width: 94%;"/>
+                            </p:panelGrid>    
+                        </p:panel>
+
+                        <!-- Informante -->
+                        <p:panel id="pnlInformante" header="Informante" style="width:100%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelInformante" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.informaNombre}" style="width: 94%;"/>
+
+                                <p:outputLabel value="Cargo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.informaCargo}" style="width: 94%;"/>                                 
+
+                                <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoAnexo2.informaTelefono}" style="width: 40%;"/>
+
+                            </p:panelGrid>    
+                        </p:panel>
+
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerAnexo2').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Hospitalización -->
+            <p:dialog class="elDialogo" widgetVar="dialogoVerHospitalizacion" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Hospitalización</b>
+                </header>
+                <h:form id="frmAuditoriaVerHsp" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria}"/>
+                    <p:commandButton id="btnauditoria" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">                    
+                    <h:form id="frmVerHospitalizacion">                                               
+                        <p:panelGrid id="panelEstadoVer" rendered="#{rescateBean.objetoHospitalizacion.estado == 3}" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:outputLabel value="Observación Rechazo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objetoHospitalizacion.observacionRechazo}" style="color: red;font-weight: bold;"/>
+                        </p:panelGrid>  
+
+                        <!-- Hospitalizacion -->
+                        <p:panel id="pHospitalizacionVer" header="HOSPITALIZACION" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelHospitalizacionVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nro Hospitalización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.id}"/>
+
+                                <p:outputLabel value="Estado Auditoria" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.estadoAuditoriaStr}"/>
+
+                                <p:outputLabel value="Código Evento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.codigoEvento}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.estadoStr}"/>
+
+                                <p:outputLabel value="Auditor" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.gnUsuariosAuditorId.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Ips -->
+                        <p:panel id="pIpsVer" header="IPS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIpsVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.maeTipoDocumentoValor}" />
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.numeroDocumento}" />
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.cntPrestador.razonSocial}" />
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerDepartamento(rescateBean.objetoHospitalizacion.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <p:outputLabel value="Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.obtenerMunicipio(rescateBean.objetoHospitalizacion.cntPrestadorSedeId.ubicacionId)}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.direccion}" />
+
+                                <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.codigoHabilitacionSede}" />
+
+                                <p:outputLabel value="Nombre Sede" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.cntPrestadorSedeId.nombreSede}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Ingresos -->
+                        <p:panel id="pIngresoVer" header="INGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIngresoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Fecha Ingreso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.fechaIngreso}"/>
+
+                                <p:outputLabel value="Reingreso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.ingresoStr}"/>
+
+                                <p:outputLabel value="Tipo Ingreso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.maeTipoIngresoValor}"/>
+
+                                <p:outputLabel value="Modalidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.maeCntModalidadValor}"/>
+
+                                <p:outputLabel value="Remisión no Pertinente" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.maeRemisionNoPertinenteValor}"/>
+
+                                <p:outputLabel value="Charlson" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucIngresoId.indiceCharlson}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pIngresoDescripcionVer" header="DESCRIPCION REMISIÓN NO PERTINENTE" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelIngresoDescripcionVer">
+                                 <p:row rendered="#{aucHospitalizacionBean.objeto.aucIngresoId.habilitarDescripcion > 0}">
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:inputTextarea value="#{aucHospitalizacionBean.objeto.aucIngresoId.descripcion}" style="width:90%" maxlength="1024" rows="5" readonly="true"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pDiagnosticoVer" header="DIAGNOSTICO INGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+
+                            <p:dataTable id="tablaDiagnosticosVer" var="diagnosticoVer" class="tblCustom"
+                                         value="#{rescateBean.objetoHospitalizacion.aucIngresoId.aucDiagnosticosList}" 
+                                         widgetVar="tablaDiagnosticosVer" 
+                                         lazy="false"
+                                         resizableColumns="false" 
+                                         emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <p:selectBooleanCheckbox id="principalDiangosticoVer" label="Es Principal" value="#{diagnosticoVer.principal}" disabled="true">
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!-- Seguimientos -->
+                        <p:panel id="pSeguimientoVer" header="SEGUIMIENTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSeguimientosVer" class="tblCustom" var="seguimientoVer" 
+                                         value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionSeguimientoList}" 
+                                         widgetVar="tablaSeguimientoVer" 
+                                         scrollable="true" 
+                                         resizableColumns="false"
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center; font-size: 11px;" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{seguimientoVer.maeTipoSeguimientoValor}" />
+                                </p:column>
+                                <p:column headerText="Descripción"  style="width:400px;">
+                                    <h:outputText value="#{seguimientoVer.descripcionCorto}" />
+                                    <p:commandButton rendered="#{seguimientoVer.descripcionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(seguimientoVer.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{seguimientoVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{seguimientoVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Estancias -->
+                        <p:panel id="pEstanciaVer" header="ESTANCIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaEstanciaVer" class="tblCustom" var="estanciaVer" value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionEstanciaList}" widgetVar="tablaEstanciaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Fecha Ingreso">
+                                    <h:outputText value="#{estanciaVer.fechaIngreso}" />
+                                </p:column>
+                                <p:column headerText="Fecha Egreso">
+                                    <h:outputText value="#{estanciaVer.fechaEgreso}" />
+                                </p:column>
+                                <p:column headerText="Dias">
+                                    <h:outputText value="#{estanciaVer.dias}" />
+                                </p:column>
+                                <p:column headerText="Servicio">
+                                    <h:outputText value="#{estanciaVer.maeServicioValor}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{estanciaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{estanciaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:panel>
+                        <!-- justificacion estancias prolongadas -->
+                        <p:panel id="pJustificacionEstanciaProlongadaVer" header="JUSTIFICACION ESTANCIAS PROLONGADAS" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaJustificacionEstanciaProlongadaVer" class="tblCustom"  var="justificacionEstanciaProlongadaVer" value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionJustificacionEstanciasProlongadaList}" widgetVar="tablaJustificacionEstanciaProlongadaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Causa">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.maeCausaEstanciaProlongadaValor}" />
+                                </p:column>
+                                <p:column headerText="Propuesta">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.maePropuestaIntervensionValor}" />
+                                </p:column>
+                                <p:column headerText="Resumen Clínico">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.resumenClinicoCorto}" />
+                                    <p:commandButton rendered="#{justificacionEstanciaProlongadaVer.resumenClinicoCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(justificacionEstanciaProlongadaVer.resumenClinico)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{justificacionEstanciaProlongadaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Patologias -->
+                        <p:panel id="pPatologiaVer" header="PATOLOGIAS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaPatologiaVer"  class="tblCustom"  var="patologiaVer" value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionPatologiaList}" widgetVar="tablaPatologiaVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Patologia">
+                                    <h:outputText value="#{patologiaVer.maePatologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{patologiaVer.estadoStr}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{patologiaVer.descripcionCorto}" />
+                                    <p:commandButton rendered="#{patologiaVer.descripcionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(patologiaVer.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{patologiaVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{patologiaVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Inoportunidades -->
+                        <p:panel id="pInoportunidadVer" header="INOPORTUNIDADES" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaInoportunidadVer" class="tblCustom" var="inoportunidadVer" value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionInoportunidadList}" widgetVar="tablaInoportunidadVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{inoportunidadVer.maeTipoInoportunidadValor}" />
+                                </p:column>
+                                <p:column headerText="Dias">
+                                    <h:outputText value="#{inoportunidadVer.diasInoportunidad}" />
+                                </p:column>
+                                <p:column headerText="Fecha Inicio">
+                                    <h:outputText value="#{inoportundadVer.fechaInicioInoportunidad}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin">
+                                    <h:outputText value="#{inoportunidadVer.fechaFinInoportunidad}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Observación">
+                                    <h:outputText value="#{inoportunidadVer.observacionCorto}" />
+                                    <p:commandButton rendered="#{inoportunidadVer.observacionCorto.length() > 0 }" actionListener="#{rescateBean.mostrarMensaje(inoportunidadVer.observacion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{inoportunidadVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{inoportunidadVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Adversos -->
+                        <p:panel id="pAdversoVer" header="ADVERSOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdversoVer" var="adversoVer" value="#{rescateBean.objetoHospitalizacion.aucHosptalizacionAdversoList}" widgetVar="tablaAdversoVer" scrollable="true" scrollHeight="100" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Fecha Evento">
+                                    <h:outputText value="#{adversoVer.fechaEvento}" />
+                                </p:column>
+                                <p:column headerText="Categoria">
+                                    <h:outputText value="#{adversoVer.maeCategoriaEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Subcategoria">
+                                    <h:outputText value="#{adversoVer.maeSubcategoriaEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Conclusión">
+                                    <h:outputText value="#{adversoVer.maeConclusionEventoValor}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adversoVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{adversoVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Objeciones -->
+                        <p:panel id="pObjecionVer" header="OBJECIONES" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaObjecionVer" var="objecionVer" 
+                                         value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionObjecionList}"
+                                         widgetVar="tablaObjecionVer" 
+                                         scrollable="true" 
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{objecionVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Codigo Tecnologia">
+                                    <h:outputText value="#{objecionVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{objecionVer.cantidadSolicitada}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{objecionVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{objecionVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Servicios -->
+                        <p:panel id="pServicioVer" header="SERVICIOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaServicioVer" var="servicioVer" 
+                                         value="#{rescateBean.objetoHospitalizacion.aucHospitalizacionServicioList}" 
+                                         widgetVar="tablaServicioVer" 
+                                         scrollable="true" 
+                                         emptyMessage="No se encontraron registros" 
+                                         style="text-align: center" >
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{servicioVer.tipoTecnologiaStr}" />
+                                </p:column>
+                                <p:column headerText="Codigo Tecnologia">
+                                    <h:outputText value="#{servicioVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Fecha Prestación">
+                                    <h:outputText value="#{servicioVer.fechaPrestacion}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{servicioVer.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{servicioVer.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Egreso -->
+                        <p:panel id="pEgresoVer" header="EGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEgresoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Número Certificado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.numCertificado}"/>
+
+                                <p:outputLabel value="Fecha Egreso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.fechaEgreso}"/>
+
+                                <p:outputLabel value="Destino" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.maeDestinoEgresoValor}"/>
+
+                                <p:outputLabel value="Conducta" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.maeConductaEgresoValor}"/>
+
+                                <p:outputLabel value="Especialidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.maEspecialidadesValor}"/>
+
+                                <p:outputLabel value="Fallecido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.fallecidoStr}"/>
+
+                                <p:outputLabel value="Valor Estancia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.valorEstancia}"/>
+
+                                <p:outputLabel value="Facturado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{rescateBean.objetoHospitalizacion.aucEgresoId.facturado}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pDiagnosticoEgresoVer" header="DIAGNOSTICO EGRESO" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+
+                            <p:dataTable id="tablaDiagnosticosEgresoVer" var="diagnosticoEgresoVer" value="#{rescateBean.objetoHospitalizacion.aucEgresoId.aucDiagnosticosList}" widgetVar="tablaDiagnosticosVer" resizableColumns="true" emptyMessage="No se encontraron registros" style="text-align: center" >
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maDiagnosticoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Tipo diagnostico">
+                                    <h:outputText value="#{diagnosticoEgresoVer.maeTipoDiagnosticoValor}" />
+                                </p:column>
+                                <p:column headerText="Es Principal">
+                                    <p:selectBooleanCheckbox id="principalDiangosticoVer" label="Es Principal" value="#{diagnosticoEgresoVer.principal}" disabled="true">
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel> 
+
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVerHospitalizacion').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- descripciones genericas -->
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmObservacion">
+                        <p:panelGrid id="panelObservacion" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:row>
+                                <p:column class="ui-g-12">
+                                    <p:inputTextarea  value="#{rescateBean.descripcionGenerica}" readonly="true" style="width: 100%"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Listar Bitacora -->
+            <p:dialog header="Bitacora" widgetVar="dialogoVerBitacorass" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVerBitacoras">                        
+                        <p:panel id="pTablaBitacora" header="Lista Bitacora" style="margin-bottom:10px;" collapsed="false" toggleable="true">                         
+                            <p:dataTable id="tablaBitacora" var="bitacora" value="#{rescateBean.objetoAnexo3.objetoTecnologia.auItemBitacorasList}" 
+                                         widgetVar="tablaBitacora" resizableColumns="true" emptyMessage="No se encontraron registros"
+                                         paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         rows="5" sortBy="#{bitacora.id}">                                                           
+                                <p:column headerText="Tipo"  filterBy="#{bitacora.tipo}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaBitacora').filter()" style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Solicitud Devolución" itemValue="1"/>
+                                            <f:selectItem itemLabel="Respuesta Devolución" itemValue="2"/>
+                                            <f:selectItem itemLabel="Solicitud Cotización" itemValue="3"/>
+                                            <f:selectItem itemLabel="Respuesta Cotización" itemValue="4"/>
+                                            <f:selectItem itemLabel="Derivación" itemValue="5"/>
+                                            <f:selectItem itemLabel="Rechazo Item" itemValue="6"/>
+                                            <f:selectItem itemLabel="Cambio Estado" itemValue="8"/>
+                                            <f:selectItem itemLabel="Comentario" itemValue="11"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{bitacora.getStrTipo()}" />
+                                </p:column>
+                                <p:column headerText="Descripcion">
+                                    <h:outputText value="#{bitacora.observacionCorto()} " />
+                                    <p:commandButton actionListener="#{rescateBean.mostrarMensaje(bitacora.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario ">
+                                    <h:outputText value="#{bitacora.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora" >
+                                    <h:outputText value="#{bitacora.fechaHoraCrea}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelDevoluciones" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerBitacorass').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- descripciones afiliado genericas -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" class="modal-no-scroll" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;">
+
+                            <p:outputLabel value="Estado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeEstadoAfiliacionValor}" />
+
+                            <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.nombres}" />
+
+                            <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.apellidos}" />
+
+                            <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeTipoDocumentoCodigo}" />
+
+                            <p:outputLabel value="Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.numeroDocumento}" />
+
+                            <p:outputLabel value="Correo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.email}" />
+
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.direccionResidencia}" />
+
+                            <p:outputLabel value="Ubicación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.obtenerMunicipioDepartamento(rescateBean.objeto.asegAfiliado.residenciaUbicacion.id)}" />
+
+                            <p:outputLabel value="Regimen" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.maeRegimenValor}" />
+
+                            <p:outputLabel value="Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{rescateBean.objeto.asegAfiliado.idAfiliado}" />
+
+                        </p:panelGrid>
+                        <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactosGeneralAseg" var="contacto" value="#{rescateBean.objeto.asegAfiliado.listaAsegAfiliadoContacto}" widgetVar="tablaContactosGestionarAseg" scrollable="true" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número Contacto">
+                                        <h:outputText value="#{contacto.numeroContacto}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo">
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- agregar adjunto rescate -->
+            <p:dialog  widgetVar="dialogoAdjuntos"  appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Adjuntos</b>
+                </header>
+                <h:form id="frmAuditoriaAdjuntoProgramas" class="frmAuditoria" style="margin-top: -15px; margin-bottom: 15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{rescateBean.objeto.asegAfiliado.datosAuditoria}"/>
+                    <p:commandButton id="btnauditoria" class="btnAuditoria" action="#{rescateBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px;" >
+                    <h:form id="frmAdjunto">
+                        <p:panel id="pnlSubir" header="Datos afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAdjuntos">
+                                <p:row>
+                                    <p:column class="ui-g-2">        
+                                        <p:outputLabel value="Tipo" style="font-weight:bold"/> 
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:selectOneMenu id="somTipo" value="#{rescateBean.objectoAdjunto.maeTipoArchivoId}" style="width:100%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{rescateBean.listaTiposRescateAdjuntos}" var ="tiad" itemLabel="#{tiad.descripcionCorta}" itemValue="#{tiad.id}"/>
+                                            <p:ajax event="change" update="somTipo"/>
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Archivo" for="adjuntoArchivo" style="font-weight:bold"/> 
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:fileUpload id="adjuntoArchivo" label="Adjunto" mode="advanced"
+                                              skinSimple="true"
+                                              value="#{rescateBean.archivoAdjunto}"
+                                              listener="#{rescateBean.cargarArchivoDocumento}"
+                                              multiple="false"
+                                              auto="true"                                              
+                                              invalidFileMessage="Tipo inválido de archivo"
+                                              fileLimitMessage="Máximo número de archivos excedido."
+                                              uploadLabel="Subir"  cancelLabel="Cancelar"
+                                              allowTypes="/(\.|\/)(pdf|PDF)$/"
+                                              widgetVar="subirManual" style="width:100%;"/>
+                                    </p:column>          
+                                </p:row>
+                            </p:panelGrid>
+                            <br/>
+                            <p:dataTable var="adj" widgetVar="tablaArchivo" value="#{rescateBean.auSolicitudAdjunto}">
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>  
+                                    <p:commandButton icon="ui-icon-closethick" title="Borrar Adjunto" action="#{rescateBean.borrarAdjuntoPrograma(adj.nombre)}"/>
+                                </p:column>
+                                <p:column headerText="Tipo">
+                                    <p:outputLabel value="#{rescateBean.getTipoAdjuntoRecursiva(adj.maeTipoArchivoId)}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <p:outputLabel value="#{adj.nombre}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="pnlAdjuntosEx" header="Adjuntos" style="margin-bottom:10px;" toggleable="true">
+                            <br/>
+                            <p:dataTable var="adj" widgetVar="tablaArchivo" value="#{rescateBean.objeto.auSolicitudAdjuntosList}">
+                                <p:column headerText="Tipo">
+                                    <p:outputLabel value="#{adj.maeTipoArchivoValor}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <p:outputLabel value="#{adj.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Usuario Crea">
+                                    <h:outputText value="#{adj.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{adj.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrearAdjuntar" style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="GuardarAdjuntoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="GuardarAdjuntoRemote" action="#{rescateBean.guardarAdjuntoPrograma()}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoAdjuntos').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>                
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

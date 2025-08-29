@@ -1,0 +1,413 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <!-- Lista Inicial -->
+            <h:form id="frmRecurrencias">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{recurrenciaBean.modulo.descripcion}">#{recurrenciaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{recurrenciaBean.accionListar}" title="Refrescar"  class="btn-icono"  ajax="false" actionListener="#{recurrenciaBean.refrescar}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{recurrenciaBean.accionCrear}" title="Crear"  class="btn-icono"  actionListener="#{recurrenciaBean.crear}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{recurrenciaBean.lazyRecurrencia}" rowKey="#{obj.id}"
+                             rows="#{recurrenciaBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">                   
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.descripcion}"/>
+                    </p:column>              
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="true" />
+                                <f:selectItem itemLabel="NO" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>                  
+                    <p:column headerText="Fecha Inicio" sortBy="#{obj.fechaInicio}">                        
+                        <h:outputText value="#{obj.fechaInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd " timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Fecha Fin " sortBy="#{obj.fechaFin}">                        
+                        <h:outputText value="#{obj.fechaFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Última Ejecucion" sortBy="#{obj.fechaHoraEjecucion}">                        
+                        <h:outputText value="#{obj.fechaHoraEjecucion}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Tipo Perioricidad" sortBy="#{obj.tipoPeriodicidad}" filterBy="#{obj.tipoPeriodicidad}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="DIA" itemValue="0" />
+                                <f:selectItem itemLabel="SEMANA" itemValue="1" />
+                                <f:selectItem itemLabel="MES" itemValue="2" />
+                                <f:selectItem itemLabel="AÑO" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoPerioricidad(obj.tipoPeriodicidad)}"/>
+                    </p:column>   
+                    <p:column headerText="Perioricidad" sortBy="#{obj.periodicidad}">
+                        <h:outputText value="#{obj.periodicidad}"/>
+                    </p:column>                                   
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{recurrenciaBean.accionVer}" title="Ver"  class="btn-icono"  actionListener="#{recurrenciaBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{recurrenciaBean.accionEditar}" title="Editar"   class="btn-icono"  actionListener="#{recurrenciaBean.editar(obj.id)}" icon="pi pi-pencil"/>                        
+                        <p:commandButton rendered="#{recurrenciaBean.accionBorrar}" title="Borrar"  class="btn-icono"  action="#{recurrenciaBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" class="btn-icono"   icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si"  type="button" class="btn-icono" styleClass="ui-confirmdialog-yes"  icon="pi pi-check" style="left: 7%"/>
+                    <p:commandButton value="No"  type="button" class="btn-icono" styleClass="ui-confirmdialog-no" icon="pi pi-times" style="left: 7%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="90%">
+                <p:scrollPanel mode="native" style="height: 300px">
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelVer">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.nombre}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.descripcion}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.activoStr}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="F.H. Ejecución" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.fechaHoraEjecucion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo Periodicidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.tipoPerioricidad(recurrenciaBean.objeto.tipoPeriodicidad)}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Periodicidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.periodicidad}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Script" style="font-weight:bold" />
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:textEditor secure="false" readonly="false" toolbarVisible="false" value="#{recurrenciaBean.objeto.scriptStr}" style="width:99%" height="180">
+                                    </p:textEditor>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <!--p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:outputLabel value="Script" style="font-weight:bold" />
+                            <p:textEditor secure="false" readonly="false" toolbarVisible="false" value="#{recurrenciaBean.objeto.scriptStr}" style="width:99%" height="180">
+                            </p:textEditor>
+                        </p:panelGrid-->
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" class="btn-icono"   onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>                        
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" style="height: 80%;" widgetVar="dialogoCrear" appendTo="@(body)" modal="true">
+                <p:scrollPanel mode="native" style="height: 300px">
+                    <h:form id="frmCrear">
+                        <p:panelGrid id="panelCrear">                     
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="nombre" label="Nombre" value="#{recurrenciaBean.objeto.nombre}"   maxlength="32"  required="true">
+                                    </p:inputText>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" style="font-weight:bold" for="descripcion"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputTextarea id="descripcion" style="width:99%" label="Descripción" value="#{recurrenciaBean.objeto.descripcion}" cols="50" maxlength="512"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneRadio id="activo" value="#{recurrenciaBean.objeto.activo}">
+                                        <f:selectItem itemLabel="Si" itemValue="true" />
+                                        <f:selectItem itemLabel="No" itemValue="false" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="F.H. Ejecución" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.fechaHoraEjecucion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicio " for="fechaInicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd"  
+                                                value="#{recurrenciaBean.objeto.fechaInicio}" 
+                                                yearRange="c-100:c" size="30" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                                    </p:calendar>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Fin " for="fechaFin" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"  
+                                                value="#{recurrenciaBean.objeto.fechaFin}" 
+                                                yearRange="c-100:c" size="30" maxlength="10" required="false" requiredMessage="Fecha Fin Este campo es obligatorio." >
+                                    </p:calendar>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo Perioricidad" for="tipoPerioricidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="tipoPerioricidad" label="Tipo Perioricidad" required="true" value="#{recurrenciaBean.objeto.tipoPeriodicidad}" 
+                                                     editable="fase" style="width: 170px;" requiredMessage="Tipo Perioricidad: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Dia" itemValue="0" />
+                                        <f:selectItem itemLabel="Semana" itemValue="1" />
+                                        <f:selectItem itemLabel="Mes" itemValue="2" />
+                                        <f:selectItem itemLabel="Año" itemValue="3" />                                        
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Perioricidad" for="periodicidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputNumber id="periodicidad" minValue="1" maxValue="500" label="Perioricidad" value="#{recurrenciaBean.objeto.periodicidad}" size="5" maxlength="3" required="true">
+                                    </p:inputNumber>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Script" style="font-weight:bold" for="script"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:textEditor id="script" secure="false" toolbarVisible="false" value="#{recurrenciaBean.objeto.scriptStr}" style="width:99%" height="180" required="true">
+                                    </p:textEditor>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" class="btn-icono"   onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{recurrenciaBean.guardar}" update="panelCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" class="btn-icono"   onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" style="height: 80%;" widgetVar="dialogoEditar" appendTo="@(body)" modal="true">
+                <p:scrollPanel mode="native" style="height: 300px">
+                    <h:form id="frmEditar">
+                        <p:panelGrid id="panelEditar">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputText id="nombre" label="Nombre" value="#{recurrenciaBean.objeto.nombre}"   maxlength="32" required="true">
+                                    </p:inputText>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" style="font-weight:bold" for="descripcion"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputTextarea id="descripcion" style="width:99%" label="Descripción" value="#{recurrenciaBean.objeto.descripcion}" cols="50" maxlength="512"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneRadio id="activo" value="#{recurrenciaBean.objeto.activo}">
+                                        <f:selectItem itemLabel="Si" itemValue="true" />
+                                        <f:selectItem itemLabel="No" itemValue="false" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="F.H. Ejecución" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{recurrenciaBean.objeto.fechaHoraEjecucion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicio " for="fechaInicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd"  
+                                                value="#{recurrenciaBean.objeto.fechaInicio}" 
+                                                yearRange="c-100:c"  maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                                    </p:calendar>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Fin " for="fechaFin" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"  
+                                                value="#{recurrenciaBean.objeto.fechaFin}" 
+                                                yearRange="c-100:c"   maxlength="10" required="false" requiredMessage="Fecha Fin Este campo es obligatorio." >
+                                    </p:calendar>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo Perioricidad" for="tipoPerioricidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:selectOneMenu id="tipoPerioricidad" label="Tipo Perioricidad" required="true" value="#{recurrenciaBean.objeto.tipoPeriodicidad}" 
+                                                     editable="fase" style="width: 170px;" requiredMessage="Tipo Perioricidad: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Dia" itemValue="0" />
+                                        <f:selectItem itemLabel="Semana" itemValue="1" />
+                                        <f:selectItem itemLabel="Mes" itemValue="2" />
+                                        <f:selectItem itemLabel="Año" itemValue="3" />                                        
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Periodicidad" for="periodicidad" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:inputNumber id="periodicidad" minValue="1" maxValue="500" label="Perioricidad" value="#{recurrenciaBean.objeto.periodicidad}" size="5" maxlength="3" required="true">
+                                    </p:inputNumber>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Script" style="font-weight:bold" for="script"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:textEditor id="script" secure="false" toolbarVisible="false" value="#{recurrenciaBean.objeto.scriptStr}" style="width:99%" height="180" required="true">
+                                    </p:textEditor>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <!--p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:outputLabel value="Script" style="font-weight:bold" for="script"/>
+                            <p:textEditor id="script" secure="false" toolbarVisible="false" value="#{recurrenciaBean.objeto.scriptStr}" style="width:99%" height="180" required="true">
+                            </p:textEditor>
+                        </p:panelGrid-->
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Modificar" class="btn-icono"   type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action="#{recurrenciaBean.modificar}" update="panelEditar" />
+                                        <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

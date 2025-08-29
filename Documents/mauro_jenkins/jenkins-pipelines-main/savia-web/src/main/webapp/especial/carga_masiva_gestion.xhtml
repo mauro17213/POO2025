@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">    
+        <h:outputStylesheet name="css/rias.css"/>
+        <center>
+            <h:form id="frmCargaMasiva">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cargaMasivaGestionBean.modulo.descripcion}">#{cargaMasivaGestionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cargaMasivaGestionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cargaMasivaGestionBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{cargaMasivaGestionBean.accionCrear}" title="Crear Adjunto" ajax="true" actionListener="#{cargaMasivaGestionBean.crear}" icon="ui-icon-circle-arrow-n"/>
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" value="#{cargaMasivaGestionBean.lazyCargaMasiva}"  class="listaDatos" paginator="true" rows="#{cargaMasivaGestionBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="130%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton icon="ui-icon-arrowstop-1-s"
+                                         rendered="#{cargaMasivaGestionBean.accionAdicional1 and ( obj.estado == 2 or obj.estado == 3 )}"
+                                         title="Descargar archivo original" 
+                                         action="#{cargaMasivaGestionBean.generarArchivoCarga(obj.id)}" 
+                                         ajax="false" 
+                                         process="@this"/>
+                        
+                        <p:commandButton icon="pi pi-cloud-download"
+                                         rendered="#{cargaMasivaGestionBean.accionAdicional1 and ( obj.estado == 2 or obj.estado == 3 )}"
+                                         title="Descargar resultado" 
+                                         action="#{cargaMasivaGestionBean.generarArchivoResultados(obj.id)}" 
+                                         ajax="false" 
+                                         process="@this"/>
+                        
+                        <p:commandButton  title="Cancelar" rendered="#{cargaMasivaGestionBean.accionAdicional2}" disabled="#{cargaMasivaGestionBean.validarEstadoCargaProcesando(obj.estado)}" action="#{cargaMasivaGestionBean.abortar(obj.id)}" icon="ui-icon-circle-arrow-w">
+                            <p:confirm header="Confirmación" message="Está seguro que desea cancelar la carga masiva?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Id Carga" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Archivo" sortBy="#{obj.archivo}" filterBy="#{obj.archivo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Archivo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.archivo}" title="#{obj.archivo}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado del Proceso" sortBy="#{obj.estado}" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu  editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{cargaMasivaGestionBean.listaEstadoCarga}" var="estCarga" itemValue="#{estCarga.id}" itemLabel="#{estCarga.nombre}" itemDescription="#{estCarga.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{cargaMasivaGestionBean.getEstado(obj.estado)}" title="#{cargaMasivaGestionBean.getEstado(obj.estado)}"/>
+                    </p:column> 
+                    <!-- nuevos campos -->
+                    <p:column headerText="Registros" sortBy="#{obj.registros}">
+                        <h:outputText value="#{obj.registros}" title="#{obj.registros}"/> de 
+                        <h:outputText value="#{obj.registrosPendientes}" title="#{obj.registrosPendientes}"/>
+                    </p:column>
+                    <p:column headerText="Exitosos" sortBy="#{obj.exitosos}">
+                        <h:outputText value="#{obj.exitosos}" title="#{obj.exitosos}"/>
+                    </p:column>
+                    <p:column headerText="Fallidos" sortBy="#{obj.fallidos}">
+                        <h:outputText value="#{obj.fallidos}" title="#{obj.fallidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Inicio" sortBy="#{obj.fechaHoraInicio}">
+                        <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fin" sortBy="#{obj.fechaHoraFin}">
+                        <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario responsable" sortBy="#{obj.usuarioCrea}" filterBy="#{obj.usuarioCrea}">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario responsable" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" position="center"  modal="true" style="max-height:40%;" >
+                <p:scrollPanel mode="native" style="height:200px; width: 600px; max-width: 600px;">
+                    <h:form id="frmCrearAdjunto" >
+                        <p:panelGrid id="panelCrearAdjunto" columns="1" layout="grid" styleClass="showcase-text-align-center">                            
+                            <p:fileUpload id="cargarDocumento" label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                          fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                          invalidFileMessage="Tipo inválido de archivo, solo se permiten archivos con extension txt"
+                                          listener="#{cargaMasivaGestionBean.cargarAdjunto}" mode="advanced" dragDropSupport="false"
+                                          required="true" requiredMessage="Se debe agregar un Documento." 
+                                          sizeLimit="10000000" fileLimit="1" allowTypes="/(\.|\/)(txt)$/" />
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

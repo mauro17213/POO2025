@@ -1,0 +1,1739 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/gp.css"/>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <h:form id="frmPrestadores">
+                <p:remoteCommand name="cerrarDialogoServiciosHabilitacion" action="#{ipsSedesBean.cerrarDialogoMaServiciosHabilitacion()}"/>
+                <p:remoteCommand name="cerrarDialogoSelPrestador" action="#{ipsSedesBean.cerrarDialogoSelPrestador()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{ipsSedesBean.modulo.descripcion}">#{ipsSedesBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{ipsSedesBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{ipsSedesBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{ipsSedesBean.accionCrear}" title="Crear" actionListener="#{ipsSedesBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{ipsSedesBean.lazyPrestador}" paginator="true" rows="#{ipsSedesBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{ipsSedesBean.accionVer}" title="Ver" actionListener="#{ipsSedesBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{ipsSedesBean.accionEditar}" title="Editar" actionListener="#{ipsSedesBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{ipsSedesBean.accionBorrar}" title="Borrar" action="#{ipsSedesBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton title="Gestión Sedes" actionListener="#{ipsSedesBean.gestionarSedes(obj.id)}" icon="ui-icon-calculator"/>
+                        <p:commandButton rendered="#{ipsSedesBean.accionAdicional6 and obj.unionTemporal}" title="Gestión Unión Temporal" actionListener="#{ipsSedesBean.gestionarUnionTemporal(obj.id)}" icon="ui-icon-folder-collapsed"/>
+                    </p:column>
+                    <p:column headerText="Código MinSalud" sortBy="#{obj.codigoMinSalud}" filterBy="#{obj.codigoMinSalud}">
+                        <f:facet name="filter">
+                            <p:inputText label="Código MinSalud" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.codigoMinSalud}" title="#{obj.codigoMinSalud}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Documento" filterBy="#{obj.maeTipoDocumentoId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 85%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{ipsSedesBean.getTipoDocumento(obj.maeTipoDocumentoId)}" title="#{ipsSedesBean.getTipoDocumento(obj.maeTipoDocumentoId)}"/>
+                    </p:column>
+                    <p:column headerText="Documento" sortBy="#{obj.numeroDocumento}" filterBy="#{obj.numeroDocumento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroDocumento}" title="#{obj.numeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Razón Social" filterBy="#{obj.razonSocial}">
+                        <f:facet name="filter">
+                            <p:inputText label="Razón Social" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.razonSocial}" title="#{obj.razonSocial}"/>
+                    </p:column>
+                    <p:column headerText="Nivel de Atención">
+                        <h:outputText value="#{obj.nivelAtencion}" title="#{obj.nivelAtencion}"/>
+                    </p:column>
+
+                    <p:column headerText="Clase de Prestador" filterBy="#{obj.maeClasePrestador}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 85%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaClasePrestador}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{ipsSedesBean.getClasePrestador(obj.maeClasePrestador)}" title="#{ipsSedesBean.getClasePrestador(obj.maeClasePrestador)}"/>
+                    </p:column>
+                    <p:column headerText="Naturaleza Jurídica">
+                        <h:outputText value="#{obj.naturalezaJuridica}" title="#{obj.naturalezaJuridica}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="true" />
+                                <f:selectItem itemLabel="NO" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column headerText="Fecha Hora Crea" sortBy="#{obj.fechaHoraCrea}">
+                        <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panel id="pPrestador" header="Prestador" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPrestador" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+
+                                <p:outputLabel value="Código Minsalud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.codigoMinSalud}" title="#{ipsSedesBean.objeto.codigoMinSalud}" />
+
+                                <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.activoStr}" title="#{ipsSedesBean.objeto.activoStr}" />
+
+                                <p:outputLabel value="Tipo de Documento IPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.getTipoDocumento(ipsSedesBean.objeto.maeTipoDocumentoId)}" title="#{ipsSedesBean.getTipoDocumento(ipsSedesBean.objeto.maeTipoDocumentoId)}" />
+
+                                <p:outputLabel value="Número de Documento IPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.numeroDocumento}" />
+
+                                <p:outputLabel value="Razón Social IPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.razonSocial}" />
+
+                                <p:outputLabel value="Nivel de Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.nivelAtencion}" />
+
+                                <p:outputLabel value="Clase de Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.getClasePrestador(ipsSedesBean.objeto.maeClasePrestador)}" />
+
+                                <p:outputLabel value="Naturaleza Jurídica" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.naturalezaJuridica}" />
+
+                                <p:outputLabel value="Prefijo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.prefijo}" />
+
+                                <p:outputLabel value="Categoría IPS" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.categoriaPrestador}" />
+
+                                <p:outputLabel value="Tipo de Documento Representante Legal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.maeTipoDocumentoRepValor}" />
+
+                                <p:outputLabel value="Número de Documento Representante Legal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ipsSedesBean.objeto.numeroDocumentoRep}" />
+
+                                <p:outputLabel value="Facturación Electrónica" style="font-weight:bold" />
+                                <p:outputLabel value="#{ipsSedesBean.objeto.facturacionElectronicaStr}" />
+                                
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pSedes" header="Sedes" style="margin-bottom:10px;">
+                            <p:dataTable id="tablaSedes" var="sede" value="#{ipsSedesBean.listaSedes}" widgetVar="tablaWidgetSedes" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Ver" actionListener="#{ipsSedesBean.verSede(sede)}" icon="ui-icon-search"/>
+                                </p:column>
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{sede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <h:outputText value="#{sede.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmCrear">
+                        <p:panel id="pPrestador" header="Prestador" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPrestador" 	columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código MinSalud" for="codigoMinsalud" style="font-weight:bold"/>
+                                <p:inputText id="codigoMinsalud" label="Código MinSalud" value="#{ipsSedesBean.objeto.codigoMinSalud}" 
+                                             size="30" maxlength="16" required="true" requiredMessage="Codigo MinSalud: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="activo" value="#{ipsSedesBean.objeto.activo}" onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Activo: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Tipo de Documento IPS" for="tipoDocumento" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumento" label="Tipo de Documento IPS" required="true" value="#{ipsSedesBean.objeto.maeTipoDocumentoId}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Tipo de Documento IPS: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="TIPO_DOCUMENTO" itemValue="#{TIPO_DOCUMENTO.id}" itemLabel="#{TIPO_DOCUMENTO.nombre}" itemDescription="#{TIPO_DOCUMENTO.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Número de Documento IPS" for="numeroDocumento" style="font-weight:bold"/>
+                                <p:inputText id="numeroDocumento" label="Número Documento" value="#{ipsSedesBean.objeto.numeroDocumento}" 
+                                             size="30" maxlength="32" required="true" requiredMessage="Número de Documento IPS: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Razón Social IPS" for="razonSocial" style="font-weight:bold"/>
+                                <p:inputText id="razonSocial" label="Razón Social IPS" value="#{ipsSedesBean.objeto.razonSocial}" maxlength="256" required="true" requiredMessage="Razón Social IPS: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Nivel de Atención" for="nivelAtencion" style="font-weight:bold"/>
+                                <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="true" value="#{ipsSedesBean.objeto.nivelAtencion}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="1" itemValue="1" />
+                                    <f:selectItem itemLabel="2" itemValue="2" />
+                                    <f:selectItem itemLabel="3" itemValue="3" />
+                                    <f:selectItem itemLabel="4" itemValue="4" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Clase de Prestador" for="clasePrestador" style="font-weight:bold"/>
+                                <p:selectOneMenu id="clasePrestador" label="Clase de Prestador" required="true" value="#{ipsSedesBean.objeto.maeClasePrestador}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Clase de Prestador: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaClasePrestador}" var="clase_prestador" itemValue="#{clase_prestador.id}" itemLabel="#{clase_prestador.nombre}" itemDescription="#{clase_prestador.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Naturaleza Jurídica" for="naturalezaJuridica" style="font-weight:bold"/>
+                                <p:inputText id="naturalezaJuridica" label="Naturaleza Jurídica" value="#{ipsSedesBean.objeto.naturalezaJuridica}" maxlength="16" required="true" requiredMessage="Naturaleza Jurídica: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Prefijo" for="prefijo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="prefijo" label="Prefijo" required="false" value="#{ipsSedesBean.objeto.prefijo}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Prefijo: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="URG" itemValue="URG" />
+                                    <f:selectItem itemLabel="ALERT" itemValue="ALERT" />
+                                    <f:selectItem itemLabel="FUN" itemValue="FUN" />
+                                    <f:selectItem itemLabel="NV" itemValue="NV" />
+                                    <f:selectItem itemLabel="NA" itemValue="NA" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Categoría IPS" for="categoria" style="font-weight:bold"/>
+                                <p:selectOneMenu id="categoria" label="Categoría IPS" required="true" value="#{ipsSedesBean.objeto.categoriaPrestador}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Categoría IPS: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="1" itemValue="1" />
+                                    <f:selectItem itemLabel="2" itemValue="2" />
+                                    <f:selectItem itemLabel="3" itemValue="3" />
+                                    <f:selectItem itemLabel="4" itemValue="4" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Tipo de Documento Representante Legal" for="tipoDocumentoRep" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumentoRep" label="Tipo de Documento Representante Legal" required="true" value="#{ipsSedesBean.objeto.maeTipoDocumentoRepId}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Tipo de Documento Representante Legal: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="TIPO_DOCUMENTO_REP" itemValue="#{TIPO_DOCUMENTO_REP.id}" itemLabel="#{TIPO_DOCUMENTO_REP.nombre}" itemDescription="#{TIPO_DOCUMENTO_REP.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Número de Documento Representante Legal" for="numeroDocumentoRep" style="font-weight:bold" />
+                                <p:inputText id="numeroDocumentoRep" label="Número Documento Representante Legal" value="#{ipsSedesBean.objeto.numeroDocumentoRep}" 
+                                             size="30" maxlength="32" required="false" requiredMessage="Número de Documento Representante Legal: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Facturación Electrónica" for="factElectronica" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="factElectronica" value="#{ipsSedesBean.objeto.facturacionElectronica}" onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Facturación Electrónica: Este campo es obligatorio."/>
+                                
+                                                                
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pSedes" header="Sedes" style="margin-bottom:10px;">
+                            <p:toolbar>
+                                <f:facet name="left" >
+                                    <p:commandButton rendered="#{ipsSedesBean.accionAdicional1}" title="Agregar Sede" actionListener="#{ipsSedesBean.adicionarSede()}" icon="ui-icon-document" immediate="true"/>
+                                </f:facet>
+                                <f:facet name="right">
+
+                                </f:facet>
+                            </p:toolbar>
+                            <p:dataTable id="tablaSedes" var="sede" value="#{ipsSedesBean.listaSedes}" widgetVar="tablaWidgetSedes" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Retirar Sede" action="#{ipsSedesBean.retirarSede(sede.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{sede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <h:outputText value="#{sede.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{ipsSedesBean.guardar()}" update="frmCrear"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panel id="pPrestador" header="Prestador" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelPrestador" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código MinSalud" for="codigoMinsalud" style="font-weight:bold"/>
+                                <p:inputText id="codigoMinsalud" label="Código MinSalud" value="#{ipsSedesBean.objeto.codigoMinSalud}" 
+                                             size="30" maxlength="16" required="true" requiredMessage="Codigo MinSalud: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="activo" value="#{ipsSedesBean.objeto.activo}" onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Activo: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Tipo de Documento IPS" for="tipoDocumento" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumento" label="Tipo de Documento IPS" required="true" value="#{ipsSedesBean.objeto.maeTipoDocumentoId}" 
+                                                 editable="fase"   requiredMessage="Tipo de Documento IPS: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="TIPO_DOCUMENTO" itemValue="#{TIPO_DOCUMENTO.id}" itemLabel="#{TIPO_DOCUMENTO.nombre}" itemDescription="#{TIPO_DOCUMENTO.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Número de Documento IPS" for="numeroDocumento" style="font-weight:bold"/>
+                                <p:inputText id="numeroDocumento" label="Número Documento" value="#{ipsSedesBean.objeto.numeroDocumento}" 
+                                             size="30" maxlength="32" required="true" requiredMessage="Número de Documento IPS: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Razón Social IPS" for="razonSocial" style="font-weight:bold"/>
+                                <p:inputText id="razonSocial" label="Razón Social IPS" value="#{ipsSedesBean.objeto.razonSocial}" maxlength="256" required="true" requiredMessage="Razón Social IPS: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Nivel de Atención" for="nivelAtencion" style="font-weight:bold"/>
+                                <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="true" value="#{ipsSedesBean.objeto.nivelAtencion}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="1" itemValue="1" />
+                                    <f:selectItem itemLabel="2" itemValue="2" />
+                                    <f:selectItem itemLabel="3" itemValue="3" />
+                                    <f:selectItem itemLabel="4" itemValue="4" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Clase de Prestador" for="clasePrestador" style="font-weight:bold"/>
+                                <p:selectOneMenu id="clasePrestador" label="Clase de Prestador" required="true" value="#{ipsSedesBean.objeto.maeClasePrestador}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Clase de Prestador: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaClasePrestador}" var="clase_prestador" itemValue="#{clase_prestador.id}" itemLabel="#{clase_prestador.nombre}" itemDescription="#{clase_prestador.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Naturaleza Jurídica" for="naturalezaJuridica" style="font-weight:bold"/>
+                                <p:inputText id="naturalezaJuridica" label="Naturaleza Jurídica" value="#{ipsSedesBean.objeto.naturalezaJuridica}" maxlength="16" required="true" requiredMessage="Naturaleza Jurídica: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Prefijo" for="prefijo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="prefijo" label="Prefijo" required="false" value="#{ipsSedesBean.objeto.prefijo}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Prefijo: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="URG" itemValue="URG" />
+                                    <f:selectItem itemLabel="ALERT" itemValue="ALERT" />
+                                    <f:selectItem itemLabel="FUN" itemValue="FUN" />
+                                    <f:selectItem itemLabel="NV" itemValue="NV" />
+                                    <f:selectItem itemLabel="NA" itemValue="NA" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Categoría IPS" for="categoria" style="font-weight:bold"/>
+                                <p:selectOneMenu id="categoria" label="Categoría IPS" required="true" value="#{ipsSedesBean.objeto.categoriaPrestador}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Categoría IPS: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="1" itemValue="1" />
+                                    <f:selectItem itemLabel="2" itemValue="2" />
+                                    <f:selectItem itemLabel="3" itemValue="3" />
+                                    <f:selectItem itemLabel="4" itemValue="4" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Tipo de Documento Representante Legal" for="tipoDocumentoRep" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumentoRep" label="Tipo de Documento Representante Legal" required="true" value="#{ipsSedesBean.objeto.maeTipoDocumentoRepId}" 
+                                                 editable="fase"  requiredMessage="Tipo de Documento Representante Legal: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="TIPO_DOCUMENTO_REP" itemValue="#{TIPO_DOCUMENTO_REP.id}" itemLabel="#{TIPO_DOCUMENTO_REP.nombre}" itemDescription="#{TIPO_DOCUMENTO_REP.descripcion}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Número de Documento Representante Legal" for="numeroDocumentoRep" style="font-weight:bold"/>
+                                <p:inputText id="numeroDocumentoRep" label="Número Documento Representante Legal" value="#{ipsSedesBean.objeto.numeroDocumentoRep}" 
+                                             size="30" maxlength="32" required="false" requiredMessage="Número de Documento Representante Legal: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Facturación Electrónica" for="factElectronica" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="factElectronica" value="#{ipsSedesBean.objeto.facturacionElectronica}" onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="true" requiredMessage="Facturación Electrónica: Este campo es obligatorio."/>
+                                
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pSedes" header="Sedes" style="margin-bottom:10px;">
+                            <p:toolbar>
+                                <f:facet name="left" >
+                                    <p:commandButton rendered="#{ipsSedesBean.accionAdicional1}" title="Agregar Sede" actionListener="#{ipsSedesBean.adicionarSede()}" icon="ui-icon-document" immediate="true"/>
+                                </f:facet>
+                                <f:facet name="right">
+
+                                </f:facet>
+                            </p:toolbar>
+                            <p:dataTable id="tablaSedes" var="sede" value="#{ipsSedesBean.listaSedes}" widgetVar="tablaWidgetSedes" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{ipsSedesBean.accionAdicional1}" title="Editar Sede" action="#{ipsSedesBean.editarSede(sede.id)}" icon="ui-icon-pencil" immediate="true"/>
+                                    <p:commandButton rendered="#{ipsSedesBean.accionAdicional2 and !sede.nuevoRegistro}" title="Borrar Sede" action="#{ipsSedesBean.borrarSede(sede.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{ipsSedesBean.accionAdicional1 and sede.nuevoRegistro}" title="Retirar Sede" action="#{ipsSedesBean.retirarSede(sede.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea retirar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{sede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <h:outputText value="#{sede.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{ipsSedesBean.modificar()}" update="frmEditar"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Crear Sede"  widgetVar="dialogoCrearSede" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height:80%;">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmCrearSede">
+                        <p:panelGrid id="panelCrearSede" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Municipio" for="municipio"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="municipio" label="Municipio" required="true" value="#{ipsSedesBean.sede.ubicacionId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Municipio: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaUbicaciones}" var="ubicacion" itemValue="#{ubicacion.id}" itemLabel="#{ipsSedesBean.getNombreMunicipioDepartamento(ubicacion)}" itemDescription="#{ubicacion.descripcion}" />
+                            </p:selectOneMenu> 
+
+                            <p:outputLabel value="Nombre de la Sede" for="nombre"  style="font-weight:bold"/>
+                            <p:inputText id="nombre" label="Nombre de la Sede" value="#{ipsSedesBean.sede.nombreSede}" maxlength="256" required="true" requiredMessage="Nombre de la Sede: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Código de Habilitación Sede" for="codigoHabilitacion"  style="font-weight:bold"/>
+                            <p:inputText id="codigoHabilitacion" label="Código de Habilitación Sede" value="#{ipsSedesBean.sede.codigoHabilitacionSede}" maxlength="16" required="false" requiredMessage="Código de Habilitación Sede: Este campo es obligatorio." >
+                            </p:inputText>
+
+                            <p:outputLabel value="Zona" for="zona"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="zona" label="Zona" required="true" value="#{ipsSedesBean.sede.zonaPrecedencia}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Zona: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Rural" itemValue="R" />
+                                <f:selectItem itemLabel="Urbana" itemValue="U" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Estado Sede" for="estado"  style="font-weight:bold"/>
+                            <p:selectBooleanCheckbox id="estado" value="#{ipsSedesBean.sede.estadoSede}" itemLabel="Activo"/>
+
+                            <p:outputLabel value="Nivel de Atención" for="nivelAtencion"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="false" value="#{ipsSedesBean.sede.nivelAtencion}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="1" itemValue="1" />
+                                <f:selectItem itemLabel="2" itemValue="2" />
+                                <f:selectItem itemLabel="3" itemValue="3" />
+                                <f:selectItem itemLabel="4" itemValue="4" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Dirección" for="direccion"  style="font-weight:bold"/>
+                            <p:inputText id="direccion" label="Dirección" value="#{ipsSedesBean.sede.direccion}"   maxlength="256" required="false" requiredMessage="Dirección: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Capitación" for="capitacion"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="capitacion" value="#{ipsSedesBean.sede.capitacion}"  onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false"/>
+                            
+                            <p:outputLabel value="Grupo Rips Ministerio" for="grupoRipsMinisterio" style="font-weight:bold"/>
+                            <p:selectOneMenu id="grupoRipsMinisterio" label="Grupo Rips Ministerio" required="true" value="#{ipsSedesBean.sede.grupoRipsMinisterio}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Grupo Rips Ministerio: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Grupo 1" itemValue="1" />
+                                <f:selectItem itemLabel="Grupo 2" itemValue="2" />
+                                <f:selectItem itemLabel="Grupo 3" itemValue="3" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearContactos" style="width:98%; height:auto; margin:5px 5px" columns="1">
+                            <p:panel header="Lista de Contactos" toggleable="true" style="height:auto;">
+                                <p:scrollPanel mode="native">
+                                    <p:toolbar>
+                                        <f:facet name="left" >
+
+                                        </f:facet>
+                                        <f:facet name="right">
+                                            <p:commandButton title="Agregar Contacto" actionListener="#{ipsSedesBean.adicionarContacto()}" icon="ui-icon-document" immediate="true"/>
+                                        </f:facet>
+                                    </p:toolbar>
+                                    <p:dataTable id="tablaContactos" var="contacto" value="#{ipsSedesBean.sede.listaCntPrestadorContactos}" widgetVar="tablaWidgetContactos" scrollable="true" emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Acciones" style="text-align: center;">
+                                            <p:commandButton title="Retirar Contacto" action="#{ipsSedesBean.retirarContacto(contacto.id)}" icon="ui-icon-close" immediate="true">
+                                                <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                        </p:column>
+                                        <p:column headerText="Área">
+                                            <h:outputText value="#{contacto.maeAreaContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Contacto">
+                                            <h:outputText value="#{contacto.contacto}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarSedeRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarSedeRemote" action="#{ipsSedesBean.guardarSede()}"  />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearSede').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Editar Sede"  widgetVar="dialogoEditarSede" appendTo="@(body)" modal="true" width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.sede.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditarSede">
+                        <p:panelGrid id="panelEditarSede" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Municipio" for="municipio" style="font-weight:bold"/>
+                            <p:selectOneMenu id="municipio" label="Municipio" required="true" value="#{ipsSedesBean.sede.ubicacionId}" 
+                                             editable="fase"   requiredMessage="Municipio: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaUbicaciones}" var="ubicacion" itemValue="#{ubicacion.id}" itemLabel="#{ipsSedesBean.getNombreMunicipioDepartamento(ubicacion)}" itemDescription="#{ubicacion.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Nombre de la Sede" for="nombre" style="font-weight:bold"/>
+                            <p:inputText id="nombre" label="Nombre de la Sede" value="#{ipsSedesBean.sede.nombreSede}"  maxlength="256" required="true" requiredMessage="Nombre de la Sede: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Código de Habilitación Sede" for="codigoHabilitacion" style="font-weight:bold"/>
+                            <p:inputText id="codigoHabilitacion" label="Código de Habilitación Sede" value="#{ipsSedesBean.sede.codigoHabilitacionSede}"  maxlength="16" required="false" requiredMessage="Código de Habilitación Sede: Este campo es obligatorio." >
+                            </p:inputText>
+
+                            <p:outputLabel value="Zona" for="zona" style="font-weight:bold"/>
+                            <p:selectOneMenu id="zona" label="Zona" required="true" value="#{ipsSedesBean.sede.zonaPrecedencia}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Zona: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Rural" itemValue="R" />
+                                <f:selectItem itemLabel="Urbana" itemValue="U" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Estado Sede" for="estado" style="font-weight:bold"/>
+                            <p:selectBooleanCheckbox id="estado" value="#{ipsSedesBean.sede.estadoSede}" itemLabel="Activo"/>
+
+                            <p:outputLabel value="Nivel de Atención" for="nivelAtencion" style="font-weight:bold"/>
+                            <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="false" value="#{ipsSedesBean.sede.nivelAtencion}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="1" itemValue="1" />
+                                <f:selectItem itemLabel="2" itemValue="2" />
+                                <f:selectItem itemLabel="3" itemValue="3" />
+                                <f:selectItem itemLabel="4" itemValue="4" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Dirección" for="direccion" style="font-weight:bold"/>
+                            <p:inputText id="direccion" label="Dirección" value="#{ipsSedesBean.sede.direccion}"   maxlength="256" required="false" requiredMessage="Dirección: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Capitación" for="capitacion" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="capitacion" value="#{ipsSedesBean.sede.capitacion}"  onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false"/>
+                            
+                            <p:outputLabel value="Grupo Rips Ministerio" for="grupoRipsMinisterio" style="font-weight:bold"/>
+                            <p:selectOneMenu id="grupoRipsMinisterio" label="Grupo Rips Ministerio" required="true" value="#{ipsSedesBean.sede.grupoRipsMinisterio}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Grupo Rips Ministerio: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Grupo 1" itemValue="1" />
+                                <f:selectItem itemLabel="Grupo 2" itemValue="2" />
+                                <f:selectItem itemLabel="Grupo 3" itemValue="3" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditarContactos" style="width:98%;height:auto; border:1px" columns="1">
+                            <p:panel header="Lista de Teléfonos" toggleable="true" style="height:auto;">
+                                <p:scrollPanel mode="native">
+                                    <p:toolbar>
+                                        <f:facet name="left" >
+                                        </f:facet>
+                                        <f:facet name="right">
+                                            <p:commandButton title="Agregar Contacto" actionListener="#{ipsSedesBean.adicionarContacto()}" icon="ui-icon-document" immediate="true"/>
+                                        </f:facet>
+                                    </p:toolbar>
+                                    <p:dataTable id="tablaContactos" var="contacto" value="#{ipsSedesBean.sede.listaCntPrestadorContactos}" widgetVar="tablaWidgetContactos" scrollable="true" emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Acciones" style="text-align: center;">
+                                            <p:commandButton rendered="#{!contacto.nuevoRegistro}" title="Borrar Contacto" action="#{ipsSedesBean.borrarContacto(contacto.id)}" icon="ui-icon-trash" immediate="true">
+                                                <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                            <p:commandButton rendered="#{contacto.nuevoRegistro}" title="Retirar Contacto" action="#{ipsSedesBean.retirarContacto(contacto.id)}" icon="ui-icon-close" immediate="true">
+                                                <p:confirm header="Confirmación" message="Está seguro que desea retirar?" icon="ui-icon-alert" />
+                                            </p:commandButton>
+                                        </p:column>
+                                        <p:column headerText="Área">
+                                            <h:outputText value="#{contacto.maeAreaContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Contacto">
+                                            <h:outputText value="#{contacto.contacto}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarSedeRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarSedeRemote" action="#{ipsSedesBean.modificarSede()}"  />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarSede').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Ver Sede -->
+            <p:dialog header="Ver Sede"  widgetVar="dialogoVerSede" appendTo="@(body)" modal="true" width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.sede.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerSede">
+                        <p:panelGrid id="panelVerSede" 	columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Municipio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getNombreMunicipioDepartamento(ipsSedesBean.sede.ubicacionId)}" />
+
+                            <p:outputLabel value="Nombre de la Sede" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.nombreSede}" />
+
+                            <p:outputLabel value="Código de Habilitación Sede" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.codigoHabilitacionSede}"  />
+
+                            <p:outputLabel value="Zona" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getZona(ipsSedesBean.sede.zonaPrecedencia)}" />
+
+                            <p:outputLabel value="Estado Sede" style="font-weight:bold"/>
+                            <p:selectBooleanCheckbox value="#{ipsSedesBean.sede.estadoSede}" itemLabel="Activo" disabled="true"/>
+
+                            <p:outputLabel value="Nivel de Atención" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.nivelAtencion}" />
+
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.direccion}" />
+
+                            <p:outputLabel value="Capitación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.capitacionStr}" />
+                            
+                            <p:outputLabel value="Grupo Rips Ministerio" style="font-weight:bold" />
+                            <p:outputLabel value="#{ipsSedesBean.sede.grupoRipsMinisterioStr}" />
+                            
+                            <p:outputLabel value="Fecha Facturación Electrónica" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.sede.fechaFacturaElectronica}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelVerContactos" style="width:100%; margin:10px 0px;" columns="1">
+                            <p:panel header="Lista de Contactos" toggleable="true" style="height:auto;">
+                                <p:scrollPanel mode="native">
+                                    <p:dataTable id="tablaContactos" var="contacto" value="#{ipsSedesBean.sede.listaCntPrestadorContactos}" widgetVar="tablaWidgetContactos" scrollable="true" emptyMessage="No se encontraron registros">
+                                        <p:column headerText="Área">
+                                            <h:outputText value="#{contacto.maeAreaContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Tipo">
+                                            <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                        </p:column>
+                                        <p:column headerText="Contacto">
+                                            <h:outputText value="#{contacto.contacto}"/>
+                                        </p:column>
+                                        <p:column headerText="Observación">
+                                            <h:outputText value="#{contacto.observacion}"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:scrollPanel>
+                            </p:panel>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerSede').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Gestionar Sedes Opción Adicional 1 PENDIENTE PREGUNTAR SI LA DEJAMOS CON ESTE O LA QUITAMOS -->
+
+            <p:dialog header="Gestionar Sedes" widgetVar="dialogoGestionarSedes" appendTo="@(body)" modal="true"  width="85%" height="50%">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmGestionarSedes">
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Sedes">Sedes</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional1}" title="Refrescar" actionListener="#{ipsSedesBean.refrescarListaGestionSedes}" icon="ui-icon-refresh"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objSede" value="#{ipsSedesBean.lazySedes}" paginator="true" rows="#{ipsSedesBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosGestionSede" lazy="true"
+                                     widgetVar="tablaSedeWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objSede.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional3}" title="Gestionar Servicios REPS" actionListener="#{ipsSedesBean.gestionarServiciosREPS(objSede)}" icon="ui-icon-calculator"/>
+                            </p:column>
+                            <p:column headerText="Código Habilitación" sortBy="#{objSede.codigoHabilitacionSede}" filterBy="#{objSede.codigoHabilitacionSede}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="16" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaSedeWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objSede.codigoHabilitacionSede}" title="#{objSede.codigoHabilitacionSede}"/>
+                            </p:column>
+
+                            <p:column headerText="Nombre" sortBy="#{objSede.nombreSede}" filterBy="#{objSede.nombreSede}" style="width: 240px;">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaSedeWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objSede.nombreSede}" title="#{objSede.nombreSede}"/>
+                            </p:column>
+
+                            <p:column headerText="Dirección" sortBy="#{objSede.direccion}" filterBy="#{objSede.direccion}" style="width: 240px;">
+                                <f:facet name="filter">
+                                    <p:inputText label="Dirección" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaSedeWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objSede.direccion}" title="#{objSede.direccion}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarSedes').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Gestionar Servicios REPS Opción Adicional 3  -->
+
+            <p:dialog header="Gestionar Servicios REPS" widgetVar="dialogoGestionarServiciosREPS" appendTo="@(body)" modal="true"  width="85%" height="50%">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmGestionarServiciosREPS">
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Sedes">Sedes</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional3}" title="Refrescar" actionListener="#{ipsSedesBean.refrescarListaServiciosREPS}" icon="ui-icon-refresh"/>
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional4}" title="Crear" actionListener="#{ipsSedesBean.crearServicioREPS()}" icon="ui-icon-document"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objServicioREPS" value="#{ipsSedesBean.lazyServiciosREPS}" paginator="true" rows="#{ipsSedesBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosServiciosREPS" lazy="true"
+                                     widgetVar="tablaServicioREPSWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objServicioREPS.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional3}" title="Ver" actionListener="#{ipsSedesBean.verServicioREPS(objServicioREPS)}" icon="ui-icon-search"/>
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional4}" title="Editar" actionListener="#{ipsSedesBean.editarServicioREPS(objServicioREPS)}" icon="ui-icon-pencil"/>
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional5}" title="Borrar" action="#{ipsSedesBean.borrarServicioREPS(objServicioREPS.id)}" icon="ui-icon-trash">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column headerText="Código Servicio Habilitación" sortBy="#{objServicioREPS.maServiciosHabilitacionCodigo}" filterBy="#{objServicioREPS.maServiciosHabilitacionCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Código Servicio Habilitación"  maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaServicioREPSWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objServicioREPS.maServiciosHabilitacionCodigo}" title="#{objServicioREPS.maServiciosHabilitacionCodigo}"/>
+                            </p:column>
+
+                            <p:column headerText="Descripción Servicio Habilitación" sortBy="#{objServicioREPS.maServiciosHabilitacionValor}" filterBy="#{objServicioREPS.maServiciosHabilitacionValor}" style="width: 240px;">
+                                <f:facet name="filter">
+                                    <p:inputText label="Descripción Servicio Habilitación" maxlength="512" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaServicioREPSWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objServicioREPS.maServiciosHabilitacionValor}" title="#{objServicioREPS.maServiciosHabilitacionValor}"/>
+                            </p:column>
+
+                            <p:column headerText="Activo" style="width: 55px;" filterBy="#{objServicioREPS.activo}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaServicioREPSWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="No" itemValue="0"  />
+                                        <f:selectItem itemLabel="Si" itemValue="1"  />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objServicioREPS.activoStr}" title="#{objServicioREPS.activoStr}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarServiciosREPS').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Servicio REPS -->
+
+            <p:dialog header="Ver Servicio REPS"  widgetVar="dialogoVerServicioREPS" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.objetoSedeServicioHabilitacion.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerServicioREPS">
+                        <p:panelGrid id="panelVerServicioREPS" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Código Servicio Habilitación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionCodigo}" />
+
+                            <p:outputLabel value="Descripción Servicio Habilitación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionValor}" />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.activo)}" />
+
+                            <p:outputLabel value="Aplica Urgencia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUrgencia)}" />
+
+                            <p:outputLabel value="Aplica Domiciliaria" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaDomiciliaria)}" />
+
+                            <p:outputLabel value="Aplica Cirugía" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCirugia)}" />
+
+                            <p:outputLabel value="Aplica Hospitalización" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalizacion)}" />
+
+                            <p:outputLabel value="Aplica Laboratorio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaLaboratorio)}" />
+
+                            <p:outputLabel value="Aplica Imágenes" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaImagenes)}" />
+
+                            <p:outputLabel value="Aplica Odontología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOdontologia)}" />
+
+                            <p:outputLabel value="Aplica Transporte" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTransporte)}" />
+
+                            <p:outputLabel value="Aplica Trasplante" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplante)}" />
+
+                            <p:outputLabel value="Aplica Consulta" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaConsulta)}" />
+
+                            <p:outputLabel value="Aplica Alternativa" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAlternativa)}" />
+
+                            <p:outputLabel value="Aplica Oncología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOncologia)}" />
+
+                            <p:outputLabel value="Aplica Terapia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTerapia)}" />
+
+                            <p:outputLabel value="Aplica Proceso" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProceso)}" />
+
+                            <p:outputLabel value="Aplica Pedt" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaPedt)}" />
+
+                            <p:outputLabel value="Aplica Ambulatorio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAmbulatorio)}" />
+
+                            <p:outputLabel value="Aplica Hospitalario" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalario)}" />
+
+                            <p:outputLabel value="Aplica Unidad Movil" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUnidadMovil)}" />
+
+                            <p:outputLabel value="Aplica Otras Extramural" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasExtramural)}" />
+
+                            <p:outputLabel value="Aplica Centro Referencia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCentroReferencia)}" />
+
+                            <p:outputLabel value="Aplica Institución Remisora" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaInstitucionRemisora)}" />
+
+                            <p:outputLabel value="Aplica Complejidad Baja" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadBaja)}" />
+
+                            <p:outputLabel value="Aplica Complejidad Media" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadMedia)}" />
+
+                            <p:outputLabel value="Aplica Complejidad Alta" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadAlta)}" />
+
+                            <p:outputLabel value="Aplica Intramural" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaIntramural)}" />
+
+                            <p:outputLabel value="Aplica Jornada Salud" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaJornadaSalud)}" />
+
+                            <p:outputLabel value="Aplica Telemedicina" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTelemedicina)}" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Interactiva" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedInteractiva)}" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina No Interactiva" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedNoInteractiva)}" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Experticia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleExperticia)}" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Monitoreo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleMonitoreo)}" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Experticia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicapRemisorTeleExperticia)}" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Monitoreo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRemisorTeleMonitoreo)}" />
+
+                            <p:outputLabel value="Aplica Sin Complejidad" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSinComplejidad)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Osteomuscular" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteOsteomuscular)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Piel" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplantePiel)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Cardiovascular" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteCardiovascular)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Tejido Ocular" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteTejidoOcular)}" />
+
+                            <p:outputLabel value="Aplica Atención Paciente Quemado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAtencionPacienteQuemado)}" />
+
+                            <p:outputLabel value="Aplica Salud Mental" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSaludMental)}" />
+
+                            <p:outputLabel value="Aplica Spa" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSpa)}" />
+
+                            <p:outputLabel value="Aplica Otras Patologías" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasPatologias)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Células Progenitoras Hematopoyéticas" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTxCelProgeHematopoy)}" />
+
+                            <p:outputLabel value="Aplica Procedimientos Quirúrgicos Ambulatorios" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProcQuirurAmbulatorios)}" />
+
+                            <p:outputLabel value="Aplica Órgano Riñón" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoRinon)}" />
+
+                            <p:outputLabel value="Aplica Órgano Hígado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoHigado)}" />
+
+                            <p:outputLabel value="Aplica Órgano Páncreas" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPancreas)}" />
+
+                            <p:outputLabel value="Aplica Órgano Intestino" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoIntestino)}" />
+
+                            <p:outputLabel value="Aplica Órgano Multivisceral" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoMultivisceral)}" />
+
+                            <p:outputLabel value="Aplica Órgano Corazón" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoCorazon)}" />
+
+                            <p:outputLabel value="Aplica Órgano Pulmón" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPulmon)}" />
+
+                            <p:outputLabel value="Aplica Sustancias Psicoactivas" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSustanciasPsicoactivas)}" />
+
+                            <p:outputLabel value="Aplica Trasplante Renal" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.getActivo(ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteRenal)}" />
+
+                            <p:outputLabel value="Fecha Apertura" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.objetoSedeServicioHabilitacion.fechaApertura}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Usuario Crea" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.objetoSedeServicioHabilitacion.usuarioCrea}" />
+
+                            <p:outputLabel value="Fecha Hora Crea" style="font-weight:bold"/>
+                            <p:outputLabel value="#{ipsSedesBean.objetoSedeServicioHabilitacion.fechaHoraCrea}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerServicioREPS').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Crear Servicio REPS -->
+
+            <p:dialog header="Crear Servicio REPS"  widgetVar="dialogoCrearServicioREPS" appendTo="@(body)" modal="true" width="70%" dynamic="true" >
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmCrearServicioREPS">
+                        <div align="right"> 
+                            <p:commandButton immediate="true" action="#{ipsSedesBean.consultarServicioHabilitacion()}" icon="ui-icon-script" title="Servicios Habilitación" />
+                        </div>
+                        <p:panelGrid id="panelCrearServicioREPS" >
+                            <p:row>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="Código Servicio Habilitación" for="codigoServicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:inputText id="codigoServicio" style="width: 90%" label="Código Servicio Habilitación" disabled="true" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionCodigo}" maxlength="256" required="false" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="Descripción Servicio Habilitación" for="descripcionServicio" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-8">
+                                    <p:inputText id="descripcionServicio" style="width: 90%" label="Descripción Servicio Habilitación" disabled="true" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionValor}" maxlength="512" required="false" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearServicioREPS1" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Urgencia" for="aplicaUrgencia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaUrgencia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUrgencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Domiciliaria" for="aplicaDomiciliaria" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaDomiciliaria" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaDomiciliaria}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Cirugía" for="aplicaCirugia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaCirugia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCirugia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Hospitalización" for="aplicaHospitalizacion" style="font-weight:bold" />
+                            <p:selectBooleanButton id="aplicaHospitalizacion" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalizacion}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Laboratorio" for="aplicaLaboratorio" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaLaboratorio" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaLaboratorio}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Imágenes" for="aplicaImagenes" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaImagenes" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaImagenes}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Odontología" for="aplicaOdontologia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOdontologia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOdontologia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Transporte" for="aplicaTransporte" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTransporte" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTransporte}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante" for="aplicaTrasplante" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplante" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplante}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Consulta" for="aplicaConsulta" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaConsulta" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaConsulta}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Alternativa" for="aplicaAlternativa" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAlternativa" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAlternativa}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Oncología" for="aplicaOncologia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOncologia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOncologia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Terapia" for="aplicaTerapia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTerapia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTerapia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Proceso" for="aplicaProceso" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaProceso" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProceso}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Pedt" for="aplicaPedt" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaPedt" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaPedt}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Ambulatorio" for="aplicaAmbulatorio" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAmbulatorio" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAmbulatorio}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Hospitalario" for="aplicaHospitalario" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaHospitalario" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalario}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Unidad Móvil" for="aplicaUnidadMovil" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaUnidadMovil" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUnidadMovil}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Otras Extramural" for="aplicaOtrasExtramural" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOtrasExtramural" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasExtramural}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Centro Referencia" for="aplicaCentroReferencia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaCentroReferencia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCentroReferencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Institucion Remisora" for="aplicaInstitucionRemisora" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaInstitucionRemisora" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaInstitucionRemisora}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Baja" for="aplicaComplejidadBaja" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadBaja" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadBaja}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Media" for="aplicaComplejidadMedia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadMedia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadMedia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Alta" for="aplicaComplejidadAlta" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadAlta" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadAlta}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Intramural" for="aplicaIntramural" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaIntramural" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaIntramural}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Jornada Salud" for="aplicaJornadaSalud" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaJornadaSalud" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaJornadaSalud}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Telemedicina" for="aplicaTelemedicina" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTelemedicina" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTelemedicina}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Interactiva" for="aplicaRefTelemedInteractiva" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRefTelemedInteractiva" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedInteractiva}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina No Interactiva" for="aplicaRefTelemedNoInteractiva" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRefTelemedNoInteractiva" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedNoInteractiva}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Experticia" for="aplicaReferenciaTeleExperticia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaReferenciaTeleExperticia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleExperticia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Monitoreo" for="aplicaReferenciaTeleMonitoreo" />
+                            <p:selectBooleanButton id="aplicaReferenciaTeleMonitoreo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleMonitoreo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Experticia" for="aplicapRemisorTeleExperticia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicapRemisorTeleExperticia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicapRemisorTeleExperticia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Monitoreo" for="aplicaRemisorTeleMonitoreo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRemisorTeleMonitoreo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRemisorTeleMonitoreo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Sin Complejidad" for="aplicaSinComplejidad" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSinComplejidad" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSinComplejidad}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Osteomuscular" for="aplicaTrasplanteOsteomuscular" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteOsteomuscular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteOsteomuscular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Piel" for="aplicaTrasplantePiel" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplantePiel" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplantePiel}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Cardiovascular" for="aplicaTrasplanteCardiovascular" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteCardiovascular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteCardiovascular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Tejido Ocular" for="aplicaTrasplanteTejidoOcular" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteTejidoOcular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteTejidoOcular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Atención Paciente Quemado" for="aplicaAtencionPacienteQuemado" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAtencionPacienteQuemado" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAtencionPacienteQuemado}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Salud Mental" for="aplicaSaludMental" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSaludMental" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSaludMental}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Spa" for="aplicaSpa" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSpa" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSpa}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Otras Patologías" for="aplicaOtrasPatologias" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOtrasPatologias" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasPatologias}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Células Progenitoras Hematopoyéticas" for="aplicaTxCelProgeHematopoy" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTxCelProgeHematopoy" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTxCelProgeHematopoy}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Procedimientos Quirúrgicos Ambulatorios" for="aplicaProcQuirurAmbulatorios" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaProcQuirurAmbulatorios" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProcQuirurAmbulatorios}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Riñón" for="aplicaOrganoRinon" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoRinon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoRinon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Hígado" for="aplicaOrganoHigado" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoHigado" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoHigado}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Páncreas" style="font-weight:bold" for="aplicaOrganoPancreas" />
+                            <p:selectBooleanButton id="aplicaOrganoPancreas" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPancreas}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Intestino" for="aplicaOrganoIntestino" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoIntestino" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoIntestino}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Multivisceral" for="aplicaOrganoMultivisceral" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoMultivisceral" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoMultivisceral}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Corazón" for="aplicaOrganoCorazon" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoCorazon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoCorazon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Pulmón" for="aplicaOrganoPulmon" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoPulmon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPulmon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Sustancias Psicoactivas" for="aplicaSustanciasPsicoactivas" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSustanciasPsicoactivas" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSustanciasPsicoactivas}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Renal" for="aplicaTrasplanteRenal" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteRenal" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteRenal}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Fecha Apertura" for="fechaApertura" style="font-weight:bold"/>
+                            <p:calendar id="fechaApertura" label="Fecha Apertura" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{ipsSedesBean.objetoSedeServicioHabilitacion.fechaApertura}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Apertura: Este campo es obligatorio." >
+                            </p:calendar>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarServicioREPSRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarServicioREPSRemote" action="#{ipsSedesBean.guardarServicioREPS()}" update="panelCrearServicioREPS,panelCrearServicioREPS1" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearServicioREPS').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Editar Servicio REPS -->
+
+            <p:dialog header="Editar Servicio REPS"  widgetVar="dialogoEditarServicioREPS" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{ipsSedesBean.getAuditoria(ipsSedesBean.objetoSedeServicioHabilitacion.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditarServicioREPS">
+                        <p:panelGrid id="panelEditarServicioREPS" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Código Servicio Habilitación" for="codigoServicio" style="font-weight:bold"/>
+                            <p:inputText id="codigoServicio" label="Código Servicio Habilitación" disabled="true" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionCodigo}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Descripción Servicio Habilitación" for="descripcionServicio" style="font-weight:bold"/>
+                            <p:inputText id="descripcionServicio" label="Descripción Servicio Habilitación" disabled="true" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.maServiciosHabilitacionValor}" maxlength="512" required="false" />
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditarServicioREPS1" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Activo" for="activo"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Urgencia" for="aplicaUrgencia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaUrgencia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUrgencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Domiciliaria" for="aplicaDomiciliaria"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaDomiciliaria" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaDomiciliaria}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Cirugía" for="aplicaCirugia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaCirugia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCirugia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Hospitalización" for="aplicaHospitalizacion"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaHospitalizacion" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalizacion}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Laboratorio" for="aplicaLaboratorio"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaLaboratorio" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaLaboratorio}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Imágenes" for="aplicaImagenes"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaImagenes" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaImagenes}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Odontología" for="aplicaOdontologia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOdontologia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOdontologia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Transporte" for="aplicaTransporte"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTransporte" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTransporte}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante" for="aplicaTrasplante"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplante" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplante}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Consulta" for="aplicaConsulta"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaConsulta" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaConsulta}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Alternativa" for="aplicaAlternativa"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAlternativa" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAlternativa}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Oncología" for="aplicaOncologia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOncologia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOncologia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Terapia" for="aplicaTerapia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTerapia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTerapia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Proceso" for="aplicaProceso"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaProceso" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProceso}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Pedt" for="aplicaPedt"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaPedt" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaPedt}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Ambulatorio" for="aplicaAmbulatorio"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAmbulatorio" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAmbulatorio}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Hospitalario" for="aplicaHospitalario"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaHospitalario" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaHospitalario}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Unidad Móvil" for="aplicaUnidadMovil"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaUnidadMovil" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaUnidadMovil}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Otras Extramural" for="aplicaOtrasExtramural"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOtrasExtramural" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasExtramural}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Centro Referencia" for="aplicaCentroReferencia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaCentroReferencia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaCentroReferencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Institucion Remisora" for="aplicaInstitucionRemisora"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaInstitucionRemisora" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaInstitucionRemisora}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Baja" for="aplicaComplejidadBaja"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadBaja" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadBaja}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Media" for="aplicaComplejidadMedia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadMedia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadMedia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Complejidad Alta" for="aplicaComplejidadAlta"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaComplejidadAlta" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaComplejidadAlta}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Intramural" for="aplicaIntramural"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaIntramural" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaIntramural}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Jornada Salud" for="aplicaJornadaSalud"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaJornadaSalud" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaJornadaSalud}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Telemedicina" for="aplicaTelemedicina"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTelemedicina" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTelemedicina}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Interactiva" for="aplicaRefTelemedInteractiva"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRefTelemedInteractiva" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedInteractiva}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina No Interactiva" for="aplicaRefTelemedNoInteractiva"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRefTelemedNoInteractiva" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRefTelemedNoInteractiva}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Experticia" for="aplicaReferenciaTeleExperticia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaReferenciaTeleExperticia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleExperticia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Referencia Telemedicina Monitoreo" for="aplicaReferenciaTeleMonitoreo"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaReferenciaTeleMonitoreo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaReferenciaTeleMonitoreo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Experticia" for="aplicapRemisorTeleExperticia"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicapRemisorTeleExperticia" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicapRemisorTeleExperticia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Remisor Telemedicina Monitoreo" for="aplicaRemisorTeleMonitoreo"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaRemisorTeleMonitoreo" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaRemisorTeleMonitoreo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Sin Complejidad" for="aplicaSinComplejidad"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSinComplejidad" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSinComplejidad}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Osteomuscular" for="aplicaTrasplanteOsteomuscular"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteOsteomuscular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteOsteomuscular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Piel" for="aplicaTrasplantePiel"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplantePiel" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplantePiel}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Cardiovascular" for="aplicaTrasplanteCardiovascular"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteCardiovascular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteCardiovascular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Tejido Ocular" for="aplicaTrasplanteTejidoOcular"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteTejidoOcular" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteTejidoOcular}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Atención Paciente Quemado" for="aplicaAtencionPacienteQuemado"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAtencionPacienteQuemado" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaAtencionPacienteQuemado}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Salud Mental" for="aplicaSaludMental"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSaludMental" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSaludMental}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Spa" for="aplicaSpa"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSpa" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSpa}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Otras Patologías" for="aplicaOtrasPatologias"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOtrasPatologias" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOtrasPatologias}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Células Progenitoras Hematopoyéticas" for="aplicaTxCelProgeHematopoy"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTxCelProgeHematopoy" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTxCelProgeHematopoy}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Procedimientos Quirúrgicos Ambulatorios" for="aplicaProcQuirurAmbulatorios"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaProcQuirurAmbulatorios" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaProcQuirurAmbulatorios}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Riñón" for="aplicaOrganoRinon"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoRinon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoRinon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Hígado" for="aplicaOrganoHigado"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoHigado" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoHigado}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Páncreas" for="aplicaOrganoPancreas"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoPancreas" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPancreas}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Intestino" for="aplicaOrganoIntestino"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoIntestino" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoIntestino}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Multivisceral" for="aplicaOrganoMultivisceral"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoMultivisceral" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoMultivisceral}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Corazón" for="aplicaOrganoCorazon"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoCorazon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoCorazon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Órgano Pulmón" for="aplicaOrganoPulmon"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaOrganoPulmon" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaOrganoPulmon}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Sustancias Psicoactivas" for="aplicaSustanciasPsicoactivas"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSustanciasPsicoactivas" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaSustanciasPsicoactivas}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Aplica Trasplante Renal" for="aplicaTrasplanteRenal"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaTrasplanteRenal" value="#{ipsSedesBean.objetoSedeServicioHabilitacion.aplicaTrasplanteRenal}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Fecha Apertura" for="fechaApertura"  style="font-weight:bold"/>
+                            <p:calendar id="fechaApertura" label="Fecha Apertura" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{ipsSedesBean.objetoSedeServicioHabilitacion.fechaApertura}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Apertura: Este campo es obligatorio." >
+                            </p:calendar>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarServicioREPSRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarServicioREPSRemote" action="#{ipsSedesBean.modificarServicioREPS()}" update="panelEditarServicioREPS,panelEditarServicioREPS1" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarServicioREPS').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantallas Crear Contacto -->
+            <p:dialog header="Crear Contacto"  widgetVar="dialogoCrearContacto" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" >
+                    <h:form id="frmCrearContacto">
+                        <p:panelGrid id="panelCrearContacto" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Tipo" for="tipoContacto" style="font-weight:bold"/>
+                            <p:selectOneMenu id="tipoContacto" label="Tipo" required="true" value="#{ipsSedesBean.contacto.maeTipoContactoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Tipo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaTiposContacto}" var="TIPO_CONTACTO" itemValue="#{TIPO_CONTACTO.id}" itemLabel="#{TIPO_CONTACTO.nombre}" itemDescription="#{TIPO_CONTACTO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Área" for="areaContacto" style="font-weight:bold"/>
+                            <p:selectOneMenu id="areaContacto" label="Área" required="true" value="#{ipsSedesBean.contacto.maeAreaContactoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Área: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ipsSedesBean.listaAreasContacto}" var="AREA_CONTACTO" itemValue="#{AREA_CONTACTO.id}" itemLabel="#{AREA_CONTACTO.nombre}" itemDescription="#{AREA_CONTACTO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Contacto" for="contacto" style="font-weight:bold"/>
+                            <p:inputText id="contacto" label="Contacto" value="#{ipsSedesBean.contacto.contacto}" maxlength="128" required="true" requiredMessage="Contacto: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Autoriza Envio" for="autorizaEnvio" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="autorizaEnvio" value="#{ipsSedesBean.contacto.autorizaEnvio}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false"/>
+
+                            <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{ipsSedesBean.contacto.observacion}" maxlength="128" required="false" requiredMessage="Observación: Este campo es obligatorio." />
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarContactoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarContactoRemote" action="#{ipsSedesBean.guardarContacto()}" update="panelCrearContacto"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearContacto').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+
+            <!-- Adicional 6 Listar Unión Temporal -->
+            <p:dialog header="Gestionar Unión Temporal Prestador" widgetVar="dialogoGestionarUnionTemporal" appendTo="@(body)" modal="true"  width="85%">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmGestionarUnionTemporal">
+                        <p:toolbar>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional6}" title="Refrescar" actionListener="#{ipsSedesBean.refrescarListaUnionTemporal}" icon="ui-icon-refresh"/>
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional7}" title="Adicionar" actionListener="#{ipsSedesBean.crearUnionTemporal()}" icon="ui-icon-plusthick"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objUnionTemporal" value="#{ipsSedesBean.lazyUnionTemporal}" paginator="true" rows="#{ipsSedesBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosUnionTemporal" lazy="true"
+                                     widgetVar="tablaUnionTemporalWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objUnionTemporal.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{ipsSedesBean.accionAdicional8}" title="Borrar" action="#{ipsSedesBean.borrarUnionTemporal(objUnionTemporal.id)}" icon="ui-icon-trash">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+
+                            <p:column headerText="Código MinSalud" sortBy="#{objUnionTemporal.cntPrestador.codigoMinSalud}" filterBy="#{objUnionTemporal.cntPrestador.codigoMinSalud}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Código MinSalud" maxlength="16" style="width: 95%;" onchange="PF('tablaUnionTemporalWidget').filter()"/>
+                                </f:facet>
+                                <h:outputText value="#{objUnionTemporal.cntPrestador.codigoMinSalud}" title="#{objUnionTemporal.cntPrestador.codigoMinSalud}"/>
+                            </p:column>
+
+                            <p:column headerText="Tipo Documento" filterBy="#{objUnionTemporal.cntPrestador.maeTipoDocumentoId}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaUnionTemporalWidget').filter()" style="width: 85%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{ipsSedesBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}"/>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{ipsSedesBean.getTipoDocumento(objUnionTemporal.cntPrestador.maeTipoDocumentoId)}" title="#{ipsSedesBean.getTipoDocumento(objUnionTemporal.cntPrestador.maeTipoDocumentoId)}"/>
+                            </p:column>
+                            <p:column headerText="Documento" sortBy="#{objUnionTemporal.cntPrestador.numeroDocumento}" filterBy="#{objUnionTemporal.cntPrestador.numeroDocumento}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Documento" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaUnionTemporalWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objUnionTemporal.cntPrestador.numeroDocumento}" title="#{objUnionTemporal.cntPrestador.numeroDocumento}"/>
+                            </p:column>
+                            <p:column headerText="Razón Social" filterBy="#{objUnionTemporal.cntPrestador.razonSocial}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Razón Social" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaUnionTemporalWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objUnionTemporal.cntPrestador.razonSocial}" title="#{objUnionTemporal.cntPrestador.razonSocial}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarUnionTemporal').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <ui:include src="../contratacion/seleccion/sel_prestador.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_servicios_habilitacion.xhtml" />
+        </center>
+    </ui:define>
+</ui:composition>

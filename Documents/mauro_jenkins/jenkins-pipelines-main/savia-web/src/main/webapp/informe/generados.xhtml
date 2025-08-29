@@ -1,0 +1,300 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+
+            </style>
+            <!-- Listar -->
+            <h:form id="frmInformes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{informeGeneradoBean.modulo.descripcion}">#{informeGeneradoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{informeGeneradoBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{informeGeneradoBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{informeGeneradoBean.accionCrear}" title="Crear" actionListener="#{informeGeneradoBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{informeGeneradoBean.lazyGenerado}" rowKey="#{obj.id}"
+                             rows="30" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Grupo" filterBy="#{obj.infInforme.grupo.id}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width:90%;" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{informeGeneradoBean.listaGrupos}" var="grupo" itemValue="#{grupo.id}" itemLabel="#{grupo.nombre}" itemDescription="#{grupo.descripcion}"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.infInforme.grupo.nombre}" title="#{obj.infInforme.grupo.nombre}"/>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{informeGeneradoBean.accionVer}" title="Ver" actionListener="#{informeGeneradoBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{obj.estado eq 2 and informeGeneradoBean.accionVer}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                            <p:fileDownload value="#{informeGeneradoBean.descargarAdjunto(obj)}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{informeGeneradoBean.accionBorrar}" title="Borrar" action="#{informeGeneradoBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{informeGeneradoBean.accionAdicional2}" title="Ver Descargados" actionListener="#{informeGeneradoBean.verDescargados(obj.id)}" icon="ui-icon-script"/>
+                    </p:column>
+                    <p:column headerText="Informe" filterBy="#{obj.infInforme.id}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width:90%;" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{informeGeneradoBean.listaInforme}" var="info" itemValue="#{info.id}" itemLabel="#{info.nombre}" itemDescription="#{info.descripcion}"  />
+                            </p:selectOneMenu>   
+                        </f:facet>
+                        <h:outputText value="#{obj.infInforme.nombre}" title="#{obj.infInforme.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width:90%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="EN COLA" itemValue="0" />
+                                <f:selectItem itemLabel="PROCESANDO" itemValue="1" />
+                                <f:selectItem itemLabel="GENERADO" itemValue="2" />
+                                <f:selectItem itemLabel="ERROR" itemValue="4" />
+                            </p:selectOneMenu>     
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                    </p:column>
+                    <p:column headerText="Programado" filterBy="#{obj.infInforme.programado}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="1" />
+                                <f:selectItem itemLabel="NO" itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.infInforme.programadoStr}" title="#{obj.infInforme.programadoStr}"/>
+                    </p:column>
+                    <p:column headerText="Descripción"> 
+                        <h:outputText value="#{obj.descripcion}" title="#{obj.descripcion}"/>
+                    </p:column>
+                    <p:column headerText="F.H Inicio" sortBy="#{obj.fechaHoraInicio}">  
+                        <h:outputText value="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="F.H Fin">  
+                        <h:outputText value="#{obj.fechaHoraFin}">
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Tiempo"> 
+                        <h:outputText title="#{obj.tiempo} seg" value="#{obj.tiempoStr}"/>
+                    </p:column>
+                    <p:column headerText="Usuario Crea" sortBy="#{obj.usuarioCrea}" filterBy="#{obj.usuarioCrea}"> 
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario Crea" maxlength="128" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" width="90%" dynamic="true" appendTo="@(body)" modal="true" class="modal-no-scroll">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{informeGeneradoBean.getAuditoria(informeGeneradoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVer">
+                        <p:panel id="pVer" header="Datos de Informe" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Grupo" style="font-weight:bold" for="grupo"/>
+                                <p:outputLabel id="grupo" 
+                                               value="#{informeGeneradoBean.objeto.infInforme.grupo.nombre}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Informe" style="font-weight:bold" for="nombre"/>
+                                <p:outputLabel id="nombre"
+                                               value="#{informeGeneradoBean.objeto.infInforme.nombre}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Archivo" style="font-weight:bold" for="archivo"/>
+                                <p:outputLabel id="archivo"
+                                               value="#{informeGeneradoBean.objeto.nombreArchivo}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Descripción" style="font-weight:bold" for="descripcion"/>
+                                <p:outputLabel id="descripcion"
+                                               value="#{informeGeneradoBean.objeto.descripcion}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="F.H Inicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{informeGeneradoBean.objeto.fechaHoraInicio}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="F.H Fin" style="font-weight:bold"/>
+                                <p:outputLabel value="#{informeGeneradoBean.objeto.fechaHoraFin}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Tiempo" style="font-weight:bold"/>
+                                <p:outputLabel title="#{obj.tiempo}" value="#{informeGeneradoBean.objeto.tiempoStr}" 
+                                               style="width:99%">
+                                </p:outputLabel>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pVariables" header="Variables de Informe" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVariables" widgetVar="tablaWidgetVariables" var="obj" value="#{informeGeneradoBean.objeto.listaValores}" rowKey="#{obj.id}"
+                                         rows="10" 
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{obj.infInformeVariable.nombre}" title="#{obj.infInformeVariable.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Valor" >
+                                    <h:outputText value="#{obj.variable}" title="#{obj.variable}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid style="width:100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>                
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" width="90%" dynamic="true" appendTo="@(body)" modal="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmCrear">
+                        <p:panel id="pCrear" header="Datos de Informe" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelCrear" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Nombre del Informe" style="font-weight:bold" for="plantillas"/>
+                                <p:selectOneMenu value="#{informeGeneradoBean.objetoInforme}" required="true" id="plantillas"  filter="true" filterMatchMode="contains" converter="informeConverter">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" />
+                                    <f:selectItems value="#{informeGeneradoBean.listaInformes}" var="plantilla" itemLabel="#{plantilla.nombre}" itemValue="#{plantilla}" />
+                                    <p:ajax event="itemSelect" listener="#{informeGeneradoBean.llenarDesdeInforme}" update="descripcion"/>
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Descripcion" style="font-weight:bold" for="descripcion"/>
+                                <p:outputLabel id="descripcion" 
+                                               value="#{informeGeneradoBean.objetoInforme.descripcion}" 
+                                               style="width:99%;min-width:300px;">
+                                </p:outputLabel>
+
+                            </p:panelGrid>
+                        </p:panel>         
+                        <p:panel id="pVariables" header="Variables de Informe" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVariables" widgetVar="tablaWidgetVariables" var="valor" value="#{informeGeneradoBean.listaValores}" rowKey="#{obj.id}"
+                                         rows="10" 
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{valor.nombre}" title="#{valor.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Valor" >
+                                    <p:inputText rendered="#{ informeGeneradoBean.validarTipoTexto(valor) }" style="width:99%" label="valor" value="#{valor.valor}" />
+                                    <p:selectBooleanButton rendered="#{ informeGeneradoBean.validarTipoBoolean(valor) }" style="width: 99%" value="#{ valor.bool }" offLabel="No" onLabel="Sí" />                                                                     
+                                    <p:inputNumber rendered="#{ informeGeneradoBean.validarTipoNumero(valor) }" style="width: 99%" value="#{ valor.numero }" />
+                                    <p:datePicker rendered="#{ informeGeneradoBean.validarTipoFechaCorta(valor) }" value="#{ valor.fecha }" pattern="yyyy-MM-dd" />
+                                    <p:datePicker rendered="#{ informeGeneradoBean.validarTipoFechaLarga(valor) }" value="#{ valor.fecha }" pattern="yyyy-MM-dd HH:mm" showTime="true" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px;margin:auto;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{informeGeneradoBean.guardar}" update="panelCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>                    
+            </p:dialog>
+
+            <!-- Ver Descargados -->
+            <p:dialog header="Ver Descargados" id="dialogoDescargados" widgetVar="dialogoDescargados" appendTo="@(body)" width="90%" modal="true"  draggable="false" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmDescargados">
+                        <p:panel id="pDescargados" header="Lista de descargas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaDescargados" widgetVar="tablaWidgetDescargados" var="obj" value="#{informeGeneradoBean.listaDescargados}" rowKey="#{obj.id}"
+                                         rows="50" paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros">
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{obj.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="Fecha descarga" style="text-align: center">
+                                    <h:outputText value="#{obj.fechaDescarga}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Empresa">
+                                    <h:outputText value="#{obj.empresaNombre}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoDescargados').hide()" 
+                                                             immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

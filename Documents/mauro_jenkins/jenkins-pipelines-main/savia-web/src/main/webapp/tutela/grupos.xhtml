@@ -1,0 +1,433 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>            
+        <center>
+            <h:form id="frmGrupos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{tuGrupoBean.modulo.descripcion}">#{tuGrupoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{tuGrupoBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{tuGrupoBean.listar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{tuGrupoBean.accionCrear}" title="Crear" actionListener="#{tuGrupoBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{tuGrupoBean.lazyGrupos}" paginator="true" rows="#{tuGrupoBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true" draggableRows="false">
+
+<!--<p:ajax event="rowReorder" listener="#{tuGrupoBean.onRowReorder}" />-->
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{tuGrupoBean.accionVer}" title="Ver" actionListener="#{tuGrupoBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{tuGrupoBean.accionEditar}" title="Editar" actionListener="#{tuGrupoBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{tuGrupoBean.accionBorrar}" title="Borrar" action="#{tuGrupoBean.borrar(obj.id, obj.nombre)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}" sortBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Descripción" filterBy="#{obj.descripcion}" sortBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcion}"/>
+                    </p:column>
+
+                    <p:column filterBy="#{tuGrupoBean.objeto.grupoEstado.maeEstadoValor}">
+                        <f:facet name="filter">
+                            <p:selectCheckboxMenu id="estadoGrupoCrear" label="Estado" onchange="PF('tablaWidget').filter()" scrollHeight="150" styleClass="custom-filter" 
+                                                  filter="true" filterMatchMode="contains" panelStyle="width:250px" >
+                                <f:selectItems value="#{tuGrupoBean.listaGrupoEstados}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}"  />
+                            </p:selectCheckboxMenu>                         
+                        </f:facet>
+                        <h:outputText value="#{obj.descriptonGroupEstados}"/>
+                    </p:column>
+
+                    <p:column headerText="Orden"  sortBy="#{obj.orden}">
+                        <h:outputText value="#{obj.orden}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" sortBy="#{obj.activo}">
+                        <h:outputText value="#{obj.activo?'Si':'No'}"/>
+                    </p:column>
+                    <p:column headerText="Reparto Automático">
+                        <h:outputText value="#{obj.grupoEstado.reparto?'Si':'No'}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrearGrupo" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmCrearGrupo">
+                        <p:panel id="pGrupoCrear" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoCrear" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreGrupoCrear" label="Nombre" value="#{tuGrupoBean.objeto.nombre}"  maxlength="64" required="true" requiredMessage="Nombre : Este campo es obligatorio" style="width: 95%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionGrupoCrear" label="Descripción" value="#{tuGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" style="width: 95%"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Auditor Inicial" for="tipoAuditorInicial" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="tipoAuditorInicial" label="Tipo Auditor Inicial" value="#{tuGrupoBean.objeto.tipoAuditorInicial}"   required="true" requiredMessage="Tipo Auditor Inicial : Este campo es obligatorio">
+                                            <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Abogado" itemValue="1" />
+                                            <f:selectItem itemLabel="Médico" itemValue="3" />
+                                            <f:selectItem itemLabel="Gestor" itemValue="5" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Orden" for="ordenGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputNumber id="ordenGrupoCrear" label="Orden" value="#{tuGrupoBean.objeto.orden}" required="true" requiredMessage="Orden: Este campo es obligatorio." />
+                                    </p:column>
+                                </p:row>                             
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Activo" for="activoGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectBooleanButton id="activoGrupoCrear" label="Activo" value="#{tuGrupoBean.objeto.activo}" offLabel="No" onLabel="Sí" onIcon="ui-icon-check" offIcon="ui-icon-closethick" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" for="estadoGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectCheckboxMenu id="estadoGrupoCrear" label="Estado" required="true" value="#{tuGrupoBean.objeto.grupoEstado.selectedEstados}" requiredMessage="Estado: Este campo es obligatorio."  style="width: 200px;" 
+                                                              filter="true" filterMatchMode="contains" panelStyle="width:250px" >
+                                            <f:selectItems value="#{tuGrupoBean.listaGrupoEstados}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}"  />
+                                        </p:selectCheckboxMenu>                                                                            
+                                    </p:column>
+                                </p:row>
+                                <p:row> 	
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Reparto Automático" for="automaticoGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectBooleanButton id="automaticoGrupoCrear" label="Activo" value="#{tuGrupoBean.objeto.grupoEstado.reparto}" offLabel="No" onLabel="Sí" onIcon="ui-icon-check" offIcon="ui-icon-closethick" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Auditores -->
+                        <p:panel id="pAuditorCrear" header="Auditores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{tuGrupoBean.verAuditores()}" icon="ui-icon-person" title="Agregar Auditor"/>
+                            </div>
+                            <p:dataTable id="tablaAuditoresCrear" widgetVar="tablaAuditoresCrear" var="auditorCrear" value="#{tuGrupoBean.registrosGrupoUsuarios}" rowKey="#{auditorCrear.id}"
+                                         rows="#{tuGrupoBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{auditorCrear.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <p:selectBooleanCheckbox id="activoAuditorCrear" label="Activo" value="#{auditorCrear.activo}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Auditor">
+                                    <p:selectOneMenu id="tipoAuditorCrear" label="Tipo" value="#{auditorCrear.tipo}" style="width:80%;" required="true" requiredMessage="El tipo: este campo es obligatorio">
+                                        <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="N/A" itemValue="0" />
+                                        <f:selectItem itemLabel="Abogado" itemValue="1" />
+                                        <f:selectItem itemLabel="Asistente Legal " itemValue="2" />
+                                        <f:selectItem itemLabel="Médico" itemValue="3" />
+                                        <f:selectItem itemLabel="Enfermero" itemValue="4" />
+                                        <f:selectItem itemLabel="Gestor" itemValue="5" />
+                                        <f:selectItem itemLabel="Digitador" itemValue="6" />
+                                        <p:ajax event="itemSelect" update="tablaAuditoresCrear" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{tuGrupoBean.borrarAuditor(auditorCrear.usuario.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{tuGrupoBean.guardar}" update="frmCrearGrupo"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Lista Auditores -->
+            <p:dialog header="Consultar Auditores" widgetVar="dialogoAuditoresLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true" onShow="PF('tablaWidgetAuditoria').filter()">
+                <p:scrollPanel mode="native" style="max-height: 450px;">
+                    <h:form id="frmAuditorLista">
+                        <div align="right">
+                            <p:commandButton title="Refrescar" actionListener="#{tuGrupoBean.refrescarUsuarios()}" oncomplete="PF('tablaWidgetAuditoria').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelAuditorLista" columns="1">
+                            <p:dataTable id="tablaRegistrosAuditor" widgetVar="tablaWidgetAuditoria" var="usuario" value="#{tuGrupoBean.lazyUsuarios}" rowKey="#{usuario.id}"
+                                         rows="#{tuGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{tuGrupoBean.onRowSelectAuditor}" />
+                                <p:column headerText="Nombre" sortBy="#{usuario.nombre}" filterBy="#{usuario.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetAuditoria').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Usuario" sortBy="#{usuario.usuario}" filterBy="#{usuario.usuario}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetAuditoria').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.usuario}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panelGrid>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesListaAuditores" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoAuditoresLista').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVerGrupo" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{tuGrupoBean.getAuditoria(tuGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerGrupo">
+                        <p:panel id="pGrupoVer" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.nombre}"/>
+
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                <p:inputTextarea label="Descripción" value="#{tuGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" readonly="true" />
+
+                                <p:outputLabel value="Tipo Auditor Inicial" for="tipoAuditorInicial" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoAuditorInicial" label="Tipo Auditor Inicial" value="#{tuGrupoBean.objeto.tipoAuditorInicial}"   required="true" disabled="true" requiredMessage="Tipo Auditor Inicial : Este campo es obligatorio">
+                                    <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Abogado" itemValue="1" />
+                                    <f:selectItem itemLabel="Asistente Legal " itemValue="2" />
+                                    <f:selectItem itemLabel="Médico" itemValue="3" />
+                                    <f:selectItem itemLabel="Enfermero" itemValue="4" />
+                                    <f:selectItem itemLabel="Gestor" itemValue="5" />
+                                    <f:selectItem itemLabel="Digitador" itemValue="6" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Orden" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.orden}" />
+
+                                <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.activo ?'Si':'No'}" />
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.descriptonGroupEstados}"/>
+
+                                <p:outputLabel value="Reparto Automático" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.grupoEstado.reparto?'Si':'No'}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pAuditorVer" header="Auditores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAuditoresVer" widgetVar="tablaAuditoresVer" var="auditorVer" value="#{tuGrupoBean.lazyGrupoUsuario}" rowKey="#{auditorCrear.id}"
+                                         rows="#{tuGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre" style="text-align: center;">
+                                    <h:outputText value="#{auditorVer.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <h:outputText value="#{auditorVer.activo ? 'Si':'No'}" />
+                                </p:column>
+                                <p:column headerText="Tipo Auditor" style="text-align: center;">
+                                    <h:outputText value="#{auditorVer.tipoStr}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditarGrupo" appendTo="@(body)" modal="true"  class="modal-no-scroll" width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{tuGrupoBean.getAuditoria(tuGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmEditarGrupo">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pGrupoEditar" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoEditar" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombre" for="nombreGrupoEditar" style="font-weight:bold"/>
+                                <p:inputText id="nombreGrupoEditar" label="Nombre" value="#{tuGrupoBean.objeto.nombre}"   maxlength="64" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Descripción" for="descripcionGrupoEditar" style="font-weight:bold"/>
+                                <p:inputTextarea id="descripcionGrupoEditar" label="Descripción" value="#{tuGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Tipo Auditor Inicial" for="tipoAuditorInicial" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoAuditorInicial" label="Tipo Auditor Inicial" value="#{tuGrupoBean.objeto.tipoAuditorInicial}"   required="true" requiredMessage="Tipo Auditor Inicial : Este campo es obligatorio">
+                                    <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Abogado" itemValue="1" />
+                                    <f:selectItem itemLabel="Médico" itemValue="3" />
+                                    <f:selectItem itemLabel="Gestor" itemValue="5" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Orden" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuGrupoBean.objeto.orden}" />
+
+                                <p:outputLabel value="Activo" for="activoGrupoEditar" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="activoGrupoEditar" label="Activo" value="#{tuGrupoBean.objeto.activo}" offLabel="No" onLabel="Sí" onIcon="ui-icon-check" offIcon="ui-icon-closethick" />
+
+                                <p:outputLabel value="Estado" for="estadoGrupoEditar" style="font-weight:bold"/>
+                                <p:selectCheckboxMenu id="estadoGrupoEditar" label="Estado" required="true" value="#{tuGrupoBean.objeto.grupoEstado.selectedEstados}" requiredMessage="Estado: Este campo es obligatorio."  style="width: 200px;" 
+                                                      filter="true" filterMatchMode="contains" panelStyle="width:250px" >
+                                    <f:selectItems value="#{tuGrupoBean.listaGrupoEstados}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}"  />
+                                </p:selectCheckboxMenu>                                         
+
+                                <p:outputLabel value="Reparto Automático" for="automaticoGrupoEditar" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="automaticoGrupoEditar" label="Activo" value="#{tuGrupoBean.objeto.grupoEstado.reparto}" offLabel="No" onLabel="Sí" onIcon="ui-icon-check" offIcon="ui-icon-closethick" />
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <!-- Auditores -->
+                        <p:panel id="pAuditorEditar" header="Auditores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{tuGrupoBean.verAuditores()}" icon="ui-icon-person" title="Agregar Auditor"/>
+                            </div>
+                            <p:dataTable id="tablaAuditoresEditar" widgetVar="tablaAuditoresEditar" var="auditorEditar" value="#{tuGrupoBean.registrosGrupoUsuarios}" rowKey="#{auditorEditar.id}"
+                                         rows="#{tuGrupoBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{auditorEditar.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center">
+                                    <p:selectBooleanCheckbox id="activoAuditorCrear" label="Activo" value="#{auditorEditar.activo}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Auditor">
+                                    <p:selectOneMenu id="tipoAuditorCrear" label="Tipo" value="#{auditorEditar.tipo}" style="width:80%;" required="true" requiredMessage="El tipo: este campo es obligatorio">
+                                        <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="N/A" itemValue="0" />
+                                        <f:selectItem itemLabel="Abogado" itemValue="1" />
+                                        <f:selectItem itemLabel="Asistente Legal " itemValue="2" />
+                                        <f:selectItem itemLabel="Médico" itemValue="3" />
+                                        <f:selectItem itemLabel="Enfermero" itemValue="4" />
+                                        <f:selectItem itemLabel="Gestor" itemValue="5" />
+                                        <f:selectItem itemLabel="Digitador" itemValue="6" />
+                                        <p:ajax event="itemSelect" update="tablaAuditoresEditar" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{tuGrupoBean.borrarAuditor(auditorEditar.usuario.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+
+                        <p:panelGrid id="panelEditar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action ="#{tuGrupoBean.modificar}" update="frmEditarGrupo"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

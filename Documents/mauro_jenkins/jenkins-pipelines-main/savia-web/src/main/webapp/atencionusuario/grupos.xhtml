@@ -1,0 +1,340 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>            
+        <center>
+            <h:form id="frmGrupos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{ausGrupoBean.modulo.descripcion}">#{ausGrupoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{ausGrupoBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{ausGrupoBean.listar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{ausGrupoBean.accionCrear}" title="Crear" actionListener="#{ausGrupoBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{ausGrupoBean.lazyGrupos}" paginator="true" rows="#{ausGrupoBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true" draggableRows="false">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{ausGrupoBean.accionVer}" title="Ver" actionListener="#{ausGrupoBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{ausGrupoBean.accionEditar}" title="Editar" actionListener="#{ausGrupoBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{ausGrupoBean.accionBorrar}" title="Borrar" action="#{ausGrupoBean.borrar(obj.id, obj.nombre)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Id" sortBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Id" maxlength="8" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}" sortBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="128" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Descripción" filterBy="#{obj.descripcion}" sortBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="512" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcion}"/>
+                    </p:column>
+
+                    <p:column filterBy="#{obj.tipo}">
+                        <f:facet name="filter">
+                                <p:selectOneMenu onchange="PF('tablaWidget').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel=" Gestión " itemValue="1"/>
+                                    <f:selectItem itemLabel=" Cierre " itemValue="2" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                        <h:outputText value="#{obj.tipoStr}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrearGrupo" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmCrearGrupo">
+                        <p:panel id="pGrupoCrear" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoCrear" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreGrupoCrear" label="Nombre" value="#{ausGrupoBean.objeto.nombre}"  maxlength="128" required="true" requiredMessage="Nombre : Este campo es obligatorio" style="width: 95%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionGrupoCrear" label="Descripción" value="#{ausGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" style="width: 95%"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo" for="tipoGrupoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="tipoGrupoCrear" label="Tipo" value="#{ausGrupoBean.objeto.tipo}"   required="true" requiredMessage="Tipo : Este campo es obligatorio">
+                                            <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Gestión " itemValue="1"/>
+                                            <f:selectItem itemLabel=" Cierre " itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Gestores -->
+                        <p:panel id="pAuditorCrear" header="Gestores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{ausGrupoBean.verGestores()}" icon="ui-icon-person" title="Agregar Gestor"/>
+                            </div>
+                            <p:dataTable id="tablaAuditoresCrear" widgetVar="tablaAuditoresCrear" var="gestorCrear" value="#{ausGrupoBean.registrosGrupoUsuarios}" rowKey="#{gestorCrear.id}"
+                                         rows="#{ausGrupoBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{gestorCrear.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{gestorCrear.usuario.usuario}" />
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <p:selectBooleanCheckbox id="activoAuditorCrear" label="Activo" value="#{gestorCrear.activo}"/>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{ausGrupoBean.borrarGestor(gestorCrear.usuario.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{ausGrupoBean.guardar}" update="frmCrearGrupo"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Lista Gestores -->
+            <p:dialog header="Consultar Gestores" widgetVar="dialogoGestoresLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true" onShow="PF('tablaWidgetAuditoria').filter()">
+                <p:scrollPanel mode="native" style="max-height: 450px;">
+                    <h:form id="frmGestorLista">
+                        <div align="right">
+                            <p:commandButton title="Refrescar" actionListener="#{ausGrupoBean.refrescarUsuarios()}" oncomplete="PF('tablaWidgetAuditoria').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelAuditorLista" columns="1">
+                            <p:dataTable id="tablaRegistrosAuditor" widgetVar="tablaWidgetAuditoria" var="usuario" value="#{ausGrupoBean.lazyUsuarios}" rowKey="#{usuario.id}"
+                                         rows="#{ausGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{ausGrupoBean.onRowSelectGestor}" />
+                                <p:column headerText="Nombre" sortBy="#{usuario.nombre}" filterBy="#{usuario.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetAuditoria').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Usuario" sortBy="#{usuario.usuario}" filterBy="#{usuario.usuario}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetAuditoria').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.usuario}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panelGrid>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesListaAuditores" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoGestoresLista').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVerGrupo" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{ausGrupoBean.getAuditoria(ausGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerGrupo">
+                        <p:panel id="pGrupoVer" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ausGrupoBean.objeto.nombre}"/>
+
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                <p:inputTextarea label="Descripción" value="#{ausGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" readonly="true" />
+
+                                <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{ausGrupoBean.objeto.tipoStr}" />
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pAuditorVer" header="Gestores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAuditoresVer" widgetVar="tablaAuditoresVer" var="auditorVer" value="#{ausGrupoBean.lazyGrupoUsuario}" rowKey="#{gestorCrear.id}"
+                                         rows="#{ausGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre" style="text-align: center;">
+                                    <h:outputText value="#{auditorVer.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{auditorVer.usuario.usuario}" />
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <h:outputText value="#{auditorVer.activo ? 'Si':'No'}" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditarGrupo" appendTo="@(body)" modal="true"  class="modal-no-scroll" width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{ausGrupoBean.getAuditoria(ausGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmEditarGrupo">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pGrupoEditar" header="Datos Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelGrupoEditar" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombre" for="nombreGrupoEditar" style="font-weight:bold"/>
+                                <p:inputText id="nombreGrupoEditar" label="Nombre" value="#{ausGrupoBean.objeto.nombre}"   maxlength="64" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Descripción" for="descripcionGrupoEditar" style="font-weight:bold"/>
+                                <p:inputTextarea id="descripcionGrupoEditar" label="Descripción" value="#{ausGrupoBean.objeto.descripcion}" cols="50" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                
+                                <p:outputLabel value="Tipo" for="tipoGrupoEditar" style="font-weight:bold"/>
+                                
+                                <p:selectOneMenu id="tipoGrupoEditar" label="Tipo" value="#{ausGrupoBean.objeto.tipo}"   required="true" requiredMessage="Tipo : Este campo es obligatorio">
+                                    <f:selectItem itemLabel="--" itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel=" Gestión " itemValue="1"/>
+                                    <f:selectItem itemLabel=" Cierre " itemValue="2" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <!-- Gestores -->
+                        <p:panel id="pAuditorEditar" header="Gestores" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{ausGrupoBean.verGestores()}" icon="ui-icon-person" title="Agregar Gestor"/>
+                            </div>
+                            <p:dataTable id="tablaAuditoresEditar" widgetVar="tablaAuditoresEditar" var="gestorEditar" value="#{ausGrupoBean.registrosGrupoUsuarios}" rowKey="#{gestorEditar.id}"
+                                         rows="#{ausGrupoBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage="No se encontraron auditores">
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{gestorEditar.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{gestorEditar.usuario.usuario}" />
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center">
+                                    <p:selectBooleanCheckbox id="activoAuditorCrear" label="Activo" value="#{gestorEditar.activo}"/>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{ausGrupoBean.borrarGestor(gestorEditar.usuario.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+
+                        <p:panelGrid id="panelEditar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action ="#{ausGrupoBean.modificar}" update="frmEditarGrupo"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarGrupo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

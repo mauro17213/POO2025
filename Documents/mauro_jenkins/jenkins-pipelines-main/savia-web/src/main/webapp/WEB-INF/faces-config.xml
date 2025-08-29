@@ -1,0 +1,1560 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<faces-config version="2.2"
+              xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd">
+
+    <application>
+        <locale-config>
+            <supported-locale>es_ES</supported-locale>
+        </locale-config>
+        <el-resolver>
+            org.springframework.web.jsf.el.SpringBeanFacesELResolver
+        </el-resolver>
+    </application>
+    
+    <managed-bean>
+        <managed-bean-name>loginBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.conexion.bean.LoginBean</managed-bean-class>
+    
+        <managed-bean-scope>request</managed-bean-scope>
+        <managed-property>
+            <property-name>conexionServicio</property-name>
+            <value>#{conexionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>homeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.conexion.bean.HomeBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>conexionServicio</property-name>
+            <value>#{conexionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>contrasenaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.conexion.bean.ContrasenaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>conexionServicio</property-name>
+            <value>#{conexionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>empresaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.EmpresaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>empresaServicio</property-name>
+            <value>#{empresaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>logBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.LogBean</managed-bean-class>    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>logServicio</property-name>
+            <value>#{logServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>maestroTipoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.MaestroTipoBean</managed-bean-class>    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>maestroTipoServicio</property-name>
+            <value>#{maestroTipoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>maestroBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.MaestroBean</managed-bean-class>    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>maestroServicio</property-name>
+            <value>#{maestroServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>moduloBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.ModuloBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>moduloServicio</property-name>
+            <value>#{moduloServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>perfilBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.PerfilBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>perfilServicio</property-name>
+            <value>#{perfilServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>usuarioBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.UsuarioBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>usuarioServicio</property-name>
+            <value>#{usuarioServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>calendarioBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.CalendarioBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>calendarioServicio</property-name>
+            <value>#{calendarioServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>rolBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.RolBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>rolServicio</property-name>
+            <value>#{rolServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ubicacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.UbicacionBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ubicacionServicio</property-name>
+            <value>#{ubicacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>wsServicioBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.webservice.bean.WsServicioBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>wsServicio</property-name>
+            <value>#{wsServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>wsConexionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.webservice.bean.WsConexionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>wsConexionServicio</property-name>
+            <value>#{wsConexionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>wsTransaccionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.webservice.bean.WsTransaccionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>wsTransaccionServicio</property-name>
+            <value>#{wsTransaccionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>portabilidadBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.bean.PortabilidadBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>portabilidadServicio</property-name>
+            <value>#{portabilidadServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFacturaConciliacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CmFacturaConciliacionBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFacturaConciliacionServicio</property-name>
+            <value>#{cmFacturaConciliacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFacturaGlosaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CmFacturaGlosaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFacturaGlosaServicio</property-name>
+            <value>#{cmFacturaGlosaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmEnviosGlosaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CmEnviosGlosaBean</managed-bean-class>
+        
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmReintentosGlosasServicio</property-name>
+            <value>#{cmReintentosGlosasServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cargaMasivaConciliacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CargaMasivaConciliacionBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cargaMasivaConciliacionServicio</property-name>
+            <value>#{cargaMasivaConciliacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>reporteCuentasMedicasBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.ReporteCuentasMedicasBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>reporteCuentasMedicasServicio</property-name>
+            <value>#{reporteCuentasMedicasServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnConfiguracionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnConfiguracionBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gnConfiguracionServicio</property-name>
+            <value>#{gnConfiguracionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmRipsReglaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.regla.bean.CmRipsReglaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmRipsReglaServicio</property-name>
+            <value>#{cmRipsReglaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmRipsCargaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.carga.bean.CmRipsCargaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmRipsCargaServicio</property-name>
+            <value>#{cmRipsCargaServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>consultarAfiliadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.bean.ConsultarAfiliadoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>consultarAfiliadoServicio</property-name>
+            <value>#{consultarAfiliadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+
+    <managed-bean>
+        <managed-bean-name>gestionProgramaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.especial.bean.GestionProgramaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gestionProgramaServicio</property-name>
+            <value>#{gestionProgramaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gestionAfiliadosPEBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.especial.bean.GestionAfiliadosPEBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>afiliadosPEServicio</property-name>
+            <value>#{afiliadosPEServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gestionCargaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.especial.bean.GestionCargaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gestionarCargaMasivaServicio</property-name>
+            <value>#{gestionarCargaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auSolicitudBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuSolicitudBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auSolicitudServicio</property-name>
+            <value>#{auSolicitudServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>copagoModeradoraBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.CopagoModeradoraBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>copagoModeradoraServicio</property-name>
+            <value>#{copagoModeradoraServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auCargaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuCargaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auCargaMasivaServicio</property-name>
+            <value>#{auCargaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auAutorizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuAutorizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auAutorizacionServicio</property-name>
+            <value>#{auAutorizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auEntregaCargaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuEntregaCargaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auEntregaCargaServicio</property-name>
+            <value>#{auEntregaCargaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auSeguimientoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuSeguimientoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auSeguimientoServicio</property-name>
+            <value>#{auSeguimientoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ipsSedesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.bean.IpsSedesBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ipsSedesServicio</property-name>
+            <value>#{ipsSedesServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>contratosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.bean.ContratosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>contratosServicio</property-name>
+            <value>#{contratosServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>referenciaContraRefBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.crue.bean.ReferenciaContraRefBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>referenciaContraServicio</property-name>
+            <value>#{referenciaContraServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>solicitudesUrgenciasBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.crue.bean.SolicitudesUrgenciasBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>solicitudesUrgenciasServicio</property-name>
+            <value>#{solicitudesUrgenciasServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>rescateBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.crue.bean.RescateBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>rescateServicio</property-name>
+            <value>#{rescateServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+        
+    <managed-bean>
+        <managed-bean-name>selDiagnosticosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelDiagnosticosBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selDiagnosticoServicio</property-name>
+            <value>#{selDiagnosticoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selEspecialidadesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelEspecialidadesBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selEspecialidadServicio</property-name>
+            <value>#{selEspecialidadServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selTecnologiasBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelTecnologiasBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selTecnologiaServicio</property-name>
+            <value>#{selTecnologiaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selPaquetesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelPaquetesBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selPaqueteServicio</property-name>
+            <value>#{selPaqueteServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    
+    <managed-bean>
+        <managed-bean-name>selMedicamentosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelMedicamentoBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selMedicamentoServicio</property-name>
+            <value>#{selMedicamentoServicio}</value>
+        </managed-property>
+    </managed-bean>
+   
+    <managed-bean>
+        <managed-bean-name>selInsumosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelInsumosBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selInsumoServicio</property-name>
+            <value>#{selInsumoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>selSoatBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelSoatBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>soatServicio</property-name>
+            <value>#{soatServicio}</value>
+        </managed-property>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>selIss2000Bean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelIss2000Bean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>iss2000Servicio</property-name>
+            <value>#{iss2000Servicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selIss2001Bean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelIss2001Bean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>iss2001Servicio</property-name>
+            <value>#{iss2001Servicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selServiciosHabilitacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.seleccion.bean.SelServiciosHabilitacionBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selServicioHabilitacionServicio</property-name>
+            <value>#{selServicioHabilitacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selCodigoMipresBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.mipres.seleccion.bean.SelCodigoMipresBean</managed-bean-class>
+    
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selCodigoMipresServicio</property-name>
+            <value>#{selCodigoMipresServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    
+    
+    <managed-bean>
+        <managed-bean-name>medicamentosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.bean.MedicamentosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>medicamentosServicio</property-name>
+            <value>#{medicamentosServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmAuditoriaFacturaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.auditoria.bean.CmAuditoriaFacturaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmAuditoriaFacturaServicio</property-name>
+            <value>#{cmAuditoriaFacturaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmAuditoriaLiderFacturaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.auditoria.bean.CmAuditoriaLiderFacturaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmAuditoriaLiderFacturaServicio</property-name>
+            <value>#{cmAuditoriaLiderFacturaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmGrupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.auditoria.bean.CmGrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmGrupoServicio</property-name>
+            <value>#{cmGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selPrestadorSedesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.seleccion.bean.SelPrestadorSedesBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>prestadorSedeServicio</property-name>
+            <value>#{prestadorSedeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auCotizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuCotizacionBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>auCotizacionServicio</property-name>
+            <value>#{auCotizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selPrestadorBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.seleccion.bean.SelPrestadorBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selPrestadorServicio</property-name>
+            <value>#{selPrestadorServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>afiliadosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.bean.AfiliadosBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>afiliadoServicio</property-name>
+            <value>#{afiliadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>profesionalesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.bean.ProfesionalesBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>profesionalesServicio</property-name>
+            <value>#{profesionalesServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selPrestadorSedesGenericoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.consulta.bean.SelPrestadorSedesGenericoBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selPrestadorSedesGenericoServicio</property-name>
+            <value>#{selPrestadorSedesGenericoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>mipresBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.mipres.bean.MipresBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>mipresServicio</property-name>
+            <value>#{mipresServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>prescripcionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.mipres.contingencia.bean.PrescripcionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>prescripcionServicio</property-name>
+            <value>#{prescripcionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmAuditoriaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.auditoriamasiva.bean.CmAuditoriaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmAuditoriaMasivaServicio</property-name>
+            <value>#{cmAuditoriaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>selAfiliadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.seleccion.bean.SelAfiliadoBean</managed-bean-class>
+        <managed-bean-scope>session</managed-bean-scope>
+        <managed-property>
+            <property-name>selAfiliadoServicio</property-name>
+            <value>#{selAfiliadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auZonaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuZonaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auZonaServicio</property-name>
+            <value>#{auZonaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>anexo1Bean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.bean.Anexo1Bean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>anexo1Servicio</property-name>
+            <value>#{anexo1Servicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>certificadosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.aseguramiento.bean.CertificadosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>certificadoServicio</property-name>
+            <value>#{certificadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>informeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.informe.bean.InformeBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>informeServicio</property-name>
+            <value>#{informeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>informeGrupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.informe.bean.InformeGrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>informeGrupoServicio</property-name>
+            <value>#{informeGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>informeGeneradoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.informe.bean.InformeGeneradoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>informeGeneradoServicio</property-name>
+            <value>#{informeGeneradoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmControlAuditoriaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.auditoriamasiva.bean.CmControlAuditoriaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmControlAuditoriaMasivaServicio</property-name>
+            <value>#{cmControlAuditoriaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>reporteImpresionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.ReporteImpresionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>reporteImpresionServicio</property-name>
+            <value>#{reporteImpresionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gsSolicitudBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.solicitud.bean.GsSolicitudBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gsSolicitudServicio</property-name>
+            <value>#{gsSolicitudServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gsZonaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.solicitud.bean.GsZonaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gsZonaServicio</property-name>
+            <value>#{gsZonaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gsMensajeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.solicitud.bean.GsMensajeBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gsMensajeServicio</property-name>
+            <value>#{gsMensajeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>grupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.GrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auGrupoServicio</property-name>
+            <value>#{auGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>impresionAutorizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.ImpresionAutorizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>impresionAutorizacionServicio</property-name>
+            <value>#{impresionAutorizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>hiloBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.HiloBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>hiloServicio</property-name>
+            <value>#{hiloServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>recurrenciaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.RecurrenciaBean</managed-bean-class>    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>recurrenciaServicio</property-name>
+            <value>#{recurrenciaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmControlCierreBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.regla.bean.CmControlCierreBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmControlCierreServicio</property-name>
+            <value>#{cmControlCierreServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ausPersonaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusPersonaBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausPersonaServicio</property-name>
+            <value>#{ausPersonaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>ausCasoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusCasoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausCasoServicio</property-name>
+            <value>#{ausCasoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>ausCargaMasivaCasosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusCargaMasivaCasosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausCargaMasivaCasosServicio</property-name>
+            <value>#{ausCargaMasivaCasosServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ausGraficasBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusGraficasBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausGraficasServicio</property-name>
+            <value>#{ausGraficasServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ausServicioGestionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusServicioGestionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausServicioGestionServicio</property-name>
+            <value>#{ausServicioGestionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>ausGrupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.atencionusuario.bean.AusGrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>ausGrupoServicio</property-name>
+            <value>#{ausGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>agrupadoresMedicamentoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.maestro.bean.AgrupadoresMedicamentoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>agrupadoresServicio</property-name>
+            <value>#{agrupadoresServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuJuzgadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuJuzgadoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuJuzgadoServicio</property-name>
+            <value>#{tuJuzgadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuTutelaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuTutelaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuTutelaServicio</property-name>
+            <value>#{tuTutelaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuGrupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuGrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuGrupoServicio</property-name>
+            <value>#{tuGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuRepresentanteBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuRepresentanteBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuRepresentanteServicio</property-name>
+            <value>#{tuRepresentanteServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuPersonalBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuPersonalBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuPersonalServicio</property-name>
+            <value>#{tuPersonalServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>tuTutelaItemBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.tutela.bean.TuTutelaItemBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>tuTutelaItemServicio</property-name>
+            <value>#{tuTutelaItemServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>aucCargaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.auditoria.concurrente.bean.AucCargaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>aucCargaMasivaServicio</property-name>
+            <value>#{aucCargaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>aucHospitalizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.auditoria.concurrente.bean.AucHospitalizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>aucHospitalizacionServicio</property-name>
+            <value>#{aucHospitalizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFacturasBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.facturas.bean.CmFacturasBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFacturasServicio</property-name>
+            <value>#{cmFacturasServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>marcacionesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.contratacion.bean.MarcacionesBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>marcacionesServicio</property-name>
+            <value>#{marcacionesServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnMensajeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnMensajeBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>mensajeServicio</property-name>
+            <value>#{mensajeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnAlertaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnAlertaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>alertaServicio</property-name>
+            <value>#{alertaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnExternaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnExternoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gjTerceroBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.judicial.bean.GjTerceroBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gjTerceroServicio</property-name>
+            <value>#{gjTerceroServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>gjAbogadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.judicial.bean.GjAbogadoBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gjAbogadoServicio</property-name>
+            <value>#{gjAbogadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>gjProcesoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.judicial.bean.GjProcesoBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gjProcesoServicio</property-name>
+            <value>#{gjProcesoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>peAfiliadoSugeridoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.especial.bean.PeAfiliadoSugeridoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>peAfiliadoSugeridoServicio</property-name>
+            <value>#{peAfiliadoSugeridoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>aucCargaMasivaValorBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.auditoria.concurrente.bean.AucCargaMasivaValorBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>aucCargaMasivaValorServicio</property-name>
+            <value>#{aucCargaMasivaValorServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnSedeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnSedeBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gnSedeServicio</property-name>
+            <value>#{gnSedeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFacturasUsuarioBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.facturasusuario.bean.CmFacturasUsuarioBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFacturasUsuarioServicio</property-name>
+            <value>#{cmFacturasUsuarioServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gnValidacionCampoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.administracion.bean.GnValidacionCampoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gnValidacionCampoServicio</property-name>
+            <value>#{gnValidacionCampoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gestionSedeBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.gestion.atencion.bean.GestionSedeBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gestionSedeServicio</property-name>
+            <value>#{gestionSedeServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gatTurnoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.gestion.atencion.bean.GatTurnoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gatTurnoServicio</property-name>
+            <value>#{gatTurnoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gatAtencionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.gestion.atencion.bean.GatAtencionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gatAtencionServicio</property-name>
+            <value>#{gatAtencionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>gatReporteBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.gestion.atencion.bean.GatReporteBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gatReporteServicio</property-name>
+            <value>#{gatReporteServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>solicitudAfiliacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.externo.bean.SolicitudAfiliacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>solicitudAfiliacionServicio</property-name>
+            <value>#{solicitudAfiliacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmGlosaMasivaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CmGlosaMasivaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmGlosaMasivaServicio</property-name>
+            <value>#{cmGlosaMasivaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>afiliadoActualizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.externo.bean.AfiliadoActualizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>afiliadoActualizacionServicio</property-name>
+            <value>#{afiliadoActualizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>reservaTecnicaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.reserva.bean.ReservaTecnicaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>reservaTecnicaServicio</property-name>
+            <value>#{reservaTecnicaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cargaMasivaGestionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.especial.bean.CargaMasivaGestionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cargaMasivaGestionServicio</property-name>
+            <value>#{cargaMasivaGestionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmMarcacionMasivaIpsBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.conciliacion.bean.CmMarcacionMasivaIpsBean</managed-bean-class>   
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmMarcacionMasivaIpsServicio</property-name>
+            <value>#{cmMarcacionMasivaIpsServicio}</value>
+        </managed-property>
+    </managed-bean>
+   
+    <managed-bean>
+        <managed-bean-name>anticipoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.anticipo.bean.AnticipoBean</managed-bean-class>
+       
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>anticipoServicio</property-name>
+            <value>#{anticipoServicio}</value>
+        </managed-property>
+    </managed-bean>
+   
+    <managed-bean>
+        <managed-bean-name>procesoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.ProcesoBean</managed-bean-class>
+    
+       
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>procesoServicio</property-name>
+            <value>#{procesoServicio}</value>
+        </managed-property>
+    </managed-bean>
+   
+    <managed-bean>
+        <managed-bean-name>plantillaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.PlantillaBean</managed-bean-class>
+    
+       
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>plantillaServicio</property-name>
+            <value>#{plantillaServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+        
+    <managed-bean>
+        <managed-bean-name>cargaProcesosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cargas.bean.CargaProcesosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cargaProcesosServicio</property-name>
+            <value>#{cargaProcesosServicio}</value>
+        </managed-property>
+    </managed-bean>
+    <managed-bean>
+        <managed-bean-name>gruposBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.GrupoBean</managed-bean-class>
+    
+       
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>grupoServicio</property-name>
+            <value>#{grupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cargaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cargas.bean.CargaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cargaServicio</property-name>
+            <value>#{cargaServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>auTopeAfiliadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuTopeAfiliadoBean</managed-bean-class>
+        
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auTopeAfiliadoServicio</property-name>
+            <value>#{auTopeAfiliadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cntjTerceroBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.TerceroBean</managed-bean-class>
+        
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cntjTerceroServicio</property-name>
+            <value>#{cntjTerceroServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFeRipsCargaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.carga.bean.CmFeRipsCargaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFeRipsCargaServicio</property-name>
+            <value>#{cmFeRipsCargaServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cntjComiteBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.ComiteBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cntjComiteServicio</property-name>
+            <value>#{cntjComiteServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cargaGestionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cargas.bean.CargaGestionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>gestionServicio</property-name>
+            <value>#{gestionServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cntjExpedienteBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.ExpedienteBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cntjExpedienteServicio</property-name>
+            <value>#{cntjExpedienteServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>cntjContratoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.ContratoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cntjContratoServicio</property-name>
+            <value>#{cntjContratoServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>auNoSolicitudBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuNoSolicitudBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auNoSolicitudServicio</property-name>
+            <value>#{auNoSolicitudServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>auCargaMasivaSinAutorizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuCargaMasivaSinAutorizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auCargaMasivaSinAutorizacionServicio</property-name>
+            <value>#{auCargaMasivaSinAutorizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>auCargaEntregaSinAutorizacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuCargaEntregaSinAutorizacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auCargaEntregaSinAutorizacionServicio</property-name>
+            <value>#{auCargaEntregaSinAutorizacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+        
+    <managed-bean>
+        <managed-bean-name>mapaAfiliadoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.mapa.bean.MapaAfiliadoBean</managed-bean-class>    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>mapaAfiliadoServicio</property-name>
+            <value>#{mapaAfiliadoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>finPostulacionesBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.financiera.bean.FinPostulacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>finPostulacionServicio</property-name>
+            <value>#{finPostulacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>finGiroBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.financiera.bean.FinGiroBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>finGiroServicio</property-name>
+            <value>#{finGiroServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>finCargaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.financiera.bean.FinCargaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>finCargaServicio</property-name>
+            <value>#{finCargaServicio}</value>
+        </managed-property>
+    </managed-bean>
+     
+    <managed-bean>
+        <managed-bean-name>auAnexo4CargaAnuladaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuAnexo4CargaAnuladaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auAnexo4CargaAnuladaServicio</property-name>
+            <value>#{auAnexo4CargaAnuladaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>recobroGrupoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.recobro.bean.RecobroGrupoBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>rcoGrupoServicio</property-name>
+            <value>#{rcoGrupoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>indicadoresBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.supervisioncontrato.bean.IndicadoresBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>indicadoresServicio</property-name>
+            <value>#{indicadoresServicio}</value>
+        </managed-property>
+    </managed-bean>
+
+    <managed-bean>
+        <managed-bean-name>feDocumentoBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.facturacionelectronica.bean.FeDocumentoBean</managed-bean-class>
+    
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>feDocumentoServicio</property-name>
+            <value>#{feDocumentoServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cntjTareaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.juridico.bean.TareaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cntjTareaServicio</property-name>
+            <value>#{cntjTareaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>auAnexo3CargaAnuladaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.autorizacion.bean.AuAnexo3CargaAnuladaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>auAnexo3CargaAnuladaServicio</property-name>
+            <value>#{auAnexo3CargaAnuladaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>recobroFacturaBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.recobro.bean.RecobroFacturaBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>rcoFacturaServicio</property-name>
+            <value>#{rcoFacturaServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>recobroConciliacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.recobro.bean.RecobroConciliacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>rcoConciliacionServicio</property-name>
+            <value>#{rcoConciliacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFeRipsValidacionBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.carga.bean.CmFeRipsValidacionBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFeRipsValidacionServicio</property-name>
+            <value>#{cmFeRipsValidacionServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>cmFeSoporteBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.cuentamedica.rips.carga.bean.CmFeSoporteBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>cmFeSoporteServicio</property-name>
+            <value>#{cmFeSoporteServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+    <managed-bean>
+        <managed-bean-name>procedimientosBean</managed-bean-name>
+        <managed-bean-class>com.saviasaludeps.savia.web.informe.bean.ProcedimientosBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+        <managed-property>
+            <property-name>procedimientosServicio</property-name>
+            <value>#{procedimientosServicio}</value>
+        </managed-property>
+    </managed-bean>
+    
+</faces-config>

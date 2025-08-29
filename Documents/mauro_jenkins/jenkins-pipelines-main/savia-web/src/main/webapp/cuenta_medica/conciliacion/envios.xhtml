@@ -1,0 +1,669 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <h:form id="frmReintentos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmEnviosGlosaBean.modulo.descripcion}">#{cmEnviosGlosaBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Número Facturado "/>
+                        <p:inputText  value="#{cmEnviosGlosaBean.paramConsulta.parametroConsulta1}"  onkeypress="if (event.keyCode === 13) {
+                                    return false;
+                                }">
+                            <p:ajax event="blur" update="frmReintentos"/>
+                        </p:inputText>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cmEnviosGlosaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmEnviosGlosaBean.reiniciarPantalla()}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cmEnviosGlosaBean.lazyReintentos}" paginator="true" rows="#{cmEnviosGlosaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton  class="btnAuditoria" action="#{cmEnviosGlosaBean.getAuditoria(obj.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                        <p:commandButton rendered="#{cmEnviosGlosaBean.accionVer}" title="Ver Transacciones" actionListener="#{cmEnviosGlosaBean.verWsTransacciones(obj.id)}" icon="ui-icon-calendar"/>
+                        <p:commandButton rendered="#{cmEnviosGlosaBean.accionVer}" title="Ver WS Facturas" actionListener="#{cmEnviosGlosaBean.verWsCmFacturas(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{cmEnviosGlosaBean.accionAdicional1}" title="Reintentar Envio Sap" actionListener="#{cmEnviosGlosaBean.reintentarEnvioSap(obj.id)}" icon="ui-icon-script"/>
+                    </p:column>
+
+                    <p:column headerText="Transacción" filterBy="#{obj.tipoTransaccion}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 70%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="M1 - Provisión" itemValue="1" />
+                                <f:selectItem itemLabel="M2 - Causación" itemValue="2" />
+                                <f:selectItem itemLabel="M3 - Respuesta Glosa" itemValue="3"/>
+                                <f:selectItem itemLabel="M4 - Conciliación" itemValue="4" />
+                                <f:selectItem itemLabel="Dev - Devolución" itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>                          
+                        <h:outputText value="#{obj.tipoTransaccionStr}" title="#{obj.tipoTransaccionStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo Relación" sortBy="#{obj.tipoRelacion}"> 
+                        <h:outputText value="#{obj.tipoRelacionStr}" title="#{obj.tipoRelacionStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Nit" sortBy="#{obj.proveedor}" filterBy="#{obj.proveedor}">    
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.proveedor}" title="#{obj.proveedor}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" sortBy="#{obj.estado}" filterBy="#{obj.estado}"  style="text-align: center;">                        
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 75%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Creado" itemValue="0" />
+                                <f:selectItem itemLabel="Facturas Inicio" itemValue="1" />
+                                <f:selectItem itemLabel="Facturas Fin" itemValue="2"/>
+                                <f:selectItem itemLabel="Transacciones Inicio" itemValue="3" />
+                                <f:selectItem itemLabel="Transacciones Fin" itemValue="4" />
+                                <f:selectItem itemLabel="En Proceso Envío SAP" itemValue="5" />
+                                <f:selectItem itemLabel="Envío SAP" itemValue="6" />
+                            </p:selectOneMenu>
+                        </f:facet>                          
+                        <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                    </p:column>
+
+                    <p:column  headerText="Número Facturas " style="text-align: center;">
+                        <h:outputText value="#{obj.numeroFacturas}" title="#{obj.numeroFacturas}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha Creación" sortBy="#{obj.fechaHoraCrea}"  style="text-align: center;">
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+
+                </p:dataTable>
+            </h:form>
+
+            <p:dialog header="Ver Encabezado Factura" widgetVar="dialogoVer" id="dialogoVer" appendTo="@(body)" modal="true" width="80%" height="90%">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVer">
+                        <p:panel id="pSumatoria" toggleable="true" header="Sumatorias Encabezados Procesados" style="margin-bottom:10px;">                         
+                            <p:dataTable id="sumatoria" widgetVar="sumatoria" var="sumatoria" value="#{cmEnviosGlosaBean.listaCmSincronizaconEncabezadoResumen}" scrollable="true"  style="margin-bottom:20px">
+                                <p:column headerText="Sumatoria Valor Documento" style="text-align: center;">
+                                    <h:outputText value="#{sumatoria.valorDocumento}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText> 
+                                </p:column>
+                                <p:column headerText="Sumatoria Valor Glosado" style="text-align: center;" >
+                                    <h:outputText value="#{sumatoria.valorGlosado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText> 
+                                </p:column>
+                                <p:column headerText="Sumatoria Valor Pagado" style="text-align: center;">
+                                    <h:outputText value="#{sumatoria.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText> 
+                                </p:column>
+                                <p:column headerText="Estado" style="text-align: center;">
+                                    <h:outputText value="#{sumatoria.tipoEstadoStr}" />
+                                </p:column>               
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:dataTable id="detalles" widgetVar="detalles" var="detalles" value="#{cmEnviosGlosaBean.listaDetalles}" scrollable="true"  style="margin-bottom:20px" paginator="true" rowsPerPageTemplate="10,30,100,200" >
+                            <f:facet name="header">
+                                DETALLES ENCABEZADO FACTURA
+                            </f:facet>
+                            <p:column headerText="Nit Proveedor" sortBy="#{detalles.proveedorNit}" filterBy="#{detalles.proveedorNit}">
+                                <h:outputText value="#{detalles.proveedorNit}" />
+                            </p:column>
+                            <p:column headerText="Número Facturado" sortBy="#{detalles.numeroDocumento}" filterBy="#{detalles.numeroDocumento}">
+                                <h:outputText value="#{detalles.numeroDocumento}" />
+                            </p:column>
+                            <p:column headerText="Número Radicado" sortBy="#{detalles.numeroRadicado}" filterBy="#{detalles.numeroRadicado}">
+                                <h:outputText value="#{detalles.numeroRadicado}" />
+                            </p:column>
+                            <p:column headerText="Estado" sortBy="#{detalles.estado}" filterBy="#{detalles.estado}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('detalles').filter()">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Pendiente por procesar en Sap" itemValue="0"/>
+                                        <f:selectItem itemLabel="Procesada en sap" itemValue="1" />
+                                        <f:selectItem itemLabel="Sin conceptos contables" itemValue="2" />
+                                        <f:selectItem itemLabel="Sin valores EPS" itemValue="3" />
+                                        <f:selectItem itemLabel="Sin procesar momento 1" itemValue="10" />
+                                        <f:selectItem itemLabel="Sin detalles" itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{detalles.estadoStr}" />
+                            </p:column> 
+                            <p:column headerText="Régimen" sortBy="#{detalles.regimen}" >
+                                <h:outputText value="#{detalles.regimen}" />
+                            </p:column>                           
+                            <p:column headerText="Valor Glosado" sortBy="#{detalles.valorGlosado}" >
+                                <h:outputText value="#{detalles.valorGlosado}" title="#{detalles.valorGlosado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Pagado" sortBy="#{detalles.valorPagado}" >
+                                <h:outputText value="#{detalles.valorPagado}" title="#{detalles.valorPagado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>                          
+                            <p:column headerText="Valor Transacción">
+                                <h:outputText value="#{detalles.valorDocumento}" title="#{detalles.valorDocumento}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha de Creación">
+                                <h:outputText value="#{detalles.fechaHoraCrea}" />
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton rendered="#{cmEnviosGlosaBean.accionAdicional1}" title="Reintentar" actionListener="#{cmEnviosGlosaBean.reintentarEnvioSap(cmEnviosGlosaBean.objeto.id)}" icon="ui-icon-script"/>
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Reintentos" widgetVar="dialogoVerReintento" appendTo="@(body)" modal="true" width="80%" height="90%">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVerReintento">
+                        <p:dataTable id="sincronizaciones" rowsPerPageTemplate="10,30,50,100" paginator="true" rows="10"  var="sincronizacion"  widgetVar="detalles" value="#{cmEnviosGlosaBean.listaSincronizaciones}" scrollable="true"  style="margin-bottom:20px; font-size:13px;">
+                            <f:facet name="header">
+                                REINTENTOS
+                            </f:facet>
+                            <p:column headerText="Id Radicado">
+                                <h:outputText value="#{sincronizacion.cmRadicado.id}" />
+                            </p:column>
+                            <p:column headerText="Id Respuesta Glosa">
+                                <h:outputText value="#{sincronizacion.cmGlosaRespuesta.id}" />
+                            </p:column>
+                            <p:column headerText="Id Conciliación">
+                                <h:outputText value="#{sincronizacion.cmConciliacion.id}" />
+                            </p:column>
+                            <p:column headerText="Estado Transacción" sortBy="#{sincronizacion.estadoTransacion}" >
+                                <h:outputText value="#{sincronizacion.estadoTransacionStr}" />
+                            </p:column>
+                            <p:column headerText="Código Retorno" sortBy="#{sincronizacion.codigoRetorno}">
+                                <h:outputText value="#{sincronizacion.codigoRetorno}" />
+                            </p:column>
+                            <p:column headerText="Código Respuesta" sortBy="#{sincronizacion.codigoRespuesta}">
+                                <h:outputText value="#{sincronizacion.codigoRespuesta}" />
+                            </p:column>
+                            <p:column headerText="Cantidad Paquetes" sortBy="#{sincronizacion.paquetes}">
+                                <h:outputText value="#{sincronizacion.paquetes}" />
+                            </p:column>
+                            <p:column headerText="Cantidad Paquetes Exitosos" sortBy="#{sincronizacion.paquetesExitosos}">
+                                <h:outputText value="#{sincronizacion.paquetesExitosos}" />
+                            </p:column>
+                            <p:column headerText="Json Enviado" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Enviado"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Enviado ' ,sincronizacion.jsonEnvioStr, sincronizacion.fechaHoraEnvio)}" 
+                                                  icon="ui-icon-search" />
+                            </p:column>
+                            <p:column headerText="Json Recibido" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Recibido"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Recibido' , sincronizacion.jsonRespuestaStr, sincronizacion.fechaHoraEnvio)}" 
+                                                  icon="ui-icon-search" />
+                            </p:column>
+                            <p:column headerText="Fecha Envío">
+                                <h:outputText value="#{sincronizacion.fechaHoraEnvio}" />
+                            </p:column>
+                            <p:column headerText="Ver Paquetes Enviados" style="text-align: center;">
+                                <p:commandButton  title="Ver Paquetes Enviados" rendered="#{sincronizacion.poseePaquetes}"
+                                                  actionListener="#{cmEnviosGlosaBean.verPaquetesEnviados(sincronizacion.id)}" 
+                                                  icon="ui-icon-search"  async="false" />
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerReintento').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Json " id="dialogoVerJson" widgetVar="dialogoVerJson" appendTo="@(body)" position="center" modal="true" style="max-height:70%;overflow:scroll;">
+                <h:form id="frmVerJson" style="height: 600px;">
+                    <p:panelGrid id="panelVerJson" columns="4" layout="grid" styleClass="showcase-text-align-center">
+                        <p:row>
+                            <p:column styleClass="ui-widget-header ui-g-3" >
+                                            <h:outputText value="Tipo Json" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column styleClass="ui-g-3" >
+                                <h:outputText value="#{cmEnviosGlosaBean.tituloJsonMensaje}" />
+                            </p:column>
+                            <p:column styleClass="ui-widget-header ui-g-3" >
+                                 <h:outputText value="Fecha Envío" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column styleClass="ui-g-3" >
+                                 <h:outputText value="#{cmEnviosGlosaBean.fechaEnvio}" />
+                            </p:column>
+                        </p:row>
+           
+                        <p:row>
+                            <p:column styleClass="ui-g-12" >
+                                <p:inputTextarea cols="150" value="#{cmEnviosGlosaBean.jsonContenido}" readonly="true" style="max-height: 350px; overflow: scroll;"/>
+                            </p:column>
+                        </p:row>
+
+                    </p:panelGrid>
+                    <p:panelGrid style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerJson').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet> 
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>    
+
+            <p:dialog header="Ver Paquetes Enviados" widgetVar="dialogoVerPaquetes" appendTo="@(body)" modal="true" width="80%" height="90%">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVerPaquetes">
+                        <p:dataTable id="paquetes" rowsPerPageTemplate="10,30,50,100" paginator="true" rows="10"  var="sincronizacionPaquete"  widgetVar="detalles" value="#{cmEnviosGlosaBean.listaSincronizacionPaquete}" scrollable="true"  style="margin-bottom:20px">
+                            <f:facet name="header">
+                                Ver Paquetes Enviados
+                            </f:facet>
+                            <p:column headerText="Id Sincronización">
+                                <h:outputText value="#{sincronizacionPaquete.cmSincronizacion.id}" />
+                            </p:column>
+                            <p:column headerText="Id Sincronización Paquete" sortBy="#{sincronizacionPaquete.id}">
+                                <h:outputText value="#{sincronizacionPaquete.id}" />
+                            </p:column>                  
+                            <p:column headerText="Estado Transacción" sortBy="#{sincronizacionPaquete.estadoTransacion}" >
+                                <h:outputText value="#{sincronizacionPaquete.estadoTransacionStr}" />
+                            </p:column>
+                            <p:column headerText="Código Retorno" sortBy="#{sincronizacionPaquete.codigoRetorno}">
+                                <h:outputText value="#{sincronizacionPaquete.codigoRetorno}" />
+                            </p:column>
+                            <p:column headerText="Código Respuesta" sortBy="#{sincronizacionPaquete.codigoRespuesta}">
+                                <h:outputText value="#{sincronizacionPaquete.codigoRespuesta}" />
+                            </p:column>
+                            <p:column headerText="Mensaje Respuesta">
+                                <h:outputText value="#{sincronizacionPaquete.getCodigoRespuestaStr()}" />
+                            </p:column>
+                            <p:column headerText="Json Enviado" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Enviado"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Enviado ' ,sincronizacionPaquete.jsonEnvioStr, sincronizacionPaquete.fechaHoraEnvio)}" 
+                                                  icon="ui-icon-search" async="false" />
+                            </p:column>
+                            <p:column headerText="Json Recibido" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Recibido"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Recibido' , sincronizacionPaquete.jsonRespuestaStr, sincronizacionPaquete.fechaHoraEnvio)}" 
+                                                  icon="ui-icon-search"  async="false" />
+                            </p:column>
+                            <p:column headerText="Fecha Envío">
+                                <h:outputText value="#{sincronizacionPaquete.fechaHoraEnvio}" />
+                            </p:column>
+                            <p:column headerText="Fecha Respuesta">
+                                <h:outputText value="#{sincronizacionPaquete.fechaHoraRespuesta}" />
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerPaquetes').hide()" immediate="true" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Transacciones" widgetVar="dialogoVerTransacciones" id="dialogoVerTransacciones" appendTo="@(body)" position="center" width="80%" modal="true" style="max-height:80%;overflow:scroll;" >
+                <p:scrollPanel mode="native" style="height:600px">             
+                    <h:form id="frmVerTransacciones">
+                        <ui:include src="cmradicado.xhtml" /> 
+                        <p:dataTable var="transaccion" value="#{cmEnviosGlosaBean.lazyWsTransacciones}" 
+                                     paginator="true" rows="#{cmEnviosGlosaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetTransacciones"
+                                     id="tablaTransacciones" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{transaccion.id}" reflow="true">
+
+                            <p:column width="80" style="text-align: center;" exportable="false">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton title="Ver Transaccion Detalles" actionListener="#{cmEnviosGlosaBean.verWsTransaccionDetalles(transaccion.id)}" icon="ui-icon-search"/>
+                            </p:column>
+
+                            <p:column headerText="Estado Transacción" filterBy="#{transaccion.estado}" style="text-align: center;">  
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidgetTransacciones').filter()" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="En Creacion" itemValue="1" />
+                                        <f:selectItem itemLabel="Creada" itemValue="2" />
+                                        <f:selectItem itemLabel="Enviando" itemValue="3" />
+                                        <f:selectItem itemLabel="Finalizada" itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{transaccion.estadoStr}" title="#{transaccion.estadoStr}"/>
+                            </p:column>
+
+                            <p:column headerText="Momento Transacción" sortBy="#{transaccion.momento}">
+                                <h:outputText value="#{transaccion.momentoStr}" title="#{transaccion.momentoStr}"/>
+                            </p:column>
+
+                            <p:column  headerText="Fecha Envío" sortBy="#{transaccion.fechaHoraEnvio}" style="text-align: center">
+                                <h:outputText value="#{transaccion.fechaHoraEnvio}"/>
+                            </p:column>
+
+                            <p:column  headerText="Paquetes Enviados" style="text-align: center;">
+                                <h:outputText value="#{transaccion.paquetes}"/>
+                            </p:column>
+
+                            <p:column  headerText="Paquetes Exitosos" style="text-align: center;">
+                                <h:outputText value="#{transaccion.paquetesExitosos}"/>
+                            </p:column>
+
+                            <p:column  headerText="Mensaje Respuesta">
+                                <h:outputText value="#{transaccion.mensajeRespuestaCorto}" />
+                                <p:commandButton rendered="#{transaccion.mensajeRespuesta.length() > 75 }" actionListener="#{cmEnviosGlosaBean.verTextoAmpliado(transaccion.mensajeRespuesta)}" icon="ui-icon-comment" title="Ver completo"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerTransacciones').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Transacción Detalles" widgetVar="dialogoVerTransaccionDetalles" id="dialogoVerTransaccionDetalles" appendTo="@(body)" position="center" width="70%" modal="true" style="max-height:50%;overflow:scroll;">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVerTransaccionDetalles">
+                        <p:dataTable var="transaccionDetalle" value="#{cmEnviosGlosaBean.lazyWsTransaccionDetalles}" 
+                                     paginator="true" rows="#{cmEnviosGlosaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetTransaccionDetalles"
+                                     id="tablaTransaccionDetalles" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{transaccionDetalle.id}" reflow="true">
+
+                            <p:column headerText="Estado Transacción" filterBy="#{transaccionDetalle.estado}" sortBy="#{transaccionDetalle.estadoStr}" style="text-align: center;">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidgetTransaccionDetalles').filter()" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Creada" itemValue="1" />
+                                        <f:selectItem itemLabel="Enviada" itemValue="2" />
+                                        <f:selectItem itemLabel="Respuesta Exitosa" itemValue="3" />
+                                        <f:selectItem itemLabel="Respuesta Fallida" itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{transaccionDetalle.estadoStr}" title="#{transaccionDetalle.estadoStr}"/>
+                            </p:column>
+
+                            <p:column  headerText="Json Envío" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Recibido"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Envio' , transaccionDetalle.jsonEnvioStr, transaccionDetalle.fechaHoraEnvio)}" 
+                                                  icon="ui-icon-search"  async="false" />
+                            </p:column>
+                            <p:column  headerText="Fecha Envío" sortBy="#{transaccionDetalle.fechaHoraEnvio}" style="text-align: center">
+                                <h:outputText value="#{transaccionDetalle.fechaHoraEnvio}"/>
+                            </p:column>
+
+                            <p:column  headerText="Json Respuesta" style="text-align: center;">
+                                <p:commandButton  title="Ver Json Recibido"
+                                                  actionListener="#{cmEnviosGlosaBean.verJson( 'Json Respuesta' , transaccionDetalle.jsonRespuestaStr, transaccionDetalle.fechaHoraRespuesta)}" 
+                                                  icon="ui-icon-search"  async="false" />
+                            </p:column>
+                            <p:column  headerText="Fecha Respuesta" sortBy="#{transaccionDetalle.fechaHoraRespuesta}" style="text-align: center">
+                                <h:outputText value="#{transaccionDetalle.fechaHoraRespuesta}"/>
+                            </p:column>
+                            <p:column  headerText="Código Retorno" sortBy="#{transaccionDetalle.codigoRetorno}" style="text-align: center;">
+                                <h:outputText value="#{transaccionDetalle.codigoRetorno}"/>
+                            </p:column>
+                            <p:column  headerText="Mensaje Respuesta" sortBy="#{transaccionDetalle.mensajeRespuesta}">
+                                <h:outputText value="#{transaccionDetalle.mensajeRespuesta}"/>
+                            </p:column>
+                            <p:column headerText="Id Transacción Detalle" style="text-align: center;">
+                                <h:outputText value="#{transaccionDetalle.id}"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerTransaccionDetalles').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Ws Facturas" widgetVar="dialogoVerWsFacturas" id="dialogoVerWsFacturas" appendTo="@(body)" position="center" width="95%" modal="true" style="max-height:80%;overflow:scroll;" >
+                <p:scrollPanel mode="native" style="height:600px">                     
+                    <h:form id="frmVerWsFacturas">
+                        <ui:include src="cmradicado.xhtml" /> 
+                        <p:dataTable var="wsfacturas" value="#{cmEnviosGlosaBean.lazyWsCmFacturas}" 
+                                     paginator="true" rows="#{cmEnviosGlosaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetWsFactura"
+                                     id="tablaWsFacturas" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{wsfacturas.id}" reflow="true">
+
+                            <p:column width="80" style="text-align: center;" exportable="false">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton title="Ver Transaccion Detalles" actionListener="#{cmEnviosGlosaBean.verWsCmFacturaDetalles(wsfacturas.id)}" icon="ui-icon-search"/>
+                            </p:column>
+                            <p:column headerText="Ws Factura Id" sortBy="#{wsfacturas.id}">
+                                <h:outputText value="#{wsfacturas.id}" title="#{wsfacturas.id}"/>
+                            </p:column>
+                            <p:column headerText="Estado Ws Factura" sortBy="#{wsfacturas.estado}" filterBy="#{wsfacturas.estado}" >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidgetWsFactura').filter()" style="width: 70%;"  >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="En Creacion" itemValue="1" />
+                                        <f:selectItem itemLabel="Creada" itemValue="2" />
+                                        <f:selectItem itemLabel="Exitoso" itemValue="3" />
+                                        <f:selectItem itemLabel="Reintento" itemValue="4" />
+                                        <f:selectItem itemLabel="Reconstruccion" itemValue="5" />
+                                        <f:selectItem itemLabel="Sin Valores Eps" itemValue="6" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{wsfacturas.estadoStr}" title="#{wsfacturas.estadoStr}"/>
+                            </p:column>
+                            <p:column headerText="Contrato" sortBy="#{wsfacturas.contrato}">
+                                <h:outputText value="#{wsfacturas.contrato}" title="#{wsfacturas.contrato}"/>
+                            </p:column>
+                            <p:column headerText="Proveedor" sortBy="#{wsfacturas.proveedorNit}">
+                                <h:outputText value="#{wsfacturas.proveedorNit}" title="#{wsfacturas.proveedorNit}"/>
+                            </p:column>
+                            <p:column headerText="Número Facturado" sortBy="#{wsfacturas.numeroDocumento}"  filterBy="#{wsfacturas.numeroDocumento}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaWidgetWsFactura').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{wsfacturas.numeroDocumento}" title="#{wsfacturas.numeroDocumento}"/>
+                            </p:column>
+                            <p:column headerText="Régimen" sortBy="#{wsfacturas.regimen}">
+                                <h:outputText value="#{wsfacturas.regimen}" title="#{wsfacturas.regimen}"/>
+                            </p:column>  
+                            <p:column headerText="Valor Documento" sortBy="#{wsfacturas.valorDocumento}">
+                                <h:outputText value="#{wsfacturas.valorDocumento}" title="#{wsfacturas.valorDocumento}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Pagado" sortBy="#{wsfacturas.valorPagado}">
+                                <h:outputText value="#{wsfacturas.valorPagado}" title="#{wsfacturas.valorPagado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Glosado" sortBy="#{wsfacturas.valorGlosado}">
+                                <h:outputText value="#{wsfacturas.valorGlosado}" title="#{wsfacturas.valorGlosado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Copago" sortBy="#{wsfacturas.valorCopago}">
+                                <h:outputText value="#{wsfacturas.valorCopago}" title="#{wsfacturas.valorCopago}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Cuota Moderadora" sortBy="#{wsfacturas.cuotaModeradora}">
+                                <h:outputText value="#{wsfacturas.cuotaModeradora}" title="#{wsfacturas.cuotaModeradora}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Crea" sortBy="#{wsfacturas.fechaHoraCrea}">
+                                <h:outputText value="#{wsfacturas.fechaHoraCrea}" title="#{wsfacturas.fechaHoraCrea}"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerWsFacturas').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver WsFactura Detalles" widgetVar="dialogoVerWsFacturaDetalles" id="dialogoVerWsFacturaDetalles" appendTo="@(body)" modal="true" width="70%" height="90%">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVerWsFacturaDetalles">
+                        <p:dataTable var="wsfacturaDetalles" value="#{cmEnviosGlosaBean.lazyWsCmFacturaDetalles}" 
+                                     paginator="true" rows="#{cmEnviosGlosaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetWsFacturaDetalles"
+                                     id="tablaWsFacturaDetalles" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{wsfacturas.id}" reflow="true">                          
+
+                            <p:column headerText="Tipología" sortBy="#{wsfacturaDetalles.tipologiaStr}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.tipologiaStr}" title="#{wsfacturaDetalles.tipologiaStr}"/>
+                            </p:column>
+                            <p:column headerText="Código Municipio" sortBy="#{wsfacturaDetalles.codigoMunicipio}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.codigoMunicipio}" title="#{wsfacturaDetalles.codigoMunicipio}"/>
+                            </p:column>
+                            <p:column headerText="Concepto Contable" sortBy="#{wsfacturaDetalles.conceptoContable}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.conceptoContable}" title="#{wsfacturaDetalles.conceptoContable}"/>
+                            </p:column>
+                            <p:column headerText="Valor Operación" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.valorOperacion}" title="#{wsfacturas.valorOperacion}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Usuario Crea">
+                                <h:outputText value="#{wsfacturaDetalles.usuarioCrea}" title="#{wsfacturaDetalles.usuarioCrea}"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerWsFacturaDetalles').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Descripción" widgetVar="dialogoTextoApliado" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmTextoAmpliado" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{cmEnviosGlosaBean.textoAmpliado}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoTextoApliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <body onunload="finalizar();"> 
+            <h:form id="exit">
+                <p:remoteCommand  id="finalizar" name="finalizar" action="#{cmEnviosGlosaBean.clearViewScopedBeans()}"/>
+            </h:form>
+            </body>
+        </center>
+    </ui:define>
+</ui:composition>

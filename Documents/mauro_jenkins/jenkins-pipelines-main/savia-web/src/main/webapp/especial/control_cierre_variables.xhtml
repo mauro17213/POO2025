@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <h:outputStylesheet name="css/rias.css"/>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <!-- toolbar para crear y refrescar - tabla de registros -->
+            <h:form id="frmControlCierre">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{controlCierreVariablesBean.modulo.descripcion}">#{controlCierreVariablesBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{controlCierreVariablesBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{controlCierreVariablesBean.listar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{controlCierreVariablesBean.accionCrear}" title="Crear" actionListener="#{controlCierreVariablesBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" class="listaDatos" var="obj" value="#{controlCierreVariablesBean.lazyCierre}" rowKey="#{obj.id}"
+                             rows="#{controlCierreVariablesBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>  
+                        <p:commandButton rendered="#{controlCierreVariablesBean.accionVer}" title="Ver Cierre" actionListener="#{controlCierreVariablesBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{controlCierreVariablesBean.accionEditar}" title="Editar Cierre" actionListener="#{controlCierreVariablesBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                    </p:column>
+                    <p:column headerText="Id" sortBy="#{obj.id}" filterBy="#{obj.id}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="Id" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Programa Especial" sortBy="#{obj.programa}" filterBy="#{obj.programa}">  
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{controlCierreVariablesBean.programas}" var="programa" itemLabel="#{programa.descripcionPrograma}" itemValue="#{programa.id}" />                                        
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.programa.descripcionPrograma}" title="#{obj.programa.descripcionPrograma}"/>
+                    </p:column>
+                    <p:column headerText="Motivo del cierre" sortBy="#{obj.motivo}" >
+                        <h:outputText value="#{obj.motivo}" title="#{obj.motivo}"/>
+                    </p:column>  
+                    <p:column headerText="Periodo Carga" sortBy="#{obj.periodo}" filterBy="#{obj.periodo}">  
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{controlCierreVariablesBean.listaMeses}" var="mes" itemLabel="#{mes.nombre}" itemValue="#{mes.id}" />                                        
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{controlCierreVariablesBean.getPeriodoStr(obj.periodo)}"/>
+                    </p:column>
+                    <p:column headerText="Fecha inicio cierre" sortBy="#{obj.fechaHoraDesde}">                        
+                        <h:outputText value="#{obj.fechaHoraDesde}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Fecha fin cierre" sortBy="#{obj.fechaHoraHasta}">                        
+                        <h:outputText value="#{obj.fechaHoraHasta}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Fecha hora creacion" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+
+            </h:form>
+            <!-- Crear -->
+            <p:dialog header="Crear" id="dialogoCrear" widgetVar="dialogoCrear" appendTo="@(body)" position="center" width="50%" modal="true"  >
+                <h:form id="frmCrear">
+                    <p:panel id="panelCrear" header="Crear periodo de cierre" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelGridCrear" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Programa especial" for="programa" style="font-weight:bold"/>
+                            <p:selectOneMenu id="programa" value="#{controlCierreVariablesBean.objeto.programa.id}" style="min-width: 135px;"
+                                             filter="true" filterMatchMode="contains"
+                                             required="true" requiredMessage="Por favor indique el programa.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{controlCierreVariablesBean.programas}" var="programa" itemLabel="#{programa.descripcionPrograma}" itemValue="#{programa.id}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Periodo" for="periodo" style="font-weight:bold"/>
+                            <p:selectOneMenu id="periodo" value="#{controlCierreVariablesBean.objeto.periodo}" style="min-width: 135px;"
+                                             filter="true" filterMatchMode="contains"
+                                             required="true" requiredMessage="Por favor indique el periodo.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{controlCierreVariablesBean.listaPeriodoCarga}" var="periodo" itemLabel="#{periodo.nombre}" itemValue="#{periodo.id}" />
+                            </p:selectOneMenu>
+
+
+                            <p:outputLabel value="Fecha de cierre " for="fechaHoraDesde" style="font-weight:bold"/>
+                            <p:calendar id="fechaHoraDesde" label="Fecha de cierre" navigator="true" pattern="dd/MM/yyyy HH:mm:ss"
+                                        value="#{controlCierreVariablesBean.objeto.fechaHoraDesde}"
+                                        yearRange="c-1:c+1"  maxlength="10" mindate="#{controlCierreVariablesBean.fechaActual}"
+                                        required="true" requiredMessage="Este campo es obligatorio."
+                                        locale="es">
+                                <p:ajax event="dateSelect" update="fechaHoraHasta" />
+                            </p:calendar>
+
+                            <p:outputLabel value="Fecha de apertura" for="fechaHoraHasta" style="font-weight:bold"/>
+                            <p:calendar id="fechaHoraHasta" label="Fecha de apertura" navigator="true" pattern="dd/MM/yyyy HH:mm:ss" 
+                                        value="#{controlCierreVariablesBean.objeto.fechaHoraHasta}" 
+                                        yearRange="c-1:c+1"  maxlength="10" mindate="#{controlCierreVariablesBean.objeto.fechaHoraDesde}"
+                                        required="true" requiredMessage="Este campo es obligatorio."
+                                        locale="es">
+                            </p:calendar>
+
+
+                            <p:outputLabel value="Motivo del cierre" for="nombre" style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" style="width: 100%;" value="#{controlCierreVariablesBean.objeto.motivo}" maxlength="128" required="true" requiredMessage="Este campo es obligatorio."/>
+
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{controlCierreVariablesBean.guardar}" update="panelCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </p:dialog>
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVerCierre" appendTo="@(body)" modal="true" width="50%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{controlCierreVariablesBean.getAuditoria(controlCierreVariablesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:auto">
+                    <h:form id="frmVer">
+                        <p:panel id="pnlVerCierre" header="Ver cierre carga" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="pnlGridVerPrograma" columns="2"
+                                         columnClasses="ui-grid-col-6,ui-grid-col-6"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Programa" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.objeto.programa.descripcionPrograma}" />
+
+                            </p:panelGrid>
+                            <p:panelGrid id="pnlGridVer" columns="4"
+                                         columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+
+                                <h:outputText value="Id" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.objeto.id}" />
+
+                                <h:outputText value="Motivo" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.objeto.motivo}" />
+
+                                <h:outputText value="Periodo" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.getPeriodoStr(controlCierreVariablesBean.objeto.periodo)}" />
+
+                                <h:outputText value="Fecha cierre" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.objeto.fechaHoraDesde}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                                </h:outputText>
+
+                                <h:outputText value="Fecha apertura" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{controlCierreVariablesBean.objeto.fechaHoraHasta}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                                </h:outputText>
+                            </p:panelGrid>
+                        </p:panel>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Editar -->
+            <p:dialog header="Editar" id="dialogoEditar" widgetVar="dialogoEditar" appendTo="@(body)" position="center" width="50%" modal="true"  >
+                <h:form id="frmEditar">
+                    <p:panel id="panelEditar" header="Editar periodo de cierre" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelGridEditar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Programa especial" for="programa" style="font-weight:bold"/>
+                            <p:outputLabel id="programa" value="#{controlCierreVariablesBean.objeto.programa.descripcionPrograma}" />
+
+                            <p:outputLabel value="Periodo" for="periodo" style="font-weight:bold"/>
+                            <p:outputLabel id="periodo" value="#{controlCierreVariablesBean.getPeriodoStr(controlCierreVariablesBean.objeto.periodo)}" />
+
+                            <p:outputLabel value="Fecha de cierre " for="fechaHoraDesde" style="font-weight:bold"/>
+                            <p:calendar id="fechaHoraDesde" label="Fecha de cierre" navigator="true" pattern="dd/MM/yyyy HH:mm:ss"
+                                        value="#{controlCierreVariablesBean.objeto.fechaHoraDesde}"
+                                        yearRange="c-1:c+1"  maxlength="10"
+                                        required="true" requiredMessage="Este campo es obligatorio."
+                                        locale="es">
+                                <p:ajax event="dateSelect" update="fechaHoraHasta" />
+                            </p:calendar>
+                             
+                            <p:outputLabel value="Fecha de apertura" for="fechaHoraHasta" style="font-weight:bold"/>
+                            <p:calendar id="fechaHoraHasta" label="Fecha de apertura" navigator="true" pattern="dd/MM/yyyy HH:mm:ss" 
+                                        value="#{controlCierreVariablesBean.objeto.fechaHoraHasta}" 
+                                        yearRange="c-1:c+1"  maxlength="10" mindate="#{controlCierreVariablesBean.fechaActual}"
+                                        required="true" requiredMessage="Este campo es obligatorio."
+                                        locale="es">
+                            </p:calendar>
+
+
+                            <p:outputLabel value="Motivo del cierre" for="nombre" style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" style="width: 100%;" value="#{controlCierreVariablesBean.objeto.motivo}" maxlength="128" required="true" requiredMessage="Este campo es obligatorio."/>
+
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action ="#{controlCierreVariablesBean.modificar}" update="panelEditar"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+
+</ui:composition>

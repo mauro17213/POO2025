@@ -1,0 +1,287 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <h:form id="frmUbicaciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{ubicacionBean.modulo.descripcion}">#{ubicacionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{ubicacionBean.accionListar}" title="Refrescar" class="btn-icono"  ajax="false" action="#{ubicacionBean.refrescar}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{ubicacionBean.accionCrear}" title="Crear"  class="btn-icono"  actionListener="#{ubicacionBean.crear}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{ubicacionBean.lazyUbicacion}" rowKey="#{obj.id}"
+                             rows="#{ubicacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Tipo" filterBy="#{obj.tipo}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 85%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ubicacionBean.tipos}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoStr}" title="#{obj.tipoStr}"/>
+                    </p:column>
+                    <p:column headerText="Padre"  filterBy="#{obj.ubicacionPadre.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Padre" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.ubicacionPadre.nombre}" title="#{obj.ubicacionPadre.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{ubicacionBean.accionVer}" title="Ver" class="btn-icono"  actionListener="#{ubicacionBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{ubicacionBean.accionEditar}" title="Editar" class="btn-icono"   actionListener="#{ubicacionBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{false}" title="Borrar" action="#{ubicacionBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono"  styleClass="ui-confirmdialog-yes"   icon="pi pi-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono"  styleClass="ui-confirmdialog-no"  icon="pi pi-times" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="80%">
+                 <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{ubicacionBean.getAuditoria(ubicacionBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.tipoStr}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Padre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.ubicacionPadre.nombre}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Región" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.maeRegionValor}" />
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Prefijo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.prefijo}" />
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Indicativo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.indicativo}" />
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cobertura" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{ubicacionBean.objeto.coberturaStr}" />
+                            </p:column>
+                        </p:row>
+
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" class="btn-icono"   type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="80%">
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu style="width: 90%" id="tipo" required="true" value="#{ubicacionBean.objeto.tipo}" >
+                                    <p:ajax listener="#{ubicacionBean.cargaPadresTipo}"/>
+                                    <p:ajax listener="#{ubicacionBean.cargaRegiones()}" update="region"/>
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true"/>
+                                    <f:selectItems value="#{ubicacionBean.tipos}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Padre" style="font-weight:bold" for="padre"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:autoComplete id="padre" value="#{ubicacionBean.objeto.ubicacionPadre}" completeMethod="#{ubicacionBean.completarPadre}" var="padre" itemLabel="#{padre.nombre}" itemValue="#{padre}" converter="ubicacionConverter" forceSelection="true"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" style="font-weight:bold" for="nombre"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre"   maxlength="31" required="true" value="#{ubicacionBean.objeto.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Región" style="font-weight:bold" for="region"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="region" label="Región" value="#{ubicacionBean.objeto.maeRegionId}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Región : Este campo es obligatorio para municipios.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ubicacionBean.regiones}" var="region" itemValue="#{region.id}" itemLabel="#{region.nombre}" itemDescription="#{region.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Prefijo" style="font-weight:bold" for="prefijo"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="prefijo" value="#{ubicacionBean.objeto.prefijo}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Indicativo" style="font-weight:bold" for="indicativo"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="indicativo" value="#{ubicacionBean.objeto.indicativo}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cobertura" style="font-weight:bold" for="cobertura"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectBooleanButton id="cobertura" value="#{ubicacionBean.objeto.cobertura}" offLabel="No" onLabel="Sí" />
+                            </p:column>
+                        </p:row>
+
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"   type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{ubicacionBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="80%">
+                 <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{ubicacionBean.getAuditoria(ubicacionBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre"  style="font-weight:bold" for="nombre"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre"   maxlength="31"  required="true" value="#{ubicacionBean.objeto.nombre}">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Región" style="font-weight:bold" for="region" rendered="#{ubicacionBean.objeto.tipo == 3}"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneMenu id="region" label="Región" value="#{ubicacionBean.objeto.maeRegionId}" 
+                                                 editable="fase" style="width: 170px;" requiredMessage="Región : Este campo es obligatorio para municipios." rendered="#{ubicacionBean.objeto.tipo == 3}">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{ubicacionBean.regiones}" var="region" itemValue="#{region.id}" itemLabel="#{region.nombre}" itemDescription="#{region.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Prefijo" style="font-weight:bold" for="prefijo"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="prefijo" value="#{ubicacionBean.objeto.prefijo}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Indicativo" style="font-weight:bold" for="indicativo"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="indicativo" value="#{ubicacionBean.objeto.indicativo}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Cobertura" style="font-weight:bold" for="cobertura"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectBooleanButton id="cobertura" value="#{ubicacionBean.objeto.cobertura}" offLabel="No" onLabel="Sí" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Modificar" class="btn-icono"   type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{ubicacionBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

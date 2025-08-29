@@ -1,0 +1,927 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+
+            </style>
+            <!-- Listar -->
+            <h:form id="frmPrescripciones" style="width: 100%;">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{prescripcionBean.modulo.descripcion}">#{prescripcionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{prescripcionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{prescripcionBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:remoteCommand name="cerrarDialogoMedicamento" action="#{prescripcionBean.cerrarDialogoMedicamentoNutricional()}"/>
+                <p:remoteCommand name="cerrarDialogoTecnologia" action="#{prescripcionBean.cerrarDialogoProcedimiento()}"/>
+                <p:remoteCommand name="cerrarDialogoInsumo" action="#{prescripcionBean.cerrarDialogoDispositivoComplementario()}"/>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{prescripcionBean.lazyPrescripcion}" rowKey="#{obj.id}"
+                             rows="#{prescripcionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100"
+
+                             emptyMessage="No se encontraron registros">
+                    <!--Acciones-->
+                    <p:column headerText="Acciones" style="text-align: center;width: 90px;" >
+                        <p:commandButton rendered="#{prescripcionBean.accionVer}" title="Ver" actionListener="#{prescripcionBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{prescripcionBean.accionEditar}" title="Editar" actionListener="#{prescripcionBean.editar(obj.id,obj.estado)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{prescripcionBean.accionAdicional1 and obj.estado == 0}" title="Gestionar" actionListener="#{prescripcionBean.gestionar(obj.id)}" icon="ui-icon-script"/>
+                        <p:commandButton rendered="#{prescripcionBean.accionAdicional2 and obj.estado == 2}" title="Entregas" actionListener="#{prescripcionBean.listarEntregas(obj.id)}" icon="ui-icon-suitcase"/>
+                        <p:commandButton rendered="#{prescripcionBean.accionBorrar}" title="Borrar" action="#{prescripcionBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <!--Prescripcion-->
+                    <p:column headerText="Id"  filterBy="#{obj.id}" style="width: 50px;">
+                        <f:facet name="filter">
+                            <p:inputText onchange="PF('tablaWidget').filter()" style="width: 80%;"  />                            
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" style="width: 110px;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Creado " itemValue="0" />
+                                <f:selectItem itemLabel=" En Gestión " itemValue="1" />
+                                <f:selectItem itemLabel=" Direccionado " itemValue="2" />
+                                <f:selectItem itemLabel=" No direccionado " itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+                    <p:column headerText="Consecutivo" style="width: 170px;" filterBy="#{obj.consecutivo}">
+                        <f:facet name="filter">
+                            <p:inputText onchange="PF('tablaWidget').filter()" style="width: 97%;"  />
+                        </f:facet>
+                        <h:outputText value="#{obj.consecutivo}"/>
+                    </p:column>
+                    <p:column headerText="Fecha Hora" sortBy="#{obj.fechaHora}" style="width: 130px;">
+                        <h:outputText value="#{obj.fechaHora}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Tecnologia" style="width: 110px;" filterBy="#{obj.tipoTecnologia}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Medicamento " itemValue="1" />
+                                <f:selectItem itemLabel=" Procedimiento " itemValue="2"/>
+                                <f:selectItem itemLabel=" Dispositivo " itemValue="3" />
+                                <f:selectItem itemLabel=" Nutricional " itemValue="4" />
+                                <f:selectItem itemLabel=" Complementario " itemValue="5" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoTecnologiaStr}"/>
+                    </p:column>
+                    <p:column headerText="Documento" filterBy="#{obj.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}" style="width: 90px;">
+                        <f:facet name="filter">
+                            <p:inputText onchange="PF('tablaWidget').filter()" style="width: 88%;"  />
+                        </f:facet>
+                        <h:outputText title="#{obj.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}" value="#{obj.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Prestador" style="width: 150px;">
+                        <h:outputText title="#{obj.cntPrescriptorPrestadorSede.cntPrestador.razonSocial}" value="#{obj.cntPrescriptorPrestadorSede.cntPrestador.razonSocial}"/>
+                    </p:column>
+                    <p:column headerText="Sede" style="width: 150px;">
+                        <h:outputText title="#{obj.cntPrescriptorPrestadorSede.nombreSede}" value="#{obj.cntPrescriptorPrestadorSede.nombreSede}"/>
+                    </p:column>
+                    <p:column headerText="Documento Afiliado" style="width: 150px;" >
+                        <h:outputText title="#{obj.maeAfiliadoTipoDocumentoCodigo} #{obj.afiliadoNumeroDocumento}" value="#{obj.maeAfiliadoTipoDocumentoCodigo} #{obj.afiliadoNumeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Nombres" style="width: 150px;">
+                        <h:outputText title="#{obj.afiliadoNombres}" value="#{obj.afiliadoNombres}"/>
+                    </p:column>
+                    <p:column headerText="Apellidos" style="width: 150px;">
+                        <h:outputText title="#{obj.afiliadoApellidos}" value="#{obj.afiliadoApellidos}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            
+            
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="95%" dynamic="true" style="max-height: 90%">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{prescripcionBean.getAuditoria(prescripcionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form id="frmVer">
+                        <!--Prescripcion-->
+                        <p:panel id="pVerPrescripcion" header="Prescripción" style="margin-bottom:10px;" collapsed="false" toggleable="true" >
+                            <p:panelGrid id="panelVerPrescripcion" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Id" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.estadoStr}"/>
+
+                                <p:outputLabel value="Fecha Hora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.fechaHora}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Recobrante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.recobranteStr}">
+                                    <i class="pi pi-exclamation-triangle" title="#{prescripcionBean.objetoHistorico.recobranteStr}" style=" margin-left: 10px; display: #{prescripcionBean.mostrarIconoRecobrante ? 'inline' : 'none'}"></i>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Ambito Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.ambitoStt(prescripcionBean.objeto.ambito)}">    
+                                    <i class="pi pi-exclamation-triangle" title="#{prescripcionBean.ambitoStt(prescripcionBean.objetoHistorico.ambito)}" style=" margin-left: 10px; display: #{prescripcionBean.mostrarIconoAmbito ? 'inline' : 'none'}"></i>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Referencia/Contra Referencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.referenciaAmbitoAtencion? 'Si' : 'No'}">
+                                    <i class="pi pi-exclamation-triangle" title="#{prescripcionBean.referContra(prescripcionBean.objetoHistorico.referenciaAmbitoAtencion)}" style=" margin-left: 10px; display: #{prescripcionBean.mostrarIconoReferenciaContra ? 'inline' : 'none'}"></i>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Tipo Tecnologia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.tipoTecnologiaStr}">    
+                                    <i class="pi pi-exclamation-triangle" title="#{prescripcionBean.objetoHistorico.tipoTecnologiaStr}" style=" margin-left: 10px; display: #{prescripcionBean.mostrarIconoTecnologia ? 'inline' : 'none'}"></i>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Junta Profesionales" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.actaJuantaProfesionalesStr}"/>
+
+                                <p:outputLabel value="Consentimiento Informado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.concentimientoInformadoStr}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Prestador-->
+                        <p:panel id="pVerPrestador" header="Prescriptor" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVerPrestador" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.nombreSede}"/>
+
+                                <p:outputLabel value="E-mail" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.prescriptorCorreoElectronico}" >
+                                    <i class="pi pi-exclamation-triangle" title="#{prescripcionBean.objetoHistorico.prescriptorCorreoElectronico}" style=" margin-left: 10px; display: #{prescripcionBean.mostrarIconoCorreo ? 'inline' : 'none'}"></i>
+                                </p:outputLabel>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Paciente-->
+                        <p:panel id="pVerPaciente" header="Paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVerPaciente" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.maeAfiliadoTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="# Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNumeroDocumento}"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold" />
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoApellidos}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Adjuntos-->
+                        <p:panel id="pVerAdjuntos" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable var="adj" value="#{prescripcionBean.objeto.listaMpcPrescripcionAdjuntos}"
+                                             emptyMessage="No se encontraron registros" id="tablaAdjuntos"
+                                             widgetVar="tablaWidgetAdjuntos" style="font-size:11px;"
+                                             rowKey="#{adj.id}">
+                                    <p:column headerText="Tipo" style="text-align: center;">
+                                        <h:outputText value="#{adj.tipoStr}"/>
+                                    </p:column>
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{adj.nombreArchivo}"/>
+                                    </p:column>
+                                    <p:column headerText="Acciones" style="text-align: center">
+                                        <p:commandButton title="Descargar" immediate="true" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                            <p:fileDownload value="#{prescripcionBean.descargarAdjunto(adj)}" />
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <!--Direccionamiento-->
+                        <p:panel id="pVerDireccionamiento" header="Direccionamiento" style="margin-bottom:10px;" collapsed="false" toggleable="true" visible="#{prescripcionBean.direccionado}">
+                            <p:panelGrid id="panelVerDireccionamiento" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.maTecnologiaValor}"/>
+
+                                <p:outputLabel value="Cantidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cantidad}"/>
+
+                                <p:outputLabel value="Entregas" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.numeroEntregas}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value=""/>
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.nombreSede}"/>
+
+                            </p:panelGrid>
+                        </p:panel>                        
+                        <!--Entregas-->
+                        <p:panel id="panelEntregaLista" header="Entregas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable var="entr" value="#{prescripcionBean.objeto.listaMpcProgramacionEntregas}"
+                                             emptyMessage="No se encontraron registros" id="tablaEntregas"
+                                             widgetVar="tablaWidgetEntregas" style="font-size:11px;"
+                                             rowKey="#{entr.id}">
+                                    <p:column headerText="Estado" style="text-align: center;">
+                                        <h:outputText value="#{entr.estadoStr}"/>
+                                    </p:column>
+                                    <p:column headerText="Fecha">
+                                        <h:outputText value="#{entr.fechaEntrega}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="# Entrega" style="text-align: center;">
+                                        <h:outputText value="#{entr.numeroEntrega}"/>
+                                    </p:column>
+                                    <p:column headerText="Cantidad" style="text-align: center;">
+                                        <h:outputText value="#{entr.cantidad}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVerAcciones" style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="95%" dynamic="true" style="max-height: 90%">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{prescripcionBean.getAuditoria(prescripcionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form id="frmEditar">
+                        <!--Prescripcion-->
+                        <p:panel id="pEditarPrescripcion" header="Prescripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditarPrescripcion" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Id" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.estadoStr}"/>
+
+                                <p:outputLabel value="Fecha Hora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.fechaHora}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Recobrante" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="recobranteTutelaEditar" value="#{prescripcionBean.objeto.recobrante}" offLabel="No" onLabel="Si" />
+
+                                <p:outputLabel value="Ambito Atención" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoAmbitoAte" value="#{prescripcionBean.objeto.ambito}" required="true" requiredMessage="Ambito: Este campo Es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Ambulatorio - Priorizado" itemValue="11" />
+                                    <f:selectItem itemLabel="Ambulatorio - No Priorizado" itemValue="12" />
+                                    <f:selectItem itemLabel="Hospitalario - Domiciliario" itemValue="21" />
+                                    <f:selectItem itemLabel="Hospitalario - Internacion" itemValue="22" />
+                                    <f:selectItem itemLabel="Urgencias" itemValue="30" />                                           
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Referencia/Contra Referencia" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="recobranteTutela" value="#{prescripcionBean.objeto.referenciaAmbitoAtencion}" offLabel="No" onLabel="Si" />
+
+                                <p:outputLabel value="Tipo Tecnologia" style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoPrescripcion" value="#{prescripcionBean.objeto.tipoTecnologia}" required="true" requiredMessage="Tipo Tecnologia: Este campo Es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Medicamentos" itemValue="1" />
+                                    <f:selectItem itemLabel="Procedimientos (Tecnologias)" itemValue="2" />
+                                    <f:selectItem itemLabel="Dispositivos (Insumos)" itemValue="3" />
+                                    <f:selectItem itemLabel="Productos Nutricionales (Medicamentos)" itemValue="4" />
+                                    <f:selectItem itemLabel="Servicios Complementarios (Insumos)" itemValue="5" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Junta Profesionales" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.actaJuantaProfesionalesStr}"/>
+
+                                <p:outputLabel value="Consentimiento Informado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.concentimientoInformadoStr}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Prestador-->
+                        <p:panel id="pEditarPrestador" header="Prescriptor" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditarPrestador" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Correo Electronico" for="correoElectronicoPrestador" style="font-weight:bold"/>
+                                <p:inputText id="correoElectronicoPrestador" value="#{prescripcionBean.objeto.prescriptorCorreoElectronico}" style="width: 320px;" required="true" requiredMessage="Correo Electronico: este campo es obligatorio" >
+                                    <p:ajax event="blur" listener="#{prescripcionBean.validarCorreo}" update="frmEditar:correoElectronicoPrestador" />
+                                </p:inputText>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Paciente-->
+                        <p:panel id="pEditarPaciente" header="Paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditarPaciente" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.maeAfiliadoTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="# Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNumeroDocumento}"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoApellidos}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVerAcciones" style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarDireccionamientoRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarDireccionamientoRemote" action ="#{prescripcionBean.modificar()}" update="frmEditar"/>
+
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>   
+
+
+            <!-- Direccionar -->
+            <p:dialog header="Direccionar" widgetVar="dialogoDireccionar" appendTo="@(body)" modal="true" width="95%" dynamic="true" style="max-height: 90%">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{prescripcionBean.getAuditoria(prescripcionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form id="frmDireccionar">
+                        <!--Prescripcion-->
+                        <p:panel header="Prescripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Id" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.estadoStr}"/>
+
+                                <p:outputLabel value="Fecha Hora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.fechaHora}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Recobrante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.recobranteStr}"/>
+
+                                <p:outputLabel value="Ambito Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.ambito}">                                            
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Referencia/Contra Referencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.referenciaAmbitoAtencion? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Junta Profesionales" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.actaJuantaProfesionalesStr}"/>
+
+                                <p:outputLabel value="Consentimiento Informado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.concentimientoInformadoStr}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Prestador-->
+                        <p:panel header="Prescriptor" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.codigoHabilitacionSede}"/>
+
+                                <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.cntPrescriptorPrestadorSede.nombreSede}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Paciente-->
+                        <p:panel id="pVerPaciente" header="Paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVerPaciente" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.maeAfiliadoTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="# Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNumeroDocumento}"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoApellidos}"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Adjuntos-->
+                        <p:panel id="pVerAdjuntos" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable var="adj" value="#{prescripcionBean.objeto.listaMpcPrescripcionAdjuntos}"
+                                             emptyMessage="No se encontraron registros" id="tablaAdjuntos"
+                                             widgetVar="tablaWidgetAdjuntos" style="font-size:11px;"
+                                             rowKey="#{adj.id}">
+                                    <p:column headerText="Tipo" style="text-align: center;">
+                                        <h:outputText value="#{adj.tipoStr}"/>
+                                    </p:column>
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{adj.nombreArchivo}"/>
+                                    </p:column>
+                                    <p:column headerText="Acciones" style="text-align: center">
+                                        <p:commandButton title="Descargar" immediate="true" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                            <p:fileDownload value="#{prescripcionBean.descargarAdjunto(adj)}" />
+                                        </p:commandButton>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <!--Direccionamiento-->
+                        <p:panel id="pVerDireccionamiento" header="Direccionamiento" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panel id="pVerDireccionamiento2" header="Tecnologia" style="margin-bottom:10px;text-align: center" >
+                                <p:panelGrid id="panelVerDireccionamiento" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <p:outputLabel value="Tecnología" style="font-weight:bold"/>
+
+                                    <p:commandButton rendered="#{prescripcionBean.objeto.tipoTecnologia == 1 or prescripcionBean.objeto.tipoTecnologia == 4}" immediate="true" action="#{prescripcionBean.consultarMedicaMentoNutricional()}" icon="ui-icon-heart" title="Agregar Medicamento/Nutricional"/>
+                                    <p:commandButton rendered="#{prescripcionBean.objeto.tipoTecnologia == 2}" immediate="true" action="#{prescripcionBean.consultarProcedimientoDispositivo()}" icon="ui-icon-clipboard" title="Agregar Procedimiento"/>
+                                    <p:commandButton rendered="#{prescripcionBean.objeto.tipoTecnologia == 3 or prescripcionBean.objeto.tipoTecnologia == 5}" immediate="true" action="#{prescripcionBean.consultarInsumoComplementario()}" icon="ui-icon-cart" title="Agregar Complementario/Dispositivo"/>
+
+                                    <p:outputLabel value="Nombre Tecnología" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.maTecnologiaValor}"/>
+
+                                    <p:outputLabel value="Cantidad" for="cantidad" style="font-weight:bold"/>
+                                    <p:inputNumber id="cantidad" value="#{prescripcionBean.objeto.cantidad}" minValue="0" maxValue="9999" maxlength="4" decimalPlaces="0">
+                                        <p:ajax event="change" />
+                                    </p:inputNumber>
+
+                                    <p:outputLabel value="Entregas" for="numeroEntregas" style="font-weight:bold"/>
+                                    <p:inputNumber id="numeroEntregas" value="#{prescripcionBean.objeto.numeroEntregas}" minValue="0" maxValue="36" maxlength="2" decimalPlaces="0">
+                                        <p:ajax event="change" />
+                                    </p:inputNumber>
+                                </p:panelGrid>
+                            </p:panel>
+                            <p:spacer></p:spacer>
+                            <p:panel id="pVerDireccionamiento3" header="Proveedor" style="margin-bottom:10px;text-align: center" >
+                                <p:panelGrid id="panelVerDireccionamiento2" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <p:outputLabel value="Proveedor" style="font-weight:bold"/>                               
+
+                                    <p:commandButton immediate="true" action="#{prescripcionBean.consultarProveedor()}" icon="ui-icon-home" title="Proveedor"/>
+
+                                    <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                    <p:outputLabel value="Nombre Prestador" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                    <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.codigoHabilitacionSede}"/>
+
+                                    <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.nombreSede}"/>
+
+                                </p:panelGrid>
+                            </p:panel>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Direccionar" type="button" onclick="guardarDireccionamientoRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarDireccionamientoRemote" action ="#{prescripcionBean.guardarDireccionamiento(prescripcionBean.objeto.id)}" update="frmCrearEntrega"/>
+                                        <p:commandButton value="Rechazar" type="button" onclick="rechazarDireccionamientoRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="rechazarDireccionamientoRemote" action ="#{prescripcionBean.abrirJustificarRechazo(prescripcionBean.objeto)}" update="frmCrearEntrega"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoDireccionar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>     
+            </p:dialog>
+
+
+            <!-- Listar Entregas -->
+            <p:dialog header="Entregas" widgetVar="dialogoEntregas" appendTo="@(body)" modal="true" width="95%" style="max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form id="frmEntregas" >
+                        <!--Prescripcion-->
+                        <p:panel id="pVerPrescripcion" header="Prescripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVerPrescripcion" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                                <p:outputLabel value="Id" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.estadoStr}"/>
+
+                                <p:outputLabel value="Fecha Hora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.fechaHora}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Recobrante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.recobranteStr}"/>
+
+                                <p:outputLabel value="Ambito Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.ambitoStt(prescripcionBean.objeto.ambito)}">                                            
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Referencia/Contra Referencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.referenciaAmbitoAtencion? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Junta Profesionales" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.actaJuantaProfesionalesStr}"/>
+
+                                <p:outputLabel value="Concentimiento Informado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.concentimientoInformadoStr}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Paciente-->
+                        <p:panel id="pVerPaciente" header="Paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelVerPaciente" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.maeAfiliadoTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="# Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNumeroDocumento}"/>
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoNombres}"/>
+
+                                <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                                <p:outputLabel value="#{prescripcionBean.objeto.afiliadoApellidos}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Direccionamiento-->
+                        <p:panel id="pVerDireccionamiento" header="Direccionamiento" style="margin-bottom:10px;" collapsed="false" toggleable="true" visible="#{prescripcionBean.direccionado}">
+                            <p:panel id="pVerDireccionamiento2" header="Tecnologia" style="margin-bottom:10px;text-align: center" >
+                                <p:panelGrid id="panelVerDireccionamiento" columns="4" 
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >                                  
+
+
+                                    <p:outputLabel value="Nombre Tecnología" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.maTecnologiaValor}"/>
+
+                                    <p:outputLabel value="Cantidad"  style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cantidad}" >
+                                    </p:outputLabel>
+
+                                    <p:outputLabel value="Entregas"  style="font-weight:bold"/>
+                                    <p:outputLabel  value="#{prescripcionBean.objeto.numeroEntregas}">                                       
+                                    </p:outputLabel>
+                                </p:panelGrid>
+                            </p:panel>
+                            <p:spacer></p:spacer>
+                            <p:panel id="pVerDireccionamiento3" header="Proveedor" style="margin-bottom:10px;text-align: center" >
+                                <p:panelGrid id="panelVerDireccionamiento2" columns="4"
+                                             columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+
+                                    <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.maeTipoDocumentoRepCodigo} #{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.numeroDocumento}"/>
+
+                                    <p:outputLabel value="Nombre Prestador" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.cntPrestador.razonSocial}"/>
+
+                                    <p:outputLabel value="Código Habilitación" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.codigoHabilitacionSede}"/>
+
+                                    <p:outputLabel value="Sede" style="font-weight:bold"/>
+                                    <p:outputLabel value="#{prescripcionBean.objeto.cntDireccionadoPrestadorSede.nombreSede}"/>
+
+                                </p:panelGrid>
+                            </p:panel>
+                        </p:panel>
+                        <!--Entregas-->
+                        <p:panel id="panelEntregaLista" header="Entregas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:scrollPanel mode="native">
+                                <p:toolbar>
+                                    <f:facet name="right">
+                                        <p:commandButton rendered="#{prescripcionBean.accionAdicional2}" title="Entrega" actionListener="#{prescripcionBean.crearEntrega(prescripcionBean.objeto.id)}" icon="ui-icon-document"/>
+                                    </f:facet>
+                                </p:toolbar>
+                                <p:dataTable var="entr" value="#{prescripcionBean.objeto.listaMpcProgramacionEntregas}"
+                                             emptyMessage="No se encontraron registros" id="tablaEntregas"
+                                             widgetVar="tablaWidgetEntregas" style="font-size:11px;"
+                                             rowKey="#{entr.id}">
+                                    <p:column headerText="Estado" style="text-align: center;">
+                                        <h:outputText value="#{entr.estadoStr}"/>
+                                    </p:column>
+                                    <p:column headerText="Fecha">
+                                        <h:outputText value="#{entr.fechaEntrega}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column headerText="# Entrega" style="text-align: center;">
+                                        <h:outputText value="#{entr.numeroEntrega}"/>
+                                    </p:column>
+                                    <p:column headerText="Cantidad" style="text-align: center;">
+                                        <h:outputText value="#{entr.cantidad}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEntregas').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <!-- Crear Entraga -->
+            <p:dialog header="Crear Entrega" widgetVar="dialogoCrearEntrega" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 200px;">
+                    <h:form id="frmCrearEntrega">
+                        <!--Entrega-->
+                        <p:panel header="Prescripción" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Estado" for="estado" style="font-weight:bold"/>
+                                <p:selectOneMenu id="estado" value="#{prescripcionBean.objetoEntrega.estado}" style="width: 200px;" filter="true" required="true" requiredMessage="Estado: Este campo es obligatorio" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" />
+                                    <f:selectItem itemLabel="Entregado" itemValue="1" />
+                                    <f:selectItem itemLabel="No Entregado" itemValue="2" />
+                                    <p:ajax event="change" update="fechaEntrega cantidad causaNoEntrega"/>
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Fecha Entrega" for="fechaEntrega" style="font-weight:bold"/>
+                                <p:datePicker id="fechaEntrega" yearRange="c-100:c+1" pattern="yyyy-MM-dd" value="#{prescripcionBean.objetoEntrega.fechaEntrega}" required="true" requiredMessage="La fecha entrega : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Cantidad" for="cantidad" style="font-weight:bold"/>
+                                <p:inputNumber id="cantidad" disabled="#{prescripcionBean.objetoEntrega.estado != 1}" value="#{prescripcionBean.objetoEntrega.cantidad}" minValue="1" maxValue="999" decimalPlaces="0" required="true" />
+
+                                <p:outputLabel value="Causa no entrega" for="causaNoEntrega" style="font-weight:bold"/>
+                                <p:selectOneMenu id="causaNoEntrega" disabled="#{prescripcionBean.objetoEntrega.estado != 2}" value="#{prescripcionBean.objetoEntrega.causaNoEntrega}" style="width: 200px;" filter="true" required="true" requiredMessage="Estado: Este campo es obligatorio" >
+                                    <f:selectItem itemLabel=" -- " itemValue="0" />
+                                    <f:selectItem itemLabel="El paciente se niega a recibir el suministro" itemValue="1" />
+                                    <f:selectItem itemLabel="Paciente fallecido" itemValue="2" />
+                                    <f:selectItem itemLabel="No fue posible contactar al paciente" itemValue="3" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarEntregaRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarEntregaRemote" action ="#{prescripcionBean.guardarEntrega}" update="frmCrearEntrega"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearEntrega').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <!-- Lista Proveedor -->
+            <p:dialog header="Consultar Proveedor" widgetVar="dialogoIpsLista" class="modal-no-scroll" minHeight="50" appendTo="@(body)" modal="true"  width="95%" height="80%" dynamic="true">  
+                <p:scrollPanel mode="native" style="max-height: 500px; padding-bottom: 0px !important;" >
+                    <h:form id="frmIpsLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{auSolicitudBean.accionListar}" title="Refrescar" actionListener="#{prescripcionBean.refrescarIps()}" oncomplete="PF('tablaWidgetIps').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelIpsLista" style="height:auto;" columns="1">
+
+                            <p:dataTable id="tablaRegistrosIps" widgetVar="tablaWidgetIps" var="objPrestador" value="#{prescripcionBean.lazyIps}" rowKey="#{objPrestador.id}"
+                                         rows="#{prescripcionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{prescripcionBean.onRowSelectIps}"/>
+                                <p:column headerText="Código Habilitación" filterBy="#{objPrestador.codigoHabilitacionSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Habilitación" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Documento" filterBy="#{objPrestador.cntPrestador.maeTipoDocumentoId}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{prescripcionBean.listaTipoDocumentoPrestador}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Número Documento" filterBy="#{objPrestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Número Documento" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón Social" filterBy="#{objPrestador.cntPrestador.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Razón Social" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.razonSocial}"/>
+                                </p:column>                                    
+                                <p:column headerText="Nombre Sede" filterBy="#{objPrestador.nombreSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre Sede" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Departamento">
+                                    <h:outputText value="#{auSolicitudBean.obtenerDepartamento(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Municipio" filterBy="#{objPrestador.ubicacion.id}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{prescripcionBean.listaCiudades}" var="tipoUbi" itemValue="#{tipoUbi.id}" itemLabel="#{tipoUbi.descripcion}" itemDescription="#{tipoUbi.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{prescripcionBean.obtenerMunicipio(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Dirección" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <!-- Justificacion Rechazo -->
+            <p:dialog header="Juztificación Rechazo" widgetVar="dialogoJustificarRechazo" appendTo="@(body)" modal="true" width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 300px;">
+                    <h:form id="frmJustificacionRechazo">
+                        <!--Entrega-->
+                        <p:panel header="Justificación" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel  value="Mensaje"  style="font-weight:bold" /> 
+                                <p:outputLabel id="txtMenCorreo" value="#{prescripcionBean.rechazoJustificacionCorreo}" style="width: 85%" />
+
+                                <p:outputLabel value="Justificación" for="justificacionRechazo"  style="font-weight:bold"/>
+                                <p:inputTextarea id="justificacionRechazo" value="#{prescripcionBean.objeto.rechazoJustificacion}" rows="4" maxlength="1024" required="true" requiredMessage="La Justificación : Este campo es obligatorio" style="width:100%" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Rechazar" type="button" onclick="rechazarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="rechazarRemote" action ="#{prescripcionBean.rechazar}" update="frmJustificacionRechazo"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoJustificarRechazo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <!-- Include -->
+            <ui:include src="../../maestro/seleccion/sel_medicamentos.xhtml" />
+            <ui:include src="../../maestro/seleccion/sel_tecnologias.xhtml" />
+            <ui:include src="../../maestro/seleccion/sel_insumos.xhtml" />
+        </center>
+    </ui:define>
+
+</ui:composition>

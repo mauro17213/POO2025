@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <center>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                td {
+                    border: 1px solid #dddddd!important;
+                }
+                .contenedorBoton {
+                    display: flex;
+                    justify-content: center;
+                    text-align: center;
+                }
+            </style>
+            <h:form id="frmCargaMasivaAnulacionesSolicitudes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{auAnexo3CargaAnuladaBean.modulo.descripcion}">#{auAnexo3CargaAnuladaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{auAnexo3CargaAnuladaBean.accionListar}" 
+                                         title="Refrescar" ajax="true" 
+                                         actionListener="#{auAnexo3CargaAnuladaBean.listar()}" 
+                                         icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{auAnexo3CargaAnuladaBean.accionCrear}" 
+                                         title="Crear Adjunto" ajax="true" 
+                                         actionListener="#{auAnexo3CargaAnuladaBean.crear}" 
+                                         icon="ui-icon-circle-arrow-n"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{auAnexo3CargaAnuladaBean.lazyAuAnexo3CargaAnuladas}" paginator="true" rows="#{auAnexo3CargaAnuladaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"  tableStyle="table-layout:auto;overflow:hidden;"
+                             style="font-size:11px;width:110%;"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        
+                        <p:commandButton  rendered="#{auAnexo3CargaAnuladaBean.accionAdicional1}" title="Descargar Archivo"
+                                          ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                            <p:fileDownload value="#{auAnexo3CargaAnuladaBean.descargarArchivo(obj)}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAnexo3CargaAnuladaBean.accionAdicional2 and auAnexo3CargaAnuladaBean.validarVerSucesos(obj.estado)}" title="Ver Sucesos"
+                                         ajax="true"
+                                         actionListener="#{auAnexo3CargaAnuladaBean.consultarSucesos(obj.id)}"
+                                         icon="ui-icon-script">
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAnexo3CargaAnuladaBean.accionAdicional3 and auAnexo3CargaAnuladaBean.validarEstadoCambioCarga(obj.estado)}" title="Gestionar Estado Carga" actionListener="#{auAnexo3CargaAnuladaBean.cambiarEstado(obj.id)}" icon="ui-icon-transferthick-e-w"/>
+                    </p:column>
+
+                    <p:column headerText="Consecutivo Carga" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Archivo" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Archivo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="EN COLA" itemValue="0" />
+                                <f:selectItem itemLabel="PROCESANDO" itemValue="1" />
+                                <f:selectItem itemLabel="PROCESADO" itemValue="2" />
+                                <f:selectItem itemLabel="CANCELADO" itemValue="3" />
+                                <f:selectItem itemLabel="PROCESADO INCOMPLETO" itemValue="4" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column> 
+                    <p:column headerText="Inicio" filterBy="#{obj.fechaHoraInicio}">
+                        <f:facet name="filter">
+                            <p:calendar locale="es"
+                                        autocomplete="off"
+                                        navigator="true"
+                                        pattern="yyyy-MM-dd HH:mm"
+                                        size="20" 
+                                        maxlength="10" onchange="PF('tablaWidget').filter()"
+                                        style="width: 100%;padding-right:0px;">
+                                <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                            </p:calendar>
+                        </f:facet>
+                        <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Registros">
+                        <h:outputText value="#{obj.registros}"/>
+                    </p:column>
+
+                    <p:column headerText="Exitosos">
+                        <h:outputText value="#{obj.exitosos}" title="#{obj.exitosos}"/>
+                    </p:column>
+
+                    <p:column headerText="Fallidos">
+                        <h:outputText value="#{obj.fallidos}" title="#{obj.fallidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Fin" filterBy="#{obj.fechaHoraFin}">
+                        <f:facet name="filter">
+                            <p:calendar locale="es"
+                                        autocomplete="off"
+                                        navigator="true"
+                                        pattern="yyyy-MM-dd HH:mm"
+                                        maxlength="10" onchange="PF('tablaWidget').filter()">
+                                <f:convertDateTime type="dateTime" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                            </p:calendar>
+                        </f:facet>
+                        <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario responsable" filterBy="#{obj.usuarioCrea}">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario responsable" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- crear -->            
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="50%" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrear" >
+                        <p:panelGrid id="panelCrear">                            
+                            <p:row>
+                                <p:column class="ui-g-12" style="text-align: center">
+                                     <p:fileUpload id="cargarDocumento" label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                          invalidFileMessage="Tipo inválido de archivo"
+                                          listener="#{auAnexo3CargaAnuladaBean.guardar}" mode="advanced" style="width: 100%;" dragDropSupport="false"
+                                          required="true" requiredMessage="Se debe agregar un Documento." 
+                                          sizeLimit="10000000" allowTypes="/(\.|\/)(xlsx)$/"  multiple="false"/>   
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <!-- Pantalla para ver sucesos -->            
+            <p:dialog header="Ver Sucesos" widgetVar="dialogoVerSucesos" appendTo="@(body)" position="center" width="90%" modal="true" dynamic="true">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmVerSucesos">
+                        <div align="right">
+                            <p:commandButton title="Refrescar" actionListener="#{auAnexo3CargaAnuladaBean.refrescarSucesos()}"
+                                             oncomplete="PF('widgetSucesos').filter()" icon="ui-icon-refresh"/>
+                            <h:commandLink>
+                                <p:commandButton title="Descargar" icon="pi pi-download pi-icono-negro" ajax="false" />
+                                <p:dataExporter type="csv" 
+                                                target="tablaSucesos" 
+                                                fileName="sucesos_carga_solicitudes"
+                                                encoding="ISO-8859-1" pageOnly="false" />
+                            </h:commandLink>
+                        </div>
+                        <p:panel id="pSucesos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSucesos" 
+                                                 widgetVar="widgetSucesos" 
+                                                 var="objSuceso" 
+                                                 value="#{auAnexo3CargaAnuladaBean.lazySucesos}" 
+                                                 rowKey="#{objSuceso.id}"
+                                                 rows="#{auAnexo3CargaAnuladaBean.tamanoPagina}" 
+                                                 paginator="true" 
+                                                 lazy="true" 
+                                                 reflow="true" style="font-size:11px;width:100%;"
+                                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                                 rowsPerPageTemplate="5,10,30,50,100" 
+                                                 emptyMessage= "No se encontraron sucesos">
+
+                                <p:column headerText="Número Solicitudes"  filterBy="#{objSuceso.auAnexos3Id.id}">
+                                    <f:facet name="filter">
+                                        <p:inputNumber label="Número Solicitudes" maxlength="128" 
+                                                    style="width: 95%;" decimalPlaces="0" thousandSeparator=""
+                                                    minValue="0"
+                                                    onkeypress=" if (event.keyCode === 13) { 
+                                                                    onchange();
+                                                                    return false;
+                                                                }"  
+                                                    onchange="PF('widgetSucesos').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objSuceso.auAnexos3Id.id}"/>
+                                </p:column>
+                                <p:column headerText="Fila"  filterBy="#{objSuceso.fila}">
+                                    <f:facet name="filter">
+                                        <p:inputNumber label="Fila" maxlength="128" 
+                                                    style="width: 95%;" decimalPlaces="0" thousandSeparator=""
+                                                    minValue="0" maxValue="100000"
+                                                    onkeypress=" if (event.keyCode === 13) { 
+                                                                    onchange();
+                                                                    return false;
+                                                                }"  
+                                                    onchange="PF('widgetSucesos').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objSuceso.fila}"/>
+                                </p:column>
+                                <p:column headerText="Estado" filterBy="#{objSuceso.estado}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('widgetSucesos').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="PENDIENTE" itemValue="0" />
+                                            <f:selectItem itemLabel="EXITOSO" itemValue="1" />
+                                            <f:selectItem itemLabel="FALLIDO" itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objSuceso.estadoStr}"/>
+                                </p:column> 
+                                <p:column headerText="Descripcion">
+                                    <h:outputText value="#{objSuceso.detalleFallo}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <h:panelGroup id ="hPanelSucesos">
+                            <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                                <f:facet name="footer">
+                                    <p:row style="text-align:center;">
+                                        <p:column colspan="6" style="text-align: center">
+                                            <p:commandButton value="Salir" type="button" 
+                                                             onclick="PF('dialogoVerSucesos').hide()" 
+                                                             immediate="true" 
+                                                             style="margin-left: 5px;"/>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </h:panelGroup>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog> 
+        </center>
+    </ui:define>
+</ui:composition>

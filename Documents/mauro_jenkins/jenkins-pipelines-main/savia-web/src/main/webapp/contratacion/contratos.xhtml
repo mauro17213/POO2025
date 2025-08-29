@@ -1,0 +1,2195 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmContratos">
+                <p:remoteCommand name="cerrarDialogoSelPrestador" action="#{contratosBean.cerrarDialogoCntPrestador()}"/>
+                <p:remoteCommand name="cerrarDialogoSelPrestadorSedesGenerico" action="#{contratosBean.cerrarDialogoCntPrestadorSede()}"/>
+                <p:remoteCommand name="cerrarDialogoMedicamento" action="#{contratosBean.cerrarDialogoMaMedicamento()}"/>
+                <p:remoteCommand name="cerrarDialogoInsumo" action="#{contratosBean.cerrarDialogoMaInsumo()}"/>
+                <p:remoteCommand name="cerrarDialogoTecnologia" action="#{contratosBean.cerrarDialogoMaTecnologia()}"/>
+                <p:remoteCommand name="cerrarDialogoPaquete" action="#{contratosBean.cerrarDialogoMaPaquete()}"/>
+                <p:remoteCommand name="cerrarDialogoIss2000" action="#{contratosBean.cerrarDialogoMaIss2000()}"/>
+                <p:remoteCommand name="cerrarDialogoIss2001" action="#{contratosBean.cerrarDialogoMaIss2001()}"/>
+                <p:remoteCommand name="cerrarDialogoSoat" action="#{contratosBean.cerrarDialogoMaSoat()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{contratosBean.modulo.descripcion}">#{contratosBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{contratosBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{contratosBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{contratosBean.accionCrear}" title="Crear" ajax="false" actionListener="#{contratosBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{contratosBean.lazyContratoSedes}" paginator="true" rows="#{contratosBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="false"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column colspan="1" headerText="Acciones" />
+                            <p:column colspan="4" headerText="Contrato" />
+                            <p:column colspan="2" headerText="Prestador" />
+                            <p:column colspan="5" headerText="Sede" />
+                        </p:row>
+                        <p:row>
+                            <p:column headerText="" style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value=" "/>
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Contrato" sortBy="#{obj.cntContrato.contrato}" filterBy="#{obj.cntContrato.contrato}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaWidget').filter()" />
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Fecha Inicial" sortBy="#{obj.cntContrato.fechaInicio}">
+                            </p:column>
+                            <p:column headerText="Fecha Final" sortBy="#{obj.cntContrato.fechaFin}">
+                            </p:column>
+                            <p:column headerText="Estado del Contrato" filterBy="#{obj.cntContrato.maeEstadoContratoId}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{contratosBean.listaEstadoContrato}" var="estadoCon" itemValue="#{estadoCon.id}" itemLabel="#{estadoCon.nombre}" itemDescription="#{estadoCon.descripcion}"/>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="NIT" sortBy="#{obj.cntContrato.cntPrestador.numeroDocumento}" filterBy="#{obj.cntContrato.cntPrestador.numeroDocumento}">
+                                <f:facet name="filter">
+                                    <p:inputText label="NIT" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidget').filter()" />
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Nombre" sortBy="#{obj.cntContrato.cntPrestador.razonSocial}" filterBy="#{obj.cntContrato.cntPrestador.razonSocial}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidget').filter()" />
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Modalidad Contrato" filterBy="#{obj.maeModalidadContratoId}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{contratosBean.listaModalidadContrato}" var="modalidad" itemValue="#{modalidad.id}" itemLabel="#{modalidad.nombre}" itemDescription="#{modalidad.descripcion}"/>
+                                    </p:selectOneMenu>
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Código de Habilitación" sortBy="#{obj.cntPrestadorSede.codigoHabilitacionSede}" filterBy="#{obj.cntPrestadorSede.codigoHabilitacionSede}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Código de Habilitación" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidget').filter()" />
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Nombre" sortBy="#{obj.cntPrestadorSede.nombreSede}" filterBy="#{obj.cntPrestadorSede.nombreSede}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaWidget').filter()" />
+                                </f:facet>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Crea" sortBy="#{obj.fechaHoraCrea}">
+                            </p:column>
+                            <p:column headerText="Acciones Sede" style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones Sede"/>
+                                </f:facet>
+                            </p:column>
+                        </p:row>
+                    </p:columnGroup>
+                    <p:column groupRow="true" style="text-align: center;">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <p:commandButton rendered="#{contratosBean.accionVer}" title="Ver" actionListener="#{contratosBean.ver(obj.cntContrato.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{contratosBean.accionEditar}" title="Editar" actionListener="#{contratosBean.editar(obj.cntContrato.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{contratosBean.accionBorrar}" title="Borrar" action="#{contratosBean.borrar(obj.cntContrato.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Nota Técnica" actionListener="#{contratosBean.listarNotaTecnica(obj.cntContrato.id)}" icon="ui-icon-note"/>
+                        <p:commandButton rendered="#{contratosBean.accionAdicional10}" title="Autoriza Gestión" action="#{contratosBean.autorizarGestionContrato(obj.cntContrato.id)}" icon="ui-icon-disk">
+                            <p:confirm header="Confirmación" message="Está seguro de que desea autorizar la gestión del contrato?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.contrato}" title="#{obj.cntContrato.contrato}"/>
+                    </p:column>
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.fechaInicio}" title="#{obj.cntContrato.fechaInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.fechaFin}" title="#{obj.cntContrato.fechaFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.maeEstadoContratoValor}" title="#{obj.cntContrato.maeEstadoContratoValor}"/>
+                    </p:column>
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.cntPrestador.numeroDocumento}" title="#{obj.cntContrato.cntPrestador.numeroDocumento}"/>
+                    </p:column>
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.cntContrato.cntPrestador.razonSocial}" title="#{obj.cntContrato.cntPrestador.razonSocial}"/>
+                    </p:column>
+                    <p:column>
+                        <h:outputText value="#{obj.cntContrato.id}" title="#{obj.cntContrato.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.maeModalidadContratoValor}" title="#{obj.maeModalidadContratoValor}"/>
+                    </p:column>
+                    <p:column>
+                        <h:outputText value="#{obj.cntPrestadorSede.codigoHabilitacionSede}" title="#{obj.cntPrestadorSede.codigoHabilitacionSede}"/>
+                    </p:column>
+                    <p:column>
+                        <h:outputText value="#{obj.cntPrestadorSede.nombreSede}" title="#{obj.cntPrestadorSede.nombreSede}"/>
+                    </p:column>
+                    <p:column>
+                        <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <p:commandButton rendered="#{contratosBean.accionAdicional2 and obj.cntContrato.autorizaGestion}" title="Gestión Detalles" actionListener="#{contratosBean.gestionarTecnologiasSede(obj.id)}" icon="ui-icon-calculator"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="80%">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContrato.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panel header="Datos del contrato" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelContratos" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Contrato"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.contrato}" />
+
+                                <p:outputLabel value="Afiliados"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.numAfiliados}" />
+
+                                <p:outputLabel value="Fecha Inicial"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.fechaInicio}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Final"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.fechaFin}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Estado Contrato"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.maeEstadoContratoValor}" />
+
+                                <p:outputLabel value="Activo"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.activoStr}" />
+
+                                <p:outputLabel value="Valor"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.valor}" >
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Valor Mes"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.valorMes}" >
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Valor Presupuesto Total"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.valorPresupuestoTotal}" >
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Días límite de Pago"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.diasLimitePago}" />
+
+                                <p:outputLabel value="Objeto del Contrato" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.descripcion}" />
+
+                                <p:outputLabel value="Régimen"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.maeRegimenValor}" />
+                                
+                                <p:outputLabel value="Ejecución Contrato Autorizado"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.ejecucionContratoAutorizado}" >
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </p:outputLabel>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Información Prestador" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelPrestador" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código MinSalud"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.codigoMinSalud}" />
+
+                                <p:outputLabel value="Clase Prestador"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.maeClasePrestadorValor}" />
+
+                                <p:outputLabel value="Tipo Documento"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.getTipoDocumento(contratosBean.objetoContrato.cntPrestador.maeTipoDocumentoId)}" />
+
+                                <p:outputLabel value="Documento"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.numeroDocumento}" />
+
+                                <p:outputLabel value="Razón Social"   style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.razonSocial}" />
+
+                                <p:outputLabel value="Categoría" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.categoriaPrestador}" />
+
+                                <p:outputLabel value="Nivel de Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.nivelAtencion}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Sedes" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable id="tablaSedes" var="sede" value="#{contratosBean.objetoContrato.listaContratoSedes}" widgetVar="tablaWidgetSedes" 
+                                         scrollable="true" emptyMessage="No se encontraron registros" rows="10" paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" >
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.cntPrestadorSede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="width: 280px;">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Nivel de Atención">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nivelAtencion}"/>
+                                </p:column>
+                                <p:column headerText="Modalidad Contrato Sede">
+                                    <h:outputText value="#{sede.maeModalidadContratoValor}"/>
+                                </p:column>
+                                <p:column headerText="Observación" style="width: 240px;">
+                                    <h:outputText value="#{sede.observacion}"/>
+                                </p:column>
+                                <p:column headerText="Acciones" style="width: 60px;">
+                                    <p:commandButton title="Ver" actionListener="#{contratosBean.verDetalleContratoSede(sede)}" icon="ui-icon-search"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form id="frmCrear">
+                        <p:panel header="Datos del contrato" style="height:auto; width:98%" toggleable="true">
+                            <p:panelGrid id="panelCrearContrato" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                                <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                <p:inputText id="contrato" label="Contrato" value="#{contratosBean.objetoContrato.contrato}" maxlength="32" required="true" requiredMessage="Contrato: Este campo es obligatorio.">
+                                    <p:keyFilter regEx="/[0-9\-]/i"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Afiliados" for="numAfiliados" style="font-weight:bold"/>
+                                <p:inputNumber id="numAfiliados" label="Afiliados" value="#{contratosBean.objetoContrato.numAfiliados}" maxValue="9999999" minValue="0" required="false" requiredMessage="Afiliados: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Fecha Inicial" for="fechaInicio" style="font-weight:bold"/>
+                                <p:calendar id="fechaInicio" label="Fecha Inicial" navigator="true" pattern="yyyy-MM-dd" 
+                                            value="#{contratosBean.objetoContrato.fechaInicio}" 
+                                            yearRange="c-100:c+10"  maxlength="10" required="true" requiredMessage="Fecha Inicial: Este campo es obligatorio." >
+                                    <p:ajax event="dateSelect" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                    <p:ajax event="change" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                </p:calendar>
+
+                                <p:outputLabel value="Fecha Final" for="fechaFin" style="font-weight:bold"/>
+                                <p:calendar id="fechaFin" label="Fecha Final" navigator="true" pattern="yyyy-MM-dd"
+                                            value="#{contratosBean.objetoContrato.fechaFin}" 
+                                            yearRange="c-100:c+10"   maxlength="10" required="true" requiredMessage="Fecha Final: Este campo es obligatorio." >
+                                    <p:ajax event="dateSelect" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                    <p:ajax event="change" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                </p:calendar>
+
+                                <p:outputLabel value="Estado Contrato" for="estadoContrato"  style="font-weight:bold"/>
+                                <p:outputLabel id="estadoContrato" value="#{contratosBean.objetoContrato.maeEstadoContratoValor}" />
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="activo" value="#{contratosBean.objetoContrato.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px"/>
+
+                                <p:outputLabel value="Valor" for="valor" style="font-weight:bold"/>
+                                <p:inputNumber id="valor" label="Valor" value="#{contratosBean.objetoContrato.valor}" maxValue="999999999999.99" 
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Valor Mes" for="valorMes" style="font-weight:bold"/>
+                                <p:inputNumber id="valorMes" label="Valor Mes" value="#{contratosBean.objetoContrato.valorMes}" maxValue="999999999999.99" 
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Mes: Este campo es obligatorio." />
+
+                                <p:outputLabel value="Valor Presupuesto Total" for="valorPptoTotal" style="font-weight:bold"/>
+                                <p:inputNumber id="valorPptoTotal" label="Valor Presupuesto Total" value="#{contratosBean.objetoContrato.valorPresupuestoTotal}" maxValue="999999999999.99" 
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor Presupuesto Total: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Días Límite de Pago" for="diasLimite" style="font-weight:bold"/>
+                                <p:inputText id="diasLimite" label="Días Límite de Pago" value="#{contratosBean.objetoContrato.diasLimitePago}" maxlength="8" required="false" requiredMessage="Días Límite de Pago: Este campo es obligatorio." >
+                                    <p:keyFilter regEx="/[\d]/"/>
+                                </p:inputText>
+
+                                <p:outputLabel value="Objeto del Contrato" for="objContrato" style="font-weight:bold"/>
+                                <p:inputTextarea id="objContrato" label="Objeto del Contrato" value="#{contratosBean.objetoContrato.descripcion}" maxlength="1024" required="true" requiredMessage="Objeto del Contrato: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Régimen" for="regimenContrato" style="font-weight:bold"/>
+                                <p:selectOneMenu id="regimenContrato" label="Régimen" required="false" value="#{contratosBean.objetoContrato.maeRegimenId}" 
+                                                 editable="fase" requiredMessage="Régimen: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{contratosBean.listaRegimenContrato}" var="REGIMEN_CONTRATO" itemValue="#{REGIMEN_CONTRATO.id}" itemLabel="#{REGIMEN_CONTRATO.nombre}" itemDescription="#{REGIMEN_CONTRATO.descripcion}" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Información Prestador" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right"> 
+                                 a<p:commandButton id="botonConsultarPrestador" immediate="true" action="#{contratosBean.consultarCntPrestador()}" icon="ui-icon-home" title="Prestador" />
+                            </div>
+                            <p:panelGrid id="panelCrearPrestador" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código MinSalud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.codigoMinSalud}" />
+
+                                <p:outputLabel value="Clase Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.maeClasePrestadorValor}" />
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.getTipoDocumento(contratosBean.objetoContrato.cntPrestador.maeTipoDocumentoId)}" />
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.numeroDocumento}" />
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.razonSocial}" />
+
+                                <p:outputLabel value="Categoría" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.categoriaPrestador}" />
+
+                                <p:outputLabel value="Nivel de Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.nivelAtencion}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Sedes" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{contratosBean.consultarCntPrestadorSede()}" icon="ui-icon-home" title="Agregar Sede"/>
+                            </div>
+                            <p:dataTable id="tablaCrearSedes" var="sede" value="#{contratosBean.listaContratoSedes}" widgetVar="tablaWidgetSedes" 
+                                         scrollable="true" emptyMessage="No se encontraron registros" rows="10" paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" >
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.cntPrestadorSede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Nivel de Atención">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nivelAtencion}"/>
+                                </p:column>
+                                <p:column headerText="Modalidad Contrato Sede">
+                                    <h:outputText value="#{sede.maeModalidadContratoValor}"/>
+                                </p:column>
+                                <p:column headerText="Observación">
+                                    <h:outputText value="#{sede.observacion}"/>
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton title="Retirar Sede" action="#{contratosBean.retirarContratoSede(sede.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="guardarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{contratosBean.guardar()}" update="panelCrearContrato,panelCrearPrestador,panelCrear2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContrato.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panel header="Datos del contrato" style="height:auto; width:98%" toggleable="true">
+                            <p:panelGrid id="panelEditarContrato" 	columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                <p:inputText id="contrato" label="Contrato" disabled="true" value="#{contratosBean.objetoContrato.contrato}" maxlength="32" required="false" requiredMessage="Contrato: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Afiliados" for="numAfiliados" style="font-weight:bold"/>
+                                <p:inputNumber id="numAfiliados" label="Afiliados" value="#{contratosBean.objetoContrato.numAfiliados}" maxValue="9999999" minValue="0" required="false" requiredMessage="Afiliados: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Fecha Inicial" for="fechaInicio" style="font-weight:bold"/>
+                                <p:calendar id="fechaInicio" label="Fecha Inicial" navigator="true" pattern="yyyy-MM-dd" 
+                                            value="#{contratosBean.objetoContrato.fechaInicio}" disabled="true"
+                                            yearRange="c-100:c+10"  maxlength="10" required="false" requiredMessage="Fecha Inicial: Este campo es obligatorio." >
+                                    <p:ajax event="dateSelect" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                    <p:ajax event="change" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                </p:calendar>
+
+                                <p:outputLabel value="Fecha Final" for="fechaFin" style="font-weight:bold"/>
+                                <p:calendar id="fechaFin" label="Fecha Final" navigator="true" pattern="yyyy-MM-dd" 
+                                            value="#{contratosBean.objetoContrato.fechaFin}" 
+                                            yearRange="c-100:c+10"  maxlength="10" required="true" requiredMessage="Fecha Final: Este campo es obligatorio." >
+                                    <p:ajax event="dateSelect" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                    <p:ajax event="change" listener="#{contratosBean.cargarEstado()}" update="estadoContrato"/>
+                                </p:calendar>
+
+                                <p:outputLabel value="Estado Contrato" for="estadoContrato" style="font-weight:bold"/>
+                                <p:outputLabel id="estadoContrato" value="#{contratosBean.objetoContrato.maeEstadoContratoValor}" />
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectBooleanButton id="activo" value="#{contratosBean.objetoContrato.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px"/>
+
+                                <p:outputLabel value="Valor" for="valor" style="font-weight:bold"/>
+                                <p:inputNumber id="valor" label="Valor" value="#{contratosBean.objetoContrato.valor}" maxValue="999999999999.99" 
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Valor Mes" for="valorMes" style="font-weight:bold"/>
+                                <p:inputNumber id="valorMes" label="Valor Mes" value="#{contratosBean.objetoContrato.valorMes}" maxValue="999999999999.99"
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Mes: Este campo es obligatorio." />
+
+                                <p:outputLabel value="Valor Presupuesto Total" for="valorPptoTotal" style="font-weight:bold"/>
+                                <p:inputNumber id="valorPptoTotal" label="Valor Presupuesto Total" value="#{contratosBean.objetoContrato.valorPresupuestoTotal}" maxValue="999999999999.99"
+                                               symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor Presupuesto Total: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Días Límite de Pago" for="diasLimite" style="font-weight:bold"/>
+                                <p:inputText id="diasLimite" label="Días Límite de Pago" value="#{contratosBean.objetoContrato.diasLimitePago}" maxlength="8" required="false" requiredMessage="Días Límite de Pago: Este campo es obligatorio." >
+                                    <p:keyFilter regEx="/[\d]/"/>
+                                </p:inputText>
+                            </p:panelGrid>
+
+                            <p:panelGrid  columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:outputLabel value="Objeto del Contrato" for="objContrato" style="font-weight:bold"/>
+                                <p:inputTextarea id="objContrato" label="Objeto del Contrato" style="width: 95%" value="#{contratosBean.objetoContrato.descripcion}" disabled="true" maxlength="1024" required="false" requiredMessage="Objeto del Contrato: Este campo es obligatorio."/>
+
+                                <p:outputLabel value="Régimen" for="regimenContrato" style="font-weight:bold"/>
+                                <p:selectOneMenu id="regimenContrato" label="Régimen" required="false" value="#{contratosBean.objetoContrato.maeRegimenId}" 
+                                                 editable="fase" requiredMessage="Régimen: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{contratosBean.listaRegimenContrato}" var="REGIMEN_CONTRATO" itemValue="#{REGIMEN_CONTRATO.id}" itemLabel="#{REGIMEN_CONTRATO.nombre}" itemDescription="#{REGIMEN_CONTRATO.descripcion}" />
+                                </p:selectOneMenu>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Información Prestador" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelEditarPrestador" 	columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código MinSalud" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.codigoMinSalud}" />
+
+                                <p:outputLabel value="Clase Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.maeClasePrestadorValor}" />
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.getTipoDocumento(contratosBean.objetoContrato.cntPrestador.maeTipoDocumentoId)}" />
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.numeroDocumento}" />
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.razonSocial}" />
+
+                                <p:outputLabel value="Categoría" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.categoriaPrestador}" />
+
+                                <p:outputLabel value="Nivel de Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{contratosBean.objetoContrato.cntPrestador.nivelAtencion}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Sedes" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{contratosBean.consultarCntPrestadorSede()}" icon="ui-icon-home" title="Agregar Sede"/>
+                            </div>
+                            <p:dataTable id="tablaEditarSedes" var="sede" value="#{contratosBean.listaContratoSedes}" widgetVar="tablaWidgetSedes" 
+                                         scrollable="true" emptyMessage="No se encontraron registros" rows="10" paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" >
+                                <p:column headerText="Código Habilitación">
+                                    <h:outputText value="#{sede.cntPrestadorSede.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Nivel de Atención">
+                                    <h:outputText value="#{sede.cntPrestadorSede.nivelAtencion}"/>
+                                </p:column>
+                                <p:column headerText="Modalidad Contrato Sede">
+                                    <h:outputText value="#{sede.maeModalidadContratoValor}"/>
+                                </p:column>
+                                <p:column headerText="Observación">
+                                    <h:outputText value="#{sede.observacion}"/>
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton title="Editar Sede" action="#{contratosBean.editarContratoSede(sede.id)}" icon="ui-icon-pencil" immediate="true"/>
+                                    <p:commandButton rendered="#{!sede.nuevoRegistro}" title="Borrar Sede" action="#{contratosBean.borrarContratoSede(sede.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{sede.nuevoRegistro}" title="Retirar Sede" action="#{contratosBean.retirarContratoSede(sede.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelEditar2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="modificarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{contratosBean.modificar()}" update="panelEditarContrato,panelEditarPrestador,panelEditar2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Tecnologias Contrato -->
+            <p:dialog header="Ver Tecnologías Contrato" widgetVar="dialogoVerTecnologia" appendTo="@(body)" modal="true"  width="60%">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form id="frmVerTecnologia">
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Tecnologías">Tecnologías</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{contratosBean.accionAdicional2}" title="Refrescar" actionListener="#{contratosBean.refrescarListaDetalleContrato}" icon="ui-icon-refresh"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objTecnologia" value="#{contratosBean.lazyContratoDetalle}" paginator="true" rows="#{contratosBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosContratoDetalle" lazy="true"
+                                     widgetVar="tablaTecnologiaWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objTecnologia.id}" reflow="true">
+
+                            <p:column headerText="Número del Contrato" sortBy="#{objTecnologia.cntContrato.contrato}" filterBy="#{objTecnologia.cntContrato.contrato}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.cntContrato.contrato}" title="#{objTecnologia.cntContrato.contrato}"/>
+                            </p:column>
+
+                            <p:column headerText="Tipo de Tecnología" sortBy="#{objTecnologia.tipoTecnologia}" filterBy="#{objTecnologia.tipoTecnologia}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 88%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" Tecnologia (CUP)" itemValue="1"  />
+                                        <f:selectItem itemLabel=" Medicamento (CUM)" itemValue="2" />
+                                        <f:selectItem itemLabel=" Insumo " itemValue="3" />
+                                        <f:selectItem itemLabel=" Paquete " itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getTipoTecnologia(objTecnologia.tipoTecnologia)}" title="#{contratosBean.getTipoTecnologia(objTecnologia.tipoTecnologia)}"/>
+                            </p:column>
+                            <p:column headerText="CUPS" sortBy="#{objTecnologia.maTecnologiaCodigo}" filterBy="#{objTecnologia.maTecnologiaCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="CUPS" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maTecnologiaCodigo}" title="#{objTecnologia.maTecnologiaCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Nombre Tecnología" sortBy="#{objTecnologia.maTecnologiaValor}" filterBy="#{objTecnologia.maTecnologiaValor}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre Tecnología" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maTecnologiaValor}" title="#{objTecnologia.maTecnologiaValor}"/>
+                            </p:column>
+                            <p:column headerText="Manual Tarifario" sortBy="#{objTecnologia.tipoManualTarifario}" filterBy="#{objTecnologia.tipoManualTarifario}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 88%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" PROPIA " itemValue="0"  />
+                                        <f:selectItem itemLabel=" SOAT " itemValue="1"  />
+                                        <f:selectItem itemLabel=" ISS2000 " itemValue="2" />
+                                        <f:selectItem itemLabel=" ISS2001 " itemValue="3" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getManualTarifario(objTecnologia.tipoManualTarifario)}" title="#{contratosBean.getManualTarifario(objTecnologia.tipoManualTarifario)}"/>
+                            </p:column>
+
+                            <p:column headerText="Valor Base" sortBy="#{objTecnologia.valorManual}" filterBy="#{objTecnologia.valorManual}">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Valor Base" maxlength="18" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.valorManual}" title="#{objTecnologia.valorManual}"/>
+                            </p:column>
+                            <p:column headerText="Porcentaje de Variación" sortBy="#{objTecnologia.porcentajeVariacion}" filterBy="#{objTecnologia.porcentajeVariacion}">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Porcentaje de Variación" maxlength="6" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.porcentajeVariacion}" title="#{objTecnologia.porcentajeVariacion}"/>
+                            </p:column>
+                            <p:column headerText="Valor Contratado" sortBy="#{objTecnologia.valorContratado}" filterBy="#{objTecnologia.valorContratado}">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Valor Contratado" maxlength="18" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.valorContratado}" title="#{objTecnologia.valorContratado}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Inicio" sortBy="#{objTecnologia.fechaHoraInicio}">
+                                <h:outputText value="#{objTecnologia.fechaHoraInicio}" title="#{objTecnologia.fechaHoraInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Fin" sortBy="#{objTecnologia.fechaHoraFin}">
+                                <h:outputText value="#{objTecnologia.fechaHoraFin}" title="#{objTecnologia.fechaHoraFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerTecnologia').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Contrato Sede -->
+            <p:dialog header="Información Contrato Sede" widgetVar="dialogoVerContratoSede" appendTo="@(body)" modal="true"  width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerContratoSede">
+                        <p:panelGrid id="panelContratoSede" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;">
+
+                            <p:outputLabel value="Número de Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.cntContrato.contrato}" />
+
+                            <p:outputLabel value="Prestador" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.cntContrato.cntPrestador.razonSocial}" />
+
+                            <p:outputLabel value="Prestador Sede" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.cntPrestadorSede.nombreSede}" />
+
+                            <p:outputLabel value="Número Afiliados" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.numAfiliados}" />
+
+                            <p:outputLabel value="Modalidad Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.maeModalidadContratoValor}" />
+
+                            <p:outputLabel value="Nivel Atención" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.nivelAtencion}" />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.cntContrato.activoStr}" />
+
+                            <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.fechaInicio}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.fechaFin}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Aplica Contributivo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaContribuitivo)}" />
+
+                            <p:outputLabel value="Aplica Subsidiado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaSubsidiado)}" />
+
+                            <p:outputLabel value="Aplica Glosa Extemporánea" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaGlosaExtemporanea)}" />
+
+                            <p:outputLabel value="Aplica Pac" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaPac)}" />
+
+                            <p:outputLabel value="Aplica Portabilidad" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaPortabilidad)}" />
+
+                            <p:outputLabel value="Aplica Auditoría" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaAuditoria)}" />
+
+                            <p:outputLabel value="Aplica Autorización" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaAutorizacion)}" />
+
+                            <p:outputLabel value="Aplica Agendamiento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaAgendamiento)}" />
+
+                            <p:outputLabel value="Aplica Recaudo Copagos IPS" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getValorBandera(contratosBean.objeto.aplicaRecaudoCopagosIps)}" />
+
+                            <p:outputLabel value="Valor Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.valorContrato}" >
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Valor UPC Afiliado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.valorUpcAfiliado}" >
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Observación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.observacion}" />
+
+                            <p:outputLabel value="Coberturas" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objeto.coberturas}" />
+
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerContratoSede').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Crear Contrato Sede -->
+            <p:dialog header="Información Contrato Sede"  widgetVar="dialogoCrearContratoSede" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmCrearContratoSede">
+                        <p:panelGrid id="panelCrearSede" columns="4" columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+                            
+                                    <p:outputLabel value="Número Afiliados" for="nroAfiliados" />
+                                    <p:inputNumber id="nroAfiliados" label="Número Afiliados" value="#{contratosBean.objeto.numAfiliados}" 
+                                                   maxValue="9999999" minValue="0" required="false" requiredMessage="Número Afiliados: Este campo es obligatorio." />
+                                    <p:outputLabel value="Modalidad Contrato" for="modalidad" />
+                                    <p:selectOneMenu id="modalidad" label="Modalidad Contrato" required="true" value="#{contratosBean.objeto.maeModalidadContratoId}" 
+                                                     editable="fase" style="width: 170px;" requiredMessage="Modalidad Contrato: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{contratosBean.listaModalidadContrato}" var="modalidadContrato" itemValue="#{modalidadContrato.id}" itemLabel="#{modalidadContrato.nombre}" itemDescription="#{modalidadContrato.descripcion}" />
+                                        <p:ajax event="itemSelect" listener="#{contratosBean.habilitarUPCAfiliado()}" update="modalidad,valorUpc"/>
+                                    </p:selectOneMenu>
+                            
+                                    <p:outputLabel value="Nivel de Atención" for="nivelAtencion" />
+                                    <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="true" value="#{contratosBean.objeto.nivelAtencion}" 
+                                                     editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" 1 " itemValue="1" />
+                                        <f:selectItem itemLabel=" 2 " itemValue="2" />
+                                        <f:selectItem itemLabel=" 3 " itemValue="3" />
+                                        <f:selectItem itemLabel=" 4 " itemValue="4" />
+                                    </p:selectOneMenu>
+                                    <p:outputLabel value="Valor UPC Afiliado" for="valorUpc" />
+                                    <p:inputNumber id="valorUpc" label="Valor UPC Afiliado" disabled="#{contratosBean.deshabilitaValorUPC}" value="#{contratosBean.objeto.valorUpcAfiliado}" maxlength="18" decimalPlaces="2" 
+                                                   symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor UPC Afiliado: Este campo es obligatorio."/>
+                                
+                                    <p:outputLabel value="Aplica Contributivo" for="aplicaContributivo" />
+                                    <p:selectBooleanButton id="aplicaContributivo" value="#{contratosBean.objeto.aplicaContribuitivo}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Contributivo: Este campo es obligatorio."/>
+                                    <p:outputLabel value="Aplica Subsidiado" for="aplicaSubsidiado" />
+                                    <p:selectBooleanButton id="aplicaSubsidiado" value="#{contratosBean.objeto.aplicaSubsidiado}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Subsidiado: Este campo es obligatorio."/>
+                            
+                                    <p:outputLabel value="Aplica Glosa Extemporánea" for="aplicaGlosa" />
+                                    <p:selectBooleanButton id="aplicaGlosa" value="#{contratosBean.objeto.aplicaGlosaExtemporanea}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Glosa Extemporánea: Este campo es obligatorio."/>
+                                    <p:outputLabel value="Aplica PAC" for="aplicaPac" />
+                                    <p:selectBooleanButton id="aplicaPac" value="#{contratosBean.objeto.aplicaPac}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica PAC: Este campo es obligatorio."/>
+                            
+                                    <p:outputLabel value="Aplica Portabilidad" for="aplicaPortabilidad" />
+                                    <p:selectBooleanButton id="aplicaPortabilidad" value="#{contratosBean.objeto.aplicaPortabilidad}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Portabilidad: Este campo es obligatorio."/>
+                                    <p:outputLabel value="Aplica Auditoria" for="aplicaAuditoria" />
+                                    <p:selectBooleanButton id="aplicaAuditoria" value="#{contratosBean.objeto.aplicaAuditoria}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Auditoria: Este campo es obligatorio."/>
+                            
+                                    <p:outputLabel value="Aplica Autorización" for="aplicaAutorización" />
+                                    <p:selectBooleanButton id="aplicaAutorización" value="#{contratosBean.objeto.aplicaPortabilidad}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Autorización: Este campo es obligatorio."/>
+                                    <p:outputLabel value="Aplica Agendamiento" for="aplicaAgendamiento" />
+                                    <p:selectBooleanButton id="aplicaAgendamiento" value="#{contratosBean.objeto.aplicaAgendamiento}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Agendamiento: Este campo es obligatorio."/>
+                            
+                                    <p:outputLabel value="Valor Contrato" for="valorContrato" />
+                                    <p:inputNumber id="valorContrato" label="Valor Contrato" value="#{contratosBean.objeto.valorContrato}" maxlength="18" decimalPlaces="2" 
+                                                   symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Contrato: Este campo es obligatorio." />
+                                    <p:outputLabel value="Aplica Recaudo Copago" for="aplicaCopago" />
+                                    <p:selectBooleanButton id="aplicaCopago" value="#{contratosBean.objeto.aplicaRecaudoCopagosIps}" onLabel="Si" offLabel="No"
+                                                           onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Recaudo Copago: Este campo es obligatorio."/>
+                                
+                                    <p:outputLabel value="Fecha Inicio" for="fechaInicio"/>
+                                    <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                                value="#{contratosBean.objeto.fechaInicio}" 
+                                                yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                                    </p:calendar>
+                                    <p:outputLabel value="Fecha Fin" for="fechaFin"/>
+                                    <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd" 
+                                                value="#{contratosBean.objeto.fechaFin}" 
+                                                yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                                    </p:calendar>
+                        </p:panelGrid>
+                        <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:outputLabel value="Observación" for="observacion" />
+                            <p:inputTextarea id="observacion" label="Observación" value="#{contratosBean.objeto.observacion}" maxlength="2048" required="false" requiredMessage="Observación: Este campo es obligatorio." >
+                            </p:inputTextarea>
+                            <p:outputLabel value="Coberturas" for="municipioCobertura" />
+                            <p:selectCheckboxMenu style="width: 250px;" id="municipioCobertura" value="#{contratosBean.objeto.seleccion}"
+                                                  filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                <f:selectItems value="#{contratosBean.listaMunicipiosCobertura}" var="municipio" itemValue="#{municipio.id}" 
+                                               itemLabel="#{municipio.nombreDepartamentoCiudad}" itemDescription="#{municipio.nombreDepartamentoCiudad}"  />
+                            </p:selectCheckboxMenu>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarContratoSedeRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarContratoSedeRemote" action="#{contratosBean.guardarContratoSede()}"  />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearContratoSede').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Editar Contrato Sede -->
+            <p:dialog header="Información Contrato Sede"  widgetVar="dialogoEditarContratoSede" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditarContratoSede">
+                        <p:panelGrid id="panelEditarSede" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Número Afiliados" for="nroAfiliados" style="font-weight:bold"/>
+                            <p:inputNumber id="nroAfiliados" label="Número Afiliados" value="#{contratosBean.objeto.numAfiliados}" 
+                                           maxValue="9999999" minValue="0" required="false" requiredMessage="Número Afiliados: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Modalidad Contrato" for="modalidad" style="font-weight:bold"/>
+                            <p:selectOneMenu id="modalidad" label="Modalidad Contrato" required="true" value="#{contratosBean.objeto.maeModalidadContratoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Modalidad Contrato: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaModalidadContrato}" var="modalidadContrato" itemValue="#{modalidadContrato.id}" itemLabel="#{modalidadContrato.nombre}" itemDescription="#{modalidadContrato.descripcion}" />
+                                <p:ajax event="itemSelect" listener="#{contratosBean.habilitarUPCAfiliado()}" update="modalidad,valorUpc"/>
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Nivel de Atención" for="nivelAtencion" style="font-weight:bold"/>
+                            <p:selectOneMenu id="nivelAtencion" label="Nivel de Atención" required="true" value="#{contratosBean.objeto.nivelAtencion}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Nivel de Atención: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" 1 " itemValue="1" />
+                                <f:selectItem itemLabel=" 2 " itemValue="2" />
+                                <f:selectItem itemLabel=" 3 " itemValue="3" />
+                                <f:selectItem itemLabel=" 4 " itemValue="4" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Valor UPC Afiliado" for="valorUpc" style="font-weight:bold"/>
+                            <p:inputNumber id="valorUpc" label="Valor UPC Afiliado" disabled="#{contratosBean.deshabilitaValorUPC}" value="#{contratosBean.objeto.valorUpcAfiliado}" maxlength="18" decimalPlaces="2" 
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor UPC Afiliado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Contributivo" for="aplicaContributivo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaContributivo" value="#{contratosBean.objeto.aplicaContribuitivo}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Contributivo: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Subsidiado" for="aplicaSubsidiado" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaSubsidiado" value="#{contratosBean.objeto.aplicaSubsidiado}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Subsidiado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Glosa Extemporánea" for="aplicaGlosa" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaGlosa" value="#{contratosBean.objeto.aplicaGlosaExtemporanea}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Glosa Extemporánea: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica PAC" for="aplicaPac" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaPac" value="#{contratosBean.objeto.aplicaPac}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica PAC: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Portabilidad" for="aplicaPortabilidad" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaPortabilidad" value="#{contratosBean.objeto.aplicaPortabilidad}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Portabilidad: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Auditoria" for="aplicaAuditoria" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAuditoria" value="#{contratosBean.objeto.aplicaAuditoria}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Auditoria: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Autorización" for="aplicaAutorización" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAutorización" value="#{contratosBean.objeto.aplicaPortabilidad}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Autorización: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Aplica Agendamiento" for="aplicaAgendamiento" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaAgendamiento" value="#{contratosBean.objeto.aplicaAgendamiento}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Agendamiento: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Valor Contrato" for="valorContrato" style="font-weight:bold"/>
+                            <p:inputNumber id="valorContrato" label="Valor Contrato" value="#{contratosBean.objeto.valorContrato}" maxlength="18" decimalPlaces="2"
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Contrato: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Aplica Recaudo Copago" for="aplicaCopago" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="aplicaCopago" value="#{contratosBean.objeto.aplicaRecaudoCopagosIps}" onLabel="Si" offLabel="No"
+                                                   onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" required="false" requiredMessage="Aplica Recaudo Copago: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                            <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objeto.fechaInicio}" 
+                                        yearRange="c-100:c+10"   maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Fecha Fin" for="fechaFin" style="font-weight:bold"/>
+                            <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objeto.fechaFin}" 
+                                        yearRange="c-100:c+10"   maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                            </p:calendar>
+                        </p:panelGrid>
+
+                        <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{contratosBean.objeto.observacion}" maxlength="2048" required="false" requiredMessage="Observación: Este campo es obligatorio." >
+                            </p:inputTextarea>
+
+                            <p:outputLabel value="Coberturas" for="municipioCobertura" style="font-weight:bold"/>
+                            <p:selectCheckboxMenu style="width: 250px;" id="municipioCobertura" value="#{contratosBean.objeto.seleccion}" 
+                                                  filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                <f:selectItems value="#{contratosBean.listaMunicipiosCobertura}" var="municipio" itemValue="#{municipio.id}" 
+                                               itemLabel="#{municipio.nombreDepartamentoCiudad}" itemDescription="#{municipio.nombreDepartamentoCiudad}"  />
+                            </p:selectCheckboxMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarContratoSedeRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarContratoSedeRemote" action="#{contratosBean.modificarContratoSede()}" update="panelEditarSede" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarContratoSede').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Gestionar Tecnologias Contrato Opción Adicional 3 -->
+            <p:dialog header="Gestionar Tecnologías Contrato" widgetVar="dialogoGestionarTecnologia" appendTo="@(body)" modal="true"  width="95%">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmGestionarTecnologia">
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Tecnologías">Tecnologías</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{contratosBean.accionAdicional2}" title="Refrescar" actionListener="#{contratosBean.refrescarListaGestionDetalleContrato}" icon="ui-icon-refresh"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional3}" title="Crear" actionListener="#{contratosBean.crearDetalleContrato()}" icon="ui-icon-document"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional6}" title="Descargar" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-circle-arrow-s" >
+                                    <p:fileDownload value="#{contratosBean.imprimirDetalleContrato()}" />
+                                </p:commandButton>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objTecnologia" value="#{contratosBean.lazyContratoDetalle}" paginator="true" rows="#{contratosBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosGestionContratoDetalle" lazy="true"
+                                     widgetVar="tablaTecnologiaWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objTecnologia.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{contratosBean.accionAdicional2}" title="Ver" actionListener="#{contratosBean.verDetalleContrato(objTecnologia)}" icon="ui-icon-search"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional4}" title="Editar" actionListener="#{contratosBean.editarDetalleContrato(objTecnologia)}" icon="ui-icon-pencil"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional5}" title="Borrar" action="#{contratosBean.borrarDetalleContrato(objTecnologia.id)}" icon="ui-icon-trash">                                    
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional9}" title="Ver Histórico" actionListener="#{contratosBean.verHistoricoDetalleContrato(objTecnologia)}" icon="ui-icon-disk"/>
+                            </p:column>
+
+                            <p:column headerText="Número del Contrato" sortBy="#{objTecnologia.cntContrato.contrato}" filterBy="#{objTecnologia.cntContrato.contrato}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.cntContrato.contrato}" title="#{objTecnologia.cntContrato.contrato}"/>
+                            </p:column>
+
+                            <p:column headerText="Tipo" sortBy="#{objTecnologia.tipoTecnologia}" filterBy="#{objTecnologia.tipoTecnologia}" style="width: 50px;">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 70%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" Tecnologia (CUP)" itemValue="1"  />
+                                        <f:selectItem itemLabel=" Medicamento (CUM)" itemValue="2" />
+                                        <f:selectItem itemLabel=" Insumo " itemValue="3" />
+                                        <f:selectItem itemLabel=" Paquete " itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getTipoTecnologia(objTecnologia.tipoTecnologia)}" title="#{contratosBean.getTipoTecnologia(objTecnologia.tipoTecnologia)}"/>
+                            </p:column>
+                            <p:column headerText="Código" sortBy="#{objTecnologia.maTecnologiaCodigo}" filterBy="#{objTecnologia.maTecnologiaCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Código" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maTecnologiaCodigo}" title="#{objTecnologia.maTecnologiaCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Nombre" sortBy="#{objTecnologia.maTecnologiaValor}" filterBy="#{objTecnologia.maTecnologiaValor}" style="width: 240px;">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maTecnologiaValor}" title="#{objTecnologia.maTecnologiaValor}"/>
+                            </p:column>
+                            <p:column headerText="Código Servicio Habilitación" filterBy="#{objTecnologia.maServicioHabilitacionCodigo}" >
+                                <f:facet name="filter">
+                                    <p:inputText label="Código Servicio Habilitación" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maServicioHabilitacionCodigo}" title="#{objTecnologia.maServicioHabilitacionCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Descripción Servicio Habilitación" filterBy="#{objTecnologia.maServicioHabilitacionValor}" >
+                                <f:facet name="filter">
+                                    <p:inputText label="Descripción Servicio Habilitación" maxlength="512" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maServicioHabilitacionValor}" title="#{objTecnologia.maServicioHabilitacionValor}"/>
+                            </p:column>
+                            <p:column headerText="Manual Tarifario" sortBy="#{objTecnologia.tipoManualTarifario}" filterBy="#{objTecnologia.tipoManualTarifario}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" PROPIA " itemValue="0"  />
+                                        <f:selectItem itemLabel=" SOAT " itemValue="1"  />
+                                        <f:selectItem itemLabel=" ISS2000 " itemValue="2" />
+                                        <f:selectItem itemLabel=" ISS2001 " itemValue="3" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getManualTarifario(objTecnologia.tipoManualTarifario)}" title="#{contratosBean.getManualTarifario(objTecnologia.tipoManualTarifario)}"/>
+                            </p:column>
+                            <p:column headerText="Código Manual Tarifario" filterBy="#{objTecnologia.maManualTarifarioCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Código Manual Tarifario" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maManualTarifarioCodigo}" title="#{objTecnologia.maManualTarifarioCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Valor Base" sortBy="#{objTecnologia.valorManual}" filterBy="#{objTecnologia.valorManual}">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Valor Base" maxlength="18" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.valorManual}" title="#{objTecnologia.valorManualStrFrmMoneda}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Porcentaje de Variación" sortBy="#{objTecnologia.porcentajeVariacion}" filterBy="#{objTecnologia.porcentajeVariacion}" style="width: 50px;">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Porcentaje de Variación" maxlength="6" style="width: 90%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.porcentajeVariacion}" title="#{objTecnologia.porcentajeVariacion}"/>
+                            </p:column>
+                            <p:column headerText="Valor Contratado" sortBy="#{objTecnologia.valorContratado}" filterBy="#{objTecnologia.valorContratado}" style="width: 50px;">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Valor Contratado" maxlength="18" style="width: 90%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.valorContratado}" title="#{objTecnologia.valorContratadoStrFrmMoneda}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Manual Tarifario Año" sortBy="#{objTecnologia.maManualTarifarioAgno}" filterBy="#{objTecnologia.maManualTarifarioAgno}">
+                                <f:facet name="filter">
+                                    <p:inputNumber label="Manual Tarifario Año" maxlength="8" decimalPlaces="0" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaTecnologiaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maManualTarifarioAgno}" title="#{objTecnologia.maManualTarifarioAgno}"/>
+                            </p:column>
+                            <p:column headerText="Activo" style="width: 55px;" filterBy="#{objTecnologia.activo}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="No" itemValue="0"  />
+                                        <f:selectItem itemLabel="Si" itemValue="1"  />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getActivo(objTecnologia.activo)}" title="#{contratosBean.getActivo(objTecnologia.activo)}"/>
+                            </p:column>
+                            <p:column headerText="Complejidad" style="width: 55px;" filterBy="#{objTecnologia.complejidad}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="Alta" itemValue="1" />
+                                        <f:selectItem itemLabel="Mediana" itemValue="2" />
+                                        <f:selectItem itemLabel="Baja" itemValue="3" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{contratosBean.getComplejidad(objTecnologia.complejidad)}" title="#{contratosBean.getComplejidad(objTecnologia.complejidad)}"/>
+                            </p:column>
+                            <p:column headerText="Ámbito" style="width: 55px;" filterBy="#{objTecnologia.maeAmbitoId}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{contratosBean.listaAmbito}" var="AMBITO" itemValue="#{AMBITO.id}" itemLabel="#{AMBITO.nombre}" itemDescription="#{AMBITO.descripcion}" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objTecnologia.maeAmbitoValor}" title="#{objTecnologia.maeAmbitoValor}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Inicio" sortBy="#{objTecnologia.fechaHoraInicio}">
+                                <h:outputText value="#{objTecnologia.fechaHoraInicio}" title="#{objTecnologia.fechaHoraInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Fin" sortBy="#{objTecnologia.fechaHoraFin}">
+                                <h:outputText value="#{objTecnologia.fechaHoraFin}" title="#{objTecnologia.fechaHoraFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarTecnologia').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Tecnologia Contrato -->
+            <p:dialog header="Ver Detalle Contrato"  widgetVar="dialogoVerDetalleContrato" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContratoDetalle.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerDetalleContrato">
+                        <p:panelGrid id="panelVerDetalleContrato"  columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Tipo Tecnología"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getTipoTecnologia(contratosBean.objetoContratoDetalle.tipoTecnologia)}" />
+
+                            <p:outputLabel value="Código Tecnología"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maTecnologiaCodigo}" />
+
+                            <p:outputLabel value="Descripción Tecnología"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maTecnologiaValor}"/>
+
+                            <p:outputLabel value="Activo"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getActivo(contratosBean.objetoContratoDetalle.activo)}" />
+
+                            <p:outputLabel value="Servicio"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maServicioHabilitacionValor}" />
+
+                            <p:outputLabel value="Manual Tarifario"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getManualTarifario(contratosBean.objetoContratoDetalle.tipoManualTarifario)}" />
+
+                            <p:outputLabel value="Descripción Manual Tarifario"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maManualTarifarioValor}" />
+
+                            <p:outputLabel value="Año Soat"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maManualTarifarioAgno}" />
+
+                            <p:outputLabel value="Valor Base"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.valorManual}" >
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Porcentaje de Variación"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.porcentajeVariacion} %" />
+
+                            <p:outputLabel value="Valor Contratado"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.valorContratado}" >
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Valor Máximo Regulado"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.valorMaximoRegulado}" >
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Observación Incluye"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.observacionIncluye}" />
+
+                            <p:outputLabel value="Observación Excluye"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.observacionExcluye}" />
+
+                            <p:outputLabel value="Interdependencia"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getActivo(contratosBean.objetoContratoDetalle.interdependencia)}" />
+
+                            <p:outputLabel value="Ámbito"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maeAmbitoValor}" />
+
+                            <p:outputLabel value="Fecha Inicio"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.fechaHoraInicio}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Fecha Fin"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.fechaHoraFin}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Complejidad"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getComplejidad(contratosBean.objetoContratoDetalle.complejidad)}" />
+                        </p:panelGrid>
+
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerDetalleContrato').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Crear Contrato Detalle -->
+            <p:dialog header="Crear Detalle"  widgetVar="dialogoCrearDetalleContrato" appendTo="@(body)" modal="true" width="65%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form id="frmCrearDetalleContrato">
+                        <div align="right"> 
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaTecnologia()}" icon="ui-icon-clipboard" title="Tecnología" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaMedicamento()}" icon="ui-icon-heart" title="Medicamento" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaInsumo()}" icon="ui-icon-tag" title="Insumo" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaPaquete()}" icon="ui-icon-cart" title="Paquete" />
+                        </div>
+                        <p:panelGrid id="panelCrearDetalleContrato" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Tipo Tecnología" for="tipoTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="tipoTecnologia" label="Tipo Tecnología" disabled="true" value="#{contratosBean.getTipoTecnologia(contratosBean.objetoContratoDetalle.tipoTecnologia)}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Código Tecnología" for="codigoTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="codigoTecnologia" label="Código Tecnología" disabled="true" value="#{contratosBean.objetoContratoDetalle.maTecnologiaCodigo}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Descripción Tecnología" for="descripcionTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="descripcionTecnologia" label="Descripción Tecnología" disabled="true" value="#{contratosBean.objetoContratoDetalle.maTecnologiaValor}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{contratosBean.objetoContratoDetalle.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Servicio" for="servicio" style="font-weight:bold"/>
+                            <p:selectOneMenu id="servicio" label="Servicio" required="false" value="#{contratosBean.objetoContratoDetalle.maServicioHabilitacionId}" disabled="#{contratosBean.deshabilitarServicio}"
+                                             editable="fase" style="width: 170px;" requiredMessage="Servicio: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaServicios}" var="SERVICIO" itemValue="#{SERVICIO.maServicioHabilitacion.id}" itemLabel="#{SERVICIO.maServicioHabilitacion.nombre}" itemDescription="#{SERVICIO.maServicioHabilitacion.nombre}" />
+                                <p:ajax event="change" listener="#{contratosBean.actualizarServicio()}" update="servicio" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearDetalleContrato1" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Manual Tarifario" for="manualTarifario" style="font-weight:bold"/>
+                            <p:selectOneMenu id="manualTarifario" label="Manual Tarifario" required="true" value="#{contratosBean.objetoContratoDetalle.tipoManualTarifario}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Manual Tarifario: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" PROPIA" itemValue="0"  />
+                                <f:selectItem itemLabel=" SOAT" itemValue="1"  />
+                                <f:selectItem itemLabel=" ISS2000" itemValue="2" />
+                                <f:selectItem itemLabel=" ISS2001 " itemValue="3" />
+                                <p:ajax event="change" listener="#{contratosBean.evaluarManualTarifario()}" update="manualTarifario,valorBase,valorContratado" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Descripción Manual Tarifario" for="descripcionManualTarifario" style="font-weight:bold"/>
+                            <p:inputText id="descripcionManualTarifario" label="Descripción Manual Tarifario" disabled="true" value="#{contratosBean.objetoContratoDetalle.maManualTarifarioValor}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Año Soat" for="anioSoat" style="font-weight:bold"/>
+                            <p:selectOneMenu id="anioSoat" label="Año Soat" required="false" value="#{contratosBean.objetoContratoDetalle.maManualTarifarioAgno}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Año Soat: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaValoresSoat}" var="VALORES" itemValue="#{VALORES.agno}" itemLabel="#{VALORES.agnoStr}" itemDescription="#{VALORES.agnoStr}" />
+                                <p:ajax event="change" listener="#{contratosBean.cargarValorBaseSoat()}" update="valorBase,valorContratado" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearDetalleContrato2" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Valor Base" for="valorBase" style="font-weight:bold"/>
+                            <p:inputNumber id="valorBase" label="Valor Base" value="#{contratosBean.objetoContratoDetalle.valorManual}" maxlength="18" decimalPlaces="2"
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor Base: Este campo es obligatorio.">
+                                <p:ajax event="change" listener="#{contratosBean.calcularValorContratado()}" update="valorContratado" />
+                            </p:inputNumber>
+
+                            <p:outputLabel value="Porcentaje de Variación" for="porcVariacion" style="font-weight:bold"/>
+                            <p:inputNumber id="porcVariacion" label="Porcentaje de Variación" value="#{contratosBean.objetoContratoDetalle.porcentajeVariacion}" maxValue="1000" maxlength="4" decimalPlaces="2" symbol="%" symbolPosition="s"
+                                           required="true" requiredMessage="Porcentaje de Variación: Este campo es obligatorio.">
+                                <p:ajax event="change" listener="#{contratosBean.calcularValorContratado()}" update="valorContratado" />
+                            </p:inputNumber>
+
+                            <p:outputLabel value="Valor Contratado" for="valorContratado" style="font-weight:bold"/>
+                            <p:inputNumber id="valorContratado" label="Valor Contratado" disabled="true" value="#{contratosBean.objetoContratoDetalle.valorContratado}" maxlength="18" decimalPlaces="2" 
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Contratado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Valor Máximo Regulado" for="valorMaximoRegulado" style="font-weight:bold"/>
+                            <p:inputNumber id="valorMaximoRegulado" label="Valor Máximo Regulado" value="#{contratosBean.objetoContratoDetalle.valorMaximoRegulado}" maxlength="18" decimalPlaces="2"
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Máximo Regulado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Observación Incluye" for="obsIncluye" style="font-weight:bold"/>
+                            <p:inputText id="obsIncluye" label="Observación Incluye" value="#{contratosBean.objetoContratoDetalle.observacionIncluye}" maxlength="2048" required="false" requiredMessage="Observación Incluye: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Observación Excluye" for="obsExcluye" style="font-weight:bold"/>
+                            <p:inputText id="obsExcluye" label="Observación Excluye" value="#{contratosBean.objetoContratoDetalle.observacionExcluye}" maxlength="2048" required="false" requiredMessage="Observación Excluye: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Interdependencia" for="interdependencia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="interdependencia" value="#{contratosBean.objetoContratoDetalle.interdependencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Ámbito" for="ambito" style="font-weight:bold"/>
+                            <p:selectOneMenu id="ambito" label="Ámbito" required="true" value="#{contratosBean.objetoContratoDetalle.maeAmbitoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Ámbito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaAmbito}" var="AMBITO" itemValue="#{AMBITO.id}" itemLabel="#{AMBITO.nombre}" itemDescription="#{AMBITO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                            <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objetoContratoDetalle.fechaHoraInicio}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Fecha Fin" for="fechaFin" style="font-weight:bold"/>
+                            <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"
+                                        value="#{contratosBean.objetoContratoDetalle.fechaHoraFin}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Complejidad" for="complejidad" style="font-weight:bold"/>
+                            <p:selectOneMenu id="complejidad" label="Complejidad" required="false" value="#{contratosBean.objetoContratoDetalle.complejidad}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Complejidad: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Alta" itemValue="1"  />
+                                <f:selectItem itemLabel=" Mediana" itemValue="2" />
+                                <f:selectItem itemLabel=" Baja " itemValue="3" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarDetalleContratoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarDetalleContratoRemote" action="#{contratosBean.guardarDetalleContrato()}" update="panelCrearDetalleContrato,panelCrearDetalleContrato1,panelCrearDetalleContrato2" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearDetalleContrato').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Editar Contrato Detalle -->
+            <p:dialog header="Editar Detalle"  widgetVar="dialogoEditarDetalleContrato" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:450px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContratoDetalle.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditarDetalleContrato">
+                        <p:panelGrid id="panelEditarDetalleContrato" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Tipo Tecnología" for="tipoTecnologia"  style="font-weight:bold"/>
+                            <p:inputText id="tipoTecnologia" label="Tipo Tecnología" disabled="true" value="#{contratosBean.getTipoTecnologia(contratosBean.objetoContratoDetalle.tipoTecnologia)}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Código Tecnología" for="codigoTecnologia"  style="font-weight:bold"/>
+                            <p:inputText id="codigoTecnologia" label="Código Tecnología" disabled="true" value="#{contratosBean.objetoContratoDetalle.maTecnologiaCodigo}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Descripción Tecnología" for="descripcionTecnologia"  style="font-weight:bold"/>
+                            <p:inputText id="descripcionTecnologia" label="Descripción Tecnología" disabled="true" value="#{contratosBean.objetoContratoDetalle.maTecnologiaValor}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Activo" for="activo"  style="font-weight:bold"/>
+                            <p:selectBooleanButton id="activo" value="#{contratosBean.objetoContratoDetalle.activo}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Servicio" for="servicio"  style="font-weight:bold"/>
+                            <p:inputText id="servicio" label="Servicio" disabled="true" value="#{contratosBean.objetoContratoDetalle.maServicioHabilitacionValor}" maxlength="256"  required="false" />
+                        </p:panelGrid>
+
+                        <p:panelGrid id="panelEditarDetalleContrato1" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Manual Tarifario" for="manualTarifario" style="font-weight:bold"/>
+                            <p:selectOneMenu id="manualTarifario" label="Manual Tarifario" required="true" value="#{contratosBean.objetoContratoDetalle.tipoManualTarifario}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Manual Tarifario: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" PROPIA" itemValue="0"  />
+                                <f:selectItem itemLabel=" SOAT" itemValue="1"  />
+                                <f:selectItem itemLabel=" ISS2000" itemValue="2" />
+                                <f:selectItem itemLabel=" ISS2001 " itemValue="3" />
+                                <p:ajax event="change" listener="#{contratosBean.evaluarManualTarifario()}" update="manualTarifario,valorBase,valorContratado" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Descripción Manual Tarifario" for="descripcionManualTarifario" style="font-weight:bold"/>
+                            <p:inputText id="descripcionManualTarifario" label="Descripción Manual Tarifario" disabled="true" value="#{contratosBean.objetoContratoDetalle.maManualTarifarioValor}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Año Soat" for="anioSoat" style="font-weight:bold"/>
+                            <p:selectOneMenu id="anioSoat" label="Año Soat" required="false" value="#{contratosBean.objetoContratoDetalle.maManualTarifarioAgno}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Año Soat: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaValoresSoat}" var="VALORES" itemValue="#{VALORES.agno}" itemLabel="#{VALORES.agnoStr}" itemDescription="#{VALORES.agnoStr}" />
+                                <p:ajax event="change" listener="#{contratosBean.cargarValorBaseSoat()}" update="valorBase,valorContratado" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Valor Base" for="valorBase" style="font-weight:bold"/>
+                            <p:inputNumber id="valorBase" label="Valor Base" value="#{contratosBean.objetoContratoDetalle.valorManual}" maxlength="18" decimalPlaces="2"
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="true" requiredMessage="Valor Base: Este campo es obligatorio.">
+                                <p:ajax event="change" listener="#{contratosBean.calcularValorContratado()}" update="valorContratado" />
+                            </p:inputNumber>
+
+                            <p:outputLabel value="Porcentaje de Variación" for="porcVariacion" style="font-weight:bold"/>
+                            <p:inputNumber id="porcVariacion" label="Porcentaje de Variación" value="#{contratosBean.objetoContratoDetalle.porcentajeVariacion}" maxValue="1000" maxlength="4" decimalPlaces="2" symbol="%" symbolPosition="s"
+                                           required="true" requiredMessage="Porcentaje de Variación: Este campo es obligatorio.">
+                                <p:ajax event="change" listener="#{contratosBean.calcularValorContratado()}" update="valorContratado" />
+                            </p:inputNumber>
+
+                            <p:outputLabel value="Valor Contratado" for="valorContratado" style="font-weight:bold"/>
+                            <p:inputNumber id="valorContratado" label="Valor Contratado" disabled="true" value="#{contratosBean.objetoContratoDetalle.valorContratado}" maxlength="18" decimalPlaces="2" 
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Contratado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Valor Máximo Regulado" for="valorMaximoRegulado" style="font-weight:bold"/>
+                            <p:inputNumber id="valorMaximoRegulado" label="Valor Máximo Regulado" disabled="true" value="#{contratosBean.objetoContratoDetalle.valorMaximoRegulado}" maxlength="18" decimalPlaces="2" 
+                                           symbol="$ " decimalSeparator="," thousandSeparator="." required="false" requiredMessage="Valor Máximo Regulado: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Observación Incluye" for="obsIncluye" style="font-weight:bold"/>
+                            <p:inputText id="obsIncluye" label="Observación Incluye" value="#{contratosBean.objetoContratoDetalle.observacionIncluye}" maxlength="2048" required="false" requiredMessage="Observación Incluye: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Observación Excluye" for="obsExcluye" style="font-weight:bold"/>
+                            <p:inputText id="obsExcluye" label="Observación Excluye" value="#{contratosBean.objetoContratoDetalle.observacionExcluye}" maxlength="2048" required="false" requiredMessage="Observación Excluye: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Interdependencia" for="interdependencia" style="font-weight:bold"/>
+                            <p:selectBooleanButton id="interdependencia" value="#{contratosBean.objetoContratoDetalle.interdependencia}" onLabel="Si" offLabel="No" onIcon="ui-icon-check" offIcon="ui-icon-close"  style="width:60px" />
+
+                            <p:outputLabel value="Ámbito" for="ambito" style="font-weight:bold"/>
+                            <p:selectOneMenu id="ambito" label="Ámbito" required="true" value="#{contratosBean.objetoContratoDetalle.maeAmbitoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Ámbito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaAmbito}" var="AMBITO" itemValue="#{AMBITO.id}" itemLabel="#{AMBITO.nombre}" itemDescription="#{AMBITO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                            <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objetoContratoDetalle.fechaHoraInicio}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Fecha Fin" for="fechaFin" style="font-weight:bold"/>
+                            <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"
+                                        value="#{contratosBean.objetoContratoDetalle.fechaHoraFin}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Complejidad" for="complejidad" style="font-weight:bold"/>
+                            <p:selectOneMenu id="complejidad" label="Complejidad" required="false" value="#{contratosBean.objetoContratoDetalle.complejidad}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Complejidad: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Alta" itemValue="1"  />
+                                <f:selectItem itemLabel=" Mediana" itemValue="2" />
+                                <f:selectItem itemLabel=" Baja " itemValue="3" />
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarDetalleContratoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarDetalleContratoRemote" action="#{contratosBean.modificarDetalleContrato()}" update="panelEditarDetalleContrato,panelEditarDetalleContrato1" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarDetalleContrato').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Gestionar Notas Tecnicas -->
+            <p:dialog header="Notas Técnicas" widgetVar="dialogoListarNotaTecnica" appendTo="@(body)" modal="true"  width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form id="frmListarNotaTecnica">
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Notas Técnicas">Notas Técnicas</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Refrescar" actionListener="#{contratosBean.refrescarListaNotaTecnica}" icon="ui-icon-refresh"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Crear" actionListener="#{contratosBean.crearNotaTecnica()}" icon="ui-icon-document"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Descargar" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-circle-arrow-s" >
+                                    <p:fileDownload value="#{contratosBean.imprimirNotaTecnica()}" />
+                                </p:commandButton>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable var="objNotaTecnica" value="#{contratosBean.lazyContratoNotaTecnica}" paginator="true" rows="#{contratosBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosContratoNotaTecnica" lazy="true"
+                                     widgetVar="tablaNotaTecnicaWidget"
+                                     style="font-size:11px;"
+                                     scrollable="true"
+                                     scrollWidth="100%"
+                                     rowKey="#{objNotaTecnica.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Ver" actionListener="#{contratosBean.verNotaTecnica(objNotaTecnica)}" icon="ui-icon-search"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Editar" actionListener="#{contratosBean.editarNotaTecnica(objNotaTecnica.id)}" icon="ui-icon-pencil"/>
+                                <p:commandButton rendered="#{contratosBean.accionAdicional8}" title="Borrar" action="#{contratosBean.borrarNotaTecnica(objNotaTecnica.id)}" icon="ui-icon-trash">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+
+                            <p:column headerText="Id">
+                                <h:outputText value="#{objNotaTecnica.id}" title="#{objNotaTecnica.id}"/>
+                            </p:column>
+                            <p:column headerText="Número del Contrato">
+                                <h:outputText value="#{objNotaTecnica.cntContrato.contrato}" title="#{objNotaTecnica.cntContrato.contrato}"/>
+                            </p:column>
+                            <p:column headerText="Tipo de Tecnología" sortBy="#{objNotaTecnica.tipoTecnologia}" filterBy="#{objNotaTecnica.tipoTecnologia}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaNotaTecnicaWidget').filter()" style="width: 88%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" Tecnologia (CUP)" itemValue="1"  />
+                                        <f:selectItem itemLabel=" Medicamento (CUM)" itemValue="2" />
+                                        <f:selectItem itemLabel=" Insumo " itemValue="3" />
+                                        <f:selectItem itemLabel=" Paquete " itemValue="4" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{objNotaTecnica.tipoTecnologiaStr}" title="#{objNotaTecnica.tipoTecnologiaStr}"/>
+                            </p:column>
+                            <p:column headerText="Código Tecnología" sortBy="#{objNotaTecnica.maTecnologiaCodigo}" filterBy="#{objNotaTecnica.maTecnologiaCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="CUPS" maxlength="32" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaNotaTecnicaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objNotaTecnica.maTecnologiaCodigo}" title="#{objNotaTecnica.maTecnologiaCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Nombre Tecnología" sortBy="#{objNotaTecnica.maTecnologiaValor}" filterBy="#{objNotaTecnica.maTecnologiaValor}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre Tecnología" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaNotaTecnicaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objNotaTecnica.maTecnologiaValor}" title="#{objNotaTecnica.maTecnologiaValor}"/>
+                            </p:column>
+                            <p:column headerText="Observación" sortBy="#{objNotaTecnica.observacion}" filterBy="#{objNotaTecnica.observacion}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Observación" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaNotaTecnicaWidget').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{objNotaTecnica.observacion}" title="#{objNotaTecnica.observacion}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Inicio" sortBy="#{objNotaTecnica.fechaInicio}">
+                                <h:outputText value="#{objNotaTecnica.fechaInicio}" title="#{objNotaTecnica.fechaInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Fin" sortBy="#{objNotaTecnica.fechaFin}">
+                                <h:outputText value="#{objNotaTecnica.fechaFin}" title="#{objNotaTecnica.fechaFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoListarNotaTecnica').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Nota Tecnica -->
+            <p:dialog header="Ver Nota Técnica"  widgetVar="dialogoVerNotaTecnica" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContratoNotaTecnica.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerNotaTecnica">
+                        <p:panelGrid id="panelVerNotaTecnica" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Tipo Tecnología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.tipoTecnologiaStr}" />
+
+                            <p:outputLabel value="Código Tecnología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaCodigo}" />
+
+                            <p:outputLabel value="Descripción Tecnología" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaValor}"/>
+
+                            <p:outputLabel value="Costo Promedio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.costoPromedio}" />
+
+                            <p:outputLabel value="Tipo Frecuencia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.tipoFrecuenciaStr}" />
+
+                            <p:outputLabel value="Frecuencia Uso" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.frecuenciaUso}" />
+
+                            <p:outputLabel value="Cantidad Afiliados" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.cantidadAfiliados}" />
+
+                            <p:outputLabel value="Ámbito" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.maeAmbitoValor}" />
+
+                            <p:outputLabel value="Observación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.observacion}" />
+
+                            <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.fechaInicio}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoNotaTecnica.fechaFin}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerNotaTecnica').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Crear Nota Técnica -->
+            <p:dialog header="Crear Nota Técnica"  widgetVar="dialogoCrearNotaTecnica" appendTo="@(body)" position="center" width="60%" modal="true" style="max-height:70%;">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmCrearNotaTecnica">
+                        <div align="right"> 
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaTecnologiaNotaTecnica()}" icon="ui-icon-clipboard" title="Tecnología" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaMedicamentoNotaTecnica()}" icon="ui-icon-heart" title="Medicamento" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaInsumoNotaTecnica()}" icon="ui-icon-tag" title="Insumo" />
+                            <p:commandButton immediate="true" action="#{contratosBean.consultarMaPaqueteNotaTecnica()}" icon="ui-icon-cart" title="Paquete" />
+                        </div>
+                        <p:panelGrid id="panelCrearNotaTecnica" columns="2" layout="grid" styleClass="showcase-text-align-center" >
+
+                            <p:outputLabel value="Tipo Tecnología" for="tipoTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="tipoTecnologia" label="Tipo Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.tipoTecnologiaStr}" maxlength="256" required="false" style="width: 90%"/>
+
+                            <p:outputLabel value="Código Tecnología" for="codigoTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="codigoTecnologia" label="Código Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaCodigo}" maxlength="256" required="false" style="width: 90%"/>
+
+                            <p:outputLabel value="Descripción Tecnología" for="descripcionTecnologia" style="font-weight:bold"/>
+                            <p:inputText id="descripcionTecnologia" label="Descripción Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaValor}" maxlength="256" required="false" style="width: 90%"/>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearNotaTecnica1" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Costo Promedio" for="costoPromedio"  style="font-weight:bold"/>
+                            <p:inputNumber id="costoPromedio" label="Costo Promedio" value="#{contratosBean.objetoContratoNotaTecnica.costoPromedio}" maxlength="18" decimalPlaces="2" required="true" requiredMessage="Costo Promedio: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Tipo Frecuencia" for="tipoFrecuencia"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="tipoFrecuencia" label="Complejidad" required="true" value="#{contratosBean.objetoContratoNotaTecnica.tipoFrecuencia}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Tipo Frecuencia: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Año" itemValue="1"  />
+                                <f:selectItem itemLabel=" Mes" itemValue="2" />
+                                <f:selectItem itemLabel=" Día " itemValue="3" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Frecuencia Uso" for="frecuenciaUso"  style="font-weight:bold"/>
+                            <p:inputNumber id="frecuenciaUso" label="Frecuencia Uso" value="#{contratosBean.objetoContratoNotaTecnica.frecuenciaUso}" maxlength="17" maxValue="99999.999999999999" decimalPlaces="12" required="true" requiredMessage="Frecuencia Uso: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Cantidad Afiliados" for="cantidadAfiliados" style="font-weight:bold"/>
+                            <p:inputNumber id="cantidadAfiliados" label="Cantidad Afiliados" value="#{contratosBean.objetoContratoNotaTecnica.cantidadAfiliados}" maxlength="10" decimalPlaces="0" required="true" requiredMessage="Cantidad Afiliados: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Ámbito" for="ambito"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="ambito" label="Ámbito" required="true" value="#{contratosBean.objetoContratoNotaTecnica.maeAmbitoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Ámbito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaAmbito}" var="AMBITO" itemValue="#{AMBITO.id}" itemLabel="#{AMBITO.nombre}" itemDescription="#{AMBITO.descripcion}" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Observación" for="observacion"  style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observación" value="#{contratosBean.objetoContratoNotaTecnica.observacion}" maxlength="2048" required="true" requiredMessage="Observación: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Fecha Inicio" for="fechaInicio"  style="font-weight:bold"/>
+                            <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objetoContratoNotaTecnica.fechaInicio}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                            </p:calendar>
+
+                            <p:outputLabel value="Fecha Fin" for="fechaFin"  style="font-weight:bold"/>
+                            <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"
+                                        value="#{contratosBean.objetoContratoNotaTecnica.fechaFin}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                            </p:calendar>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarNotaTecnicaRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarNotaTecnicaRemote" action="#{contratosBean.guardarNotaTecnica()}" update="panelCrearNotaTecnica,panelCrearNotaTecnica1" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearNotaTecnica').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <!-- Pantalla Editar Nota Técnica -->
+            <p:dialog header="Editar Nota Técnica"  widgetVar="dialogoEditarNotaTecnica" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form id="frmEditarNotaTecnica">
+                        <p:panelGrid id="panelEditarNotaTecnica" columns="2" layout="grid" styleClass="showcase-text-align-center"  >
+                            <p:outputLabel value="Tipo Tecnología" for="tipoTecnologia" />
+                            <p:inputText id="tipoTecnologia" label="Tipo Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.tipoTecnologiaStr}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Código Tecnología" for="codigoTecnologia" />
+                            <p:inputText id="codigoTecnologia" label="Código Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaCodigo}" maxlength="256" required="false" />
+
+                            <p:outputLabel value="Descripción Tecnología" for="descripcionTecnologia" />
+                            <p:inputText id="descripcionTecnologia" label="Descripción Tecnología" disabled="true" value="#{contratosBean.objetoContratoNotaTecnica.maTecnologiaValor}" maxlength="256" required="false" />
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditarNotaTecnica1" columns="4" columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                layout="grid"
+                                styleClass="ui-panelgrid-blank ui-fluid"  >
+                            
+                            <p:outputLabel value="Costo Promedio" for="costoPromedio" />
+                            <p:inputNumber id="costoPromedio" label="Costo Promedio" value="#{contratosBean.objetoContratoNotaTecnica.costoPromedio}" maxlength="18" decimalPlaces="2" required="true" requiredMessage="Costo Promedio: Este campo es obligatorio."/>
+                            <p:outputLabel value="Tipo Frecuencia" for="tipoFrecuencia" />
+                            <p:selectOneMenu id="tipoFrecuencia" label="Complejidad" required="true" value="#{contratosBean.objetoContratoNotaTecnica.tipoFrecuencia}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Tipo Frecuencia: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" --  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Año" itemValue="1"  />
+                                <f:selectItem itemLabel=" Mes" itemValue="2" />
+                                <f:selectItem itemLabel=" Día " itemValue="3" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Frecuencia Uso" for="frecuenciaUso" />
+                            <p:inputNumber id="frecuenciaUso" label="Frecuencia Uso" value="#{contratosBean.objetoContratoNotaTecnica.frecuenciaUso}" maxlength="17" maxValue="99999.999999999999" decimalPlaces="12" required="true" requiredMessage="Frecuencia Uso: Este campo es obligatorio."/>
+                            <p:outputLabel value="Cantidad Afiliados" for="cantidadAfiliados" />
+                            <p:inputNumber id="cantidadAfiliados" label="Cantidad Afiliados" value="#{contratosBean.objetoContratoNotaTecnica.cantidadAfiliados}" maxlength="10" decimalPlaces="0" required="true" requiredMessage="Cantidad Afiliados: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Ámbito" for="ambito" />
+                            <p:selectOneMenu id="ambito" label="Ámbito" required="true" value="#{contratosBean.objetoContratoNotaTecnica.maeAmbitoId}" 
+                                             editable="fase" style="width: 170px;" requiredMessage="Ámbito: Este campo es obligatorio.">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{contratosBean.listaAmbito}" var="AMBITO" itemValue="#{AMBITO.id}" itemLabel="#{AMBITO.nombre}" itemDescription="#{AMBITO.descripcion}" />
+                            </p:selectOneMenu>
+                            <p:outputLabel value="Observación" for="observacion" />
+                            <p:inputTextarea id="observacion" label="Observación" value="#{contratosBean.objetoContratoNotaTecnica.observacion}" maxlength="2048" required="true" requiredMessage="Observación: Este campo es obligatorio." />
+
+                            <p:outputLabel value="Fecha Inicio" for="fechaInicio"/>
+                            <p:calendar id="fechaInicio" label="Fecha Inicio" navigator="true" pattern="yyyy-MM-dd" 
+                                        value="#{contratosBean.objetoContratoNotaTecnica.fechaInicio}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Inicio: Este campo es obligatorio." >
+                            </p:calendar>
+                            <p:outputLabel value="Fecha Fin" for="fechaFin"/>
+                            <p:calendar id="fechaFin" label="Fecha Fin" navigator="true" pattern="yyyy-MM-dd"
+                                        value="#{contratosBean.objetoContratoNotaTecnica.fechaFin}" 
+                                        yearRange="c-100:c+10" maxlength="10" required="true" requiredMessage="Fecha Fin: Este campo es obligatorio." >
+                            </p:calendar>
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="modificarNotaTecnicaRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="modificarNotaTecnicaRemote" action="#{contratosBean.modificarNotaTecnica()}" update="panelEditarNotaTecnica,panelEditarNotaTecnica1" />
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarNotaTecnica').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Ver Históricos" widgetVar="dialogoHistoricos" appendTo="@(body)" width="80%"  modal="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmHistoricos">
+                        <p:dataTable  var="obj" value="#{contratosBean.lazyHistorico}" paginator="true" rows="#{contratosBean.tamanoPagina}" 
+                                      emptyMessage="No se encontraron registros"
+                                      currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                      paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                      rowsPerPageTemplate="5,10,30,50,100" id="tablaHistoricos" lazy="true"
+                                      widgetVar="tablaHistoricoWidget"
+                                      style="font-size:11px;"
+                                      scrollable="true"
+                                      scrollWidth="100%"
+                                      rowKey="#{obj.id}">
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton actionListener="#{contratosBean.verDetalleHistorico(obj)}" icon="ui-icon-search"/>
+                            </p:column>
+
+                            <p:column filterBy="#{obj.origen}" sortBy="#{obj.origen}" headerText="Origen"   filterMatchMode="contains" style="text-align: center;">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaHistoricoWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel=" Manual " itemValue="0"  />
+                                        <f:selectItem itemLabel=" Carga Masiva " itemValue="1"  />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{obj.origenStr}" />
+                            </p:column>
+
+                            <p:column headerText="Tipo Manual Tarifario" style="text-align: center;">
+                                <h:outputText value="#{contratosBean.getManualTarifario(obj.cntContratoDetalle.tipoManualTarifario)}"  />
+                            </p:column>
+
+                            <p:column  headerText="Código Manual Tarifario" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.maManualTarifarioCodigo}" />
+                            </p:column>
+
+                            <p:column  headerText="Valor Base" >
+                                <h:outputText value="#{obj.cntContratoDetalle.valorManual}" style="text-align: center;">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column  headerText="Porcentaje Variación" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.porcentajeVariacion}" />
+                            </p:column>
+
+                            <p:column  headerText="Valor Contratado" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.valorContratado}" >
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column  headerText="Manual Tarifario Año" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.maManualTarifarioAgno}" />
+                            </p:column>
+
+                            <p:column headerText="Fecha Inicio" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.fechaHoraInicio}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Fecha Fin" style="text-align: center;">
+                                <h:outputText value="#{obj.cntContratoDetalle.fechaHoraFin}" >
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid id="panelCerrarHistorico" style="width:98%;height:auto; border:1px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoHistoricos').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Ver Histórico -->
+            <p:dialog header="Ver Histórico"  widgetVar="dialogoVerHistorico" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{contratosBean.getAuditoria(contratosBean.objetoContratoDetalle.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerHistorico">
+                        <p:panelGrid id="panelVerDetalleContrato" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"  >
+
+                            <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getTipoTecnologia(contratosBean.objetoContratoDetalle.tipoTecnologia)}" />
+
+                            <p:outputLabel value="Código"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maTecnologiaCodigo}" />
+
+                            <p:outputLabel value="Descripción"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maTecnologiaValor}"  />
+
+                            <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getActivo(contratosBean.objetoContratoDetalle.activo)}" />
+
+                            <p:outputLabel value="Código Servicio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maServicioHabilitacionCodigo}" />
+
+                            <p:outputLabel value="Valor Servicio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maServicioHabilitacionValor}" />
+
+                            <p:outputLabel value="Manual Tarifario" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getManualTarifario(contratosBean.objetoContratoDetalle.tipoManualTarifario)}" />
+
+                            <p:outputLabel value="Valor Base" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.valorManualStrFrmMoneda}" />
+
+                            <p:outputLabel value="Porcentaje de Variación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.porcentajeVariacion} %" />
+
+                            <p:outputLabel value="Valor Contratado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.valorContratadoStrFrmMoneda}" />
+
+                            <p:outputLabel value="Observación Incluye" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.observacionIncluye}" />
+
+                            <p:outputLabel value="Observación Excluye" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.observacionExcluye}" />
+
+                            <p:outputLabel value="Interdependencia" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.getActivo(contratosBean.objetoContratoDetalle.interdependencia)}" />
+
+                            <p:outputLabel value="Ambito" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.maeAmbitoValor}" />
+
+                            <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.fechaHoraInicio}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                            <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                            <p:outputLabel value="#{contratosBean.objetoContratoDetalle.fechaHoraFin}" >
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                            </p:outputLabel>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width:100%; margin:10px 0px;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center;">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerHistorico').hide()" immediate="true" style="margin-left: 5px;"/>                                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <ui:include src="../maestro/seleccion/sel_iss2000.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_iss2001.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_soat.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_medicamentos.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_insumos.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_tecnologias.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_paquetes.xhtml" />
+            <ui:include src="../consulta/sel_prestador_sedes_generico.xhtml" />
+            <ui:include src="../contratacion/seleccion/sel_prestador.xhtml" />
+        </center>
+    </ui:define>
+</ui:composition>
+

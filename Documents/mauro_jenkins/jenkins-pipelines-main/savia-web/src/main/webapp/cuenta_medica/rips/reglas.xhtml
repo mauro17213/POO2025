@@ -1,0 +1,1011 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <script type="text/javascript">
+            window.onload = function () {
+                document.getElementsByClassName('txtModulo').item(0).value = sessionStorage.getItem('Modulo');
+            }
+        </script>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                .ui-panel .ui-panel-title{margin: 0px;}
+                .ui-datagrid-column{ margin: 10px; text-align: center;}
+            </style>
+            <p:panel id="panelCargaRips" header="Reglas de Rips" style="margin-bottom:10px;">
+                <h:form id="frmRipsReglas">
+                    <p:toolbar>
+                        <f:facet name="left" >
+                        </f:facet>
+                        <f:facet name="right">
+                            <p:commandButton rendered="#{cmRipsReglaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmRipsReglaBean.refrescar}" icon="ui-icon-refresh"/>
+                            <p:commandButton rendered="#{cmRipsReglaBean.accionCrear}" title="Crear" actionListener="#{cmRipsReglaBean.crear}" icon="ui-icon-document"/>
+                        </f:facet>
+                    </p:toolbar>
+                    <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{cmRipsReglaBean.lazyCmRipsRegla}" rowKey="#{obj.id}"
+                                 rows="#{cmRipsReglaBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="5,10,30,50,100" 
+                                 scrollable="true"
+                                 scrollWidth="110%"
+                                 emptyMessage="No se encontraron registros" draggableRows="true" >
+                        <p:ajax event="rowReorder" listener="#{cmRipsReglaBean.onRowReorder}" />
+                          <p:column style="text-align: center;">
+                            <f:facet name="header">
+                                <h:outputText value="Acciones"/>
+                            </f:facet>    
+                            <p:commandButton title="Ver" actionListener="#{cmRipsReglaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                            <p:commandButton rendered="#{cmRipsReglaBean.accionEditar}" title="Editar" actionListener="#{cmRipsReglaBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                            <p:commandButton rendered="#{cmRipsReglaBean.accionBorrar}" title="Borrar" action="#{cmRipsReglaBean.borrar(obj.id)}" icon="ui-icon-trash">
+                                <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar la regla?" icon="ui-icon-alert" />
+                            </p:commandButton>
+                            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                            </p:confirmDialog>  
+                        </p:column>
+                        <p:column headerText="Orden" sortBy="#{obj.orden }" width="40" style="text-align: center;">
+                            <h:outputText value="#{obj.orden}"/>
+                        </p:column> 
+                        <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                            <f:facet name="filter">
+                                <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                            </f:facet>
+                            <h:outputText value="#{obj.nombre}"/>
+                        </p:column>
+                        <p:column headerText="Tipo" sortBy="#{obj.tipo}" filterBy="#{obj.tipo}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 80%;" onchange="PF('tablaWidget').filter()" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Estructura" itemValue="1" />
+                                    <f:selectItem itemLabel="Normativa" itemValue="2" />
+                                    <f:selectItem itemLabel="Negocio" itemValue="3" />
+                                </p:selectOneMenu>                            
+                            </f:facet>
+                            <h:outputText value="#{obj.tipoStr}"/>
+                        </p:column>
+                        <p:column headerText="Contrato" sortBy="#{obj.maeCntTipoContratoCodigo}" filterBy="#{obj.maeCntTipoContratoCodigo}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:inputText label="Contrato" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                            </f:facet>
+                            <h:outputText value="#{obj.maeCntTipoContratoCodigo}"/>
+                        </p:column>
+                        <p:column headerText="Activa" sortBy="#{obj.activa}" filterBy="#{obj.activa}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 80%;" onchange="PF('tablaWidget').filter()" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Activa" itemValue="true" />
+                                    <f:selectItem itemLabel="Inactiva" itemValue="false" />
+                                </p:selectOneMenu>  
+                            </f:facet>
+                            <h:outputText value="#{obj.activaStr}"/>
+                        </p:column>
+                        <p:column headerText="Alerta" sortBy="#{obj.alerta}" filterBy="#{obj.alerta}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 80%;" onchange="PF('tablaWidget').filter()" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Advertencia" itemValue="1" />
+                                    <f:selectItem itemLabel="Error" itemValue="0" />
+                                </p:selectOneMenu>  
+                            </f:facet>
+                            <h:outputText value="#{obj.alertaStr}"/>
+                        </p:column>
+                        <p:column headerText="Función" sortBy="#{obj.funcion}" filterBy="#{obj.funcion}" width="130">
+                            <f:facet name="filter">
+                                <p:inputText label="Función" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                            </f:facet>
+                            <h:outputText value="#{obj.funcion}" title="#{obj.funcion}"/>
+                        </p:column>
+                        <p:column headerText="Archivo" sortBy="#{obj.archivo}" filterBy="#{obj.archivo}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 80%;" onchange="PF('tablaWidget').filter()" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="AC" itemValue="AC" />
+                                    <f:selectItem itemLabel="AD" itemValue="AD" />
+                                    <f:selectItem itemLabel="AF" itemValue="AF" />
+                                    <f:selectItem itemLabel="AH" itemValue="AH" />
+                                    <f:selectItem itemLabel="AM" itemValue="AM" />
+                                    <f:selectItem itemLabel="AN" itemValue="AN" />
+                                    <f:selectItem itemLabel="AP" itemValue="AP" />
+                                    <f:selectItem itemLabel="AT" itemValue="AT" />
+                                    <f:selectItem itemLabel="AU" itemValue="AU" />
+                                    <f:selectItem itemLabel="CT" itemValue="CT" />
+                                    <f:selectItem itemLabel="US" itemValue="US" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{obj.archivo}"/>
+                        </p:column>
+                        <p:column headerText="BD Ejecución" sortBy="#{obj.bdEjecucion}" filterBy="#{obj.bdEjecucion}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:selectOneMenu  onchange="PF('tablaWidget').filter()" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="BD 1" itemValue="1" />
+                                    <f:selectItem itemLabel="BD 2" itemValue="2" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{obj.bdEjecucion}"/>
+                        </p:column>
+                        <p:column headerText="Fecha Inicial" sortBy="#{obj.fechaInicial}" filterBy="#{obj.fechaInicial}">
+                            <h:outputText value="#{obj.fechaInicial}"/>
+                        </p:column>
+                        <p:column headerText="Fecha Final" sortBy="#{obj.fechaInicial}" filterBy="#{obj.fechaFinal}">
+                            <h:outputText value="#{obj.fechaFinal}"/>
+                        </p:column>                     
+                    </p:dataTable>
+                </h:form>
+            </p:panel>
+
+            <p:dialog widgetVar="dialogoVer" header="Ver Regla" appendTo="@(body)" responsive="true" width="60%" modal="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmRipsReglaBean.getAuditoria(cmRipsReglaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:scrollPanel mode="native" style="max-height:450px">
+                        <p:panel id="pVer" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Ver regla"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelVer" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre de la regla" for="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="Nombre" value="#{cmRipsReglaBean.objeto.nombre}">
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="activo" value="#{cmRipsReglaBean.objeto.activa?'Si':'No'}">
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmRipsReglaBean.objeto.tipoStr}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Alerta" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmRipsReglaBean.objeto.alertaStr}" />
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel id="fechaInicio" value="#{cmRipsReglaBean.objeto.fechaInicial}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha Final" for="fechaFinal" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel id="fechaFinal" value="#{cmRipsReglaBean.objeto.fechaFinal}" />
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Función" for="funcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="funcion" style="width:98%"  
+                                                      value="#{cmRipsReglaBean.objeto.funcion}">
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Archivo" for="archivo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="archivo" style="width:98%"
+                                                      value="#{cmRipsReglaBean.objeto.archivo}">
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Orden" for="orden" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="orden" value="#{cmRipsReglaBean.objeto.orden}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="contrato" value="#{cmRipsReglaBean.objeto.maeCntTipoContratoCodigo}" />
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="descripcion" style="width:98%" 
+                                                      value="#{cmRipsReglaBean.objeto.descripcion}">
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Base Datos Ejecución" for="dbEjecucion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText id="dbEjecucion" style="width:98%" 
+                                                      value="#{cmRipsReglaBean.objeto.bdEjecucion == 0 ? ' Sin Elección ' : cmRipsReglaBean.objeto.bdEjecucion}">
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pReglasEntradas" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Reglas de entrada"></h:outputLabel>
+                            </f:facet>
+                            <h:outputText>Tabla</h:outputText>
+                            <p:dataTable id="tablaEntradaSalida" var="reglaMensaje" value="#{cmRipsReglaBean.objeto.listaCmRipsReglaEntrada}" 
+                                         widgetVar="tablaWidgetMensajes" 
+                                         scrollable="true"
+                                         emptyMessage="Aún no has agregado ningun campo de entrada"
+                                         reflow="true">
+                                <p:column headerText="Orden función" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.orden}" title="#{reglaMensaje.orden}"/>
+                                </p:column>
+                                <p:column headerText="Archivo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.archivo}" title="#{reglaMensaje.archivo}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;" >
+                                    <h:outputText value="#{reglaMensaje.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Posición en archivo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.posicion}"/>
+                                </p:column>
+                                <p:column headerText="Campo" >
+                                    <h:outputText value="#{reglaMensaje.campo}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="pReglasSalida" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Respuestas"></h:outputLabel>
+                            </f:facet>
+                            <p:dataGrid var="reglaSalida" value="#{cmRipsReglaBean.objeto.listaCmRipsReglaSalida}" columns="3" layout="grid"
+                                        rows="12" paginator="true" id="reglasSalida" emptyMessage="Aún no has agregado una salida"
+                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                        rowsPerPageTemplate="6,12,16" >
+
+                                <f:facet name="header">
+                                    Respuestas
+                                </f:facet>
+
+                                <p:panel header="#{reglaSalida.codigo}" style="text-align:center">
+                                    <h:panelGrid columns="1" style="width:100%">
+                                        <h:outputText value="#{reglaSalida.descripcion}" />
+                                    </h:panelGrid>
+                                </p:panel>
+                            </p:dataGrid>
+                        </p:panel>
+                    </p:scrollPanel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoCrear" header="Crear Regla" appendTo="@(body)" responsive="true" width="60%" modal="true">
+                <h:form id="frmCrear">
+                    <p:scrollPanel mode="native" style="max-height:450px">
+                        <p:panel id="pCrear" header="Datos de la regla" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Crear Regla"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelCrear" columns="4"                                   
+                                         layout="grid">                                                               
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre de la regla" for="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputText id="Nombre" label="Nombre" value="#{cmRipsReglaBean.objeto.nombre}" maxlength="64" required="true" requiredMessage="Nombre: campo obligatorio">
+                                        </p:inputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneRadio id="activo" value="#{cmRipsReglaBean.objeto.activa}">
+                                            <f:selectItem itemLabel="Si" itemValue="true" />
+                                            <f:selectItem itemLabel="No" itemValue="false" />
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:selectOneMenu style="width:87%" id="tipo" value="#{cmRipsReglaBean.objeto.tipo}" required="true" requiredMessage="Tipo: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Estructura" itemValue="1" />
+                                            <f:selectItem itemLabel="Normativa" itemValue="2" />
+                                            <f:selectItem itemLabel="Negocio" itemValue="3" />
+                                        </p:selectOneMenu> 
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Alerta" for="Alerta" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneMenu style="width:87%" id="Alerta" value="#{cmRipsReglaBean.objeto.alerta}" required="true" requiredMessage="Alerta : campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Advertencia" itemValue="1" />
+                                            <f:selectItem itemLabel="Error" itemValue="0" />
+                                        </p:selectOneMenu>  
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha Inicio" for="fechaInicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:calendar id="fechaInicio"
+                                                    autocomplete="off"
+                                                    navigator="true"
+                                                    pattern="yyyy-MM-dd"
+                                                    yearRange="2000:2040"
+                                                    size="30"
+                                                    maxlength="10"
+                                                    value="#{cmRipsReglaBean.objeto.fechaInicial}"
+                                                    required="true"
+                                                    requiredMessage="Debe indicar la fecha inicial"  >
+                                            </p:calendar>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Final" for="fechaFinal" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:calendar id="fechaFinal"
+                                            autocomplete="off"
+                                            navigator="true"
+                                            pattern="yyyy-MM-dd"
+                                            size="30"
+                                            maxlength="10"
+                                            readonlyInput="false"
+                                            yearRange="2000:2040"
+                                            value="#{cmRipsReglaBean.objeto.fechaFinal}">
+                                        </p:calendar>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Función" for="funcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-9" >
+                                        <p:inputText id="funcion" style="width:98%" label="Función" value="#{cmRipsReglaBean.objeto.funcion}" maxlength="64" required="true" requiredMessage="Función: campo obligatorio">
+                                        </p:inputText>
+                                    </p:column>
+                                </p:row> 
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Archivo" for="archivoEntradaGeneral" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:selectOneMenu id="archivoEntradaGeneral" value="#{cmRipsReglaBean.objeto.archivo}" required="true" requiredMessage="Archivo: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="AC" itemValue="AC" />
+                                            <f:selectItem itemLabel="AD" itemValue="AD" />
+                                            <f:selectItem itemLabel="AF" itemValue="AF" />
+                                            <f:selectItem itemLabel="AH" itemValue="AH" />
+                                            <f:selectItem itemLabel="AM" itemValue="AM" />
+                                            <f:selectItem itemLabel="AN" itemValue="AN" />
+                                            <f:selectItem itemLabel="AP" itemValue="AP" />
+                                            <f:selectItem itemLabel="AT" itemValue="AT" />
+                                            <f:selectItem itemLabel="AU" itemValue="AU" />
+                                            <f:selectItem itemLabel="CT" itemValue="CT" />
+                                            <f:selectItem itemLabel="US" itemValue="US" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Base Datos Ejecución" for="dbEjecucion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneMenu id="dbEjecucion" value="#{cmRipsReglaBean.objeto.bdEjecucion}" required="true" requiredMessage="Base Datos Ejecución: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="BD 1" itemValue="1" />
+                                            <f:selectItem itemLabel="BD 2" itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>   
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Orden" for="orden" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputNumber id="orden" value="#{cmRipsReglaBean.objeto.orden}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputNumber id="contrato" value="#{cmRipsReglaBean.objeto.maeCntTipoContratoCodigo}" />
+                                    </p:column>
+                                </p:row> 
+                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>  
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-9" >
+                                        <p:inputText id="descripcion" style="width:98%" 
+                                                     label="Descripción" 
+                                                     value="#{cmRipsReglaBean.objeto.descripcion}" 
+                                                     maxlength="512">
+                                        </p:inputText>
+                                    </p:column>
+                                </p:row>   
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pReglasEntradas" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Reglas de entrada"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelCrearReglaEntrada" columns="4"
+                                         layout="grid" style="margin-bottom: 20px; width: 100%;">                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Orden función" for="entrada_orden" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                         <p:inputNumber id="entrada_orden" value="#{cmRipsReglaBean.reglaEntrada.orden}" minValue="0" decimalPlaces="0" style="width: 5px;" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-2" >
+                                        <p:outputLabel value="Tipo" for="tipoReglaEntrada" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-4">
+                                        <p:selectOneRadio id="tipoReglaEntrada" value="#{cmRipsReglaBean.reglaEntrada.tipo}">
+                                            <f:selectItem itemLabel="VARCHAR" itemValue="0" />
+                                            <f:selectItem itemLabel="NUMERICO" itemValue="1" />
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Archivo" for="archivoEntrada" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:selectOneMenu id="archivoEntrada" value="#{cmRipsReglaBean.reglaEntrada.archivo}" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="AC" itemValue="AC" />
+                                            <f:selectItem itemLabel="AD" itemValue="AD" />
+                                            <f:selectItem itemLabel="AF" itemValue="AF" />
+                                            <f:selectItem itemLabel="AH" itemValue="AH" />
+                                            <f:selectItem itemLabel="AM" itemValue="AM" />
+                                            <f:selectItem itemLabel="AN" itemValue="AN" />
+                                            <f:selectItem itemLabel="AP" itemValue="AP" />
+                                            <f:selectItem itemLabel="AT" itemValue="AT" />
+                                            <f:selectItem itemLabel="AU" itemValue="AU" />
+                                            <f:selectItem itemLabel="CT" itemValue="CT" />
+                                            <f:selectItem itemLabel="US" itemValue="US" />
+                                        </p:selectOneMenu> 
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Posición en archivo" for="posicion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputNumber id="posicion" value="#{cmRipsReglaBean.reglaEntrada.posicion}" decimalPlaces="0" style="width: 5px;" />
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Campo" for="campo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputText id="campo" style="width:98%" 
+                                                     label="Campo" 
+                                                     value="#{cmRipsReglaBean.reglaEntrada.campo}" 
+                                                     maxlength="32" >
+                                        </p:inputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3" >
+                                        <p:commandButton icon="pi pi-plus" action ="#{cmRipsReglaBean.adicionarReglaEntrada(1)}" 
+                                                         update="tablaEntradaSalida" label="Agregar regla entrada" title="Agregar entrada"/>
+                                    </p:column>
+                                </p:row>
+                                
+                            </p:panelGrid>
+                            <h:outputText>Tabla</h:outputText>
+                            <p:dataTable id="tablaEntradaSalida" var="reglaMensaje" value="#{cmRipsReglaBean.listaCmRipsReglasEntradas}" 
+                                         widgetVar="tablaWidgetMensajes" 
+                                         scrollable="true"
+                                         emptyMessage="Aún no has agregado ningun campo de entrada"
+                                         reflow="true">
+                                <p:column headerText="Orden" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.orden}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Archivo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.archivo}" title="#{reglaMensaje.archivo}"/>
+                                </p:column>
+                                <p:column headerText="Posición" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.posicion}"/>
+                                </p:column>
+                                <p:column headerText="Campo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.campo}"/>
+                                </p:column>
+                                <p:column headerText="Acción" style="text-align: center;">
+                                    <p:commandButton rendered="#{reglaMensaje.id == null}" title="Retirar Mensaje" action="#{cmRipsReglaBean.retirarReglaEntrada(reglaMensaje.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{reglaMensaje.id != null}" title="Borrar Mensaje" action="#{cmRipsReglaBean.borrarReglaEntrada(reglaMensaje.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                        <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                    </p:confirmDialog>    
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="pReglasSalida" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Respuestas"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid columns="4"
+                                         layout="grid" style="margin-bottom: 20px;">
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Código" for="codigoSalida" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputNumber id="codigoSalida" style="width:98%" label="Valor respuesta función"
+                                                       value="#{cmRipsReglaBean.reglaSalida.codigo}" 
+                                                       maxlength="8" decimalPlaces="0">
+                                        </p:inputNumber>
+                                    </p:column>
+
+                                    <p:column styleClass="ui-widget-header ui-g-2" >
+                                        <p:outputLabel value="Descripción" for="descripcionSalida" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputText id="descripcionSalida" style="width:98%" 
+                                                     label="Descripción" 
+                                                     value="#{cmRipsReglaBean.reglaSalida.descripcion}" 
+                                                     maxlength="256">
+                                        </p:inputText>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-2">
+                                        <p:commandButton 
+                                            icon="pi pi-plus" 
+                                            actionListener="#{cmRipsReglaBean.adicionarReglaSalida}"
+                                            validateClient="false" title="Agregar salida"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                            <p:dataGrid var="reglaSalida" value="#{cmRipsReglaBean.listaCmRipsReglasSalidas}" columns="3" layout="grid"
+                                        rows="12" paginator="true" id="reglasSalida" emptyMessage="Aún no has agregado una salida"
+                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                        rowsPerPageTemplate="6,12,16">
+
+                                <f:facet name="header">
+                                    Respuestas
+                                </f:facet>
+
+                                <p:panel header="#{reglaSalida.codigo}" style="text-align:center">
+                                    <h:panelGrid columns="1" >
+                                        <h:outputText value="#{reglaSalida.descripcion}" />
+                                    </h:panelGrid>
+                                    <p:commandButton rendered="#{reglaSalida.id == null}" title="Retirar Respuesta" action="#{cmRipsReglaBean.retirarReglaSalida(reglaSalida.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada? #{reglaMensaje.idInsertar}" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{reglaSalida.id != null}" title="Borrar Respuesta" action="#{cmRipsReglaBean.borrarReglaSalida(reglaSalida.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:panel>
+                            </p:dataGrid>
+
+                        </p:panel>
+                    </p:scrollPanel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{cmRipsReglaBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoEditar" header="Editar Regla" appendTo="@(body)" responsive="true"  width="75%" modal="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmRipsReglaBean.getAuditoria(cmRipsReglaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:scrollPanel mode="native" style="max-height:450px">
+                        <p:panel id="pEditar" header="Datos de la regla" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditar" columns="4"
+                                         layout="grid" >
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre de la regla" for="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputText id="Nombre" label="Nombre" value="#{cmRipsReglaBean.objeto.nombre}" maxlength="64" required="true" requiredMessage="Nombre: campo obligatorio">
+                                        </p:inputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneRadio id="activo" value="#{cmRipsReglaBean.objeto.activa}">
+                                            <f:selectItem itemLabel="Si" itemValue="true" />
+                                            <f:selectItem itemLabel="No" itemValue="false" />
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:selectOneMenu style="width:87%" id="tipo" value="#{cmRipsReglaBean.objeto.tipo}"  required="true" requiredMessage="Tipo: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Estructura" itemValue="1" />
+                                            <f:selectItem itemLabel="Normativa" itemValue="2" />
+                                            <f:selectItem itemLabel="Negocio" itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Alerta" for="Alerta" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneMenu style="width:87%" id="Alerta" value="#{cmRipsReglaBean.objeto.alerta}" required="true" requiredMessage="Alerta : campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Advertencia" itemValue="1" />
+                                            <f:selectItem itemLabel="Error" itemValue="0" />
+                                        </p:selectOneMenu>  
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha Inicial" for="fechaInicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:calendar id="fechaInicio"
+                                                    autocomplete="off"
+                                                    navigator="true"
+                                                    pattern="yyyy-MM-dd"
+                                                    yearRange="2000:2040"
+                                                    size="30"
+                                                    maxlength="10"
+                                                    value="#{cmRipsReglaBean.objeto.fechaInicial}"
+                                                    required="true"
+                                                    requiredMessage="Debe indicar la fecha inicial"  >
+                                        </p:calendar>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Final" for="fechaFinal" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3"> 
+                                      <p:calendar id="fechaFinal"
+                                            autocomplete="off"
+                                            navigator="true"
+                                            pattern="yyyy-MM-dd"
+                                            size="30"
+                                            maxlength="10"
+                                            readonlyInput="false"
+                                            yearRange="2000:2040"
+                                            value="#{cmRipsReglaBean.objeto.fechaFinal}">
+                                      </p:calendar>                                   
+                                    </p:column>
+                                </p:row>
+                                                               
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Función" for="funcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-9" >
+                                        <p:inputText id="funcion" style="width:98%" label="Función" value="#{cmRipsReglaBean.objeto.funcion}" maxlength="64"  required="true" requiredMessage="Función: campo obligatorio">
+                                        </p:inputText>
+                                    </p:column>
+                                </p:row> 
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Archivo" for="archivoEntradaGeneralEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:selectOneMenu id="archivoEntradaGeneralEditar" value="#{cmRipsReglaBean.objeto.archivo}" required="true" requiredMessage="Archivo: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="AC" itemValue="AC" />
+                                            <f:selectItem itemLabel="AD" itemValue="AD" />
+                                            <f:selectItem itemLabel="AF" itemValue="AF" />
+                                            <f:selectItem itemLabel="AH" itemValue="AH" />
+                                            <f:selectItem itemLabel="AM" itemValue="AM" />
+                                            <f:selectItem itemLabel="AN" itemValue="AN" />
+                                            <f:selectItem itemLabel="AP" itemValue="AP" />
+                                            <f:selectItem itemLabel="AT" itemValue="AT" />
+                                            <f:selectItem itemLabel="AU" itemValue="AU" />
+                                            <f:selectItem itemLabel="CT" itemValue="CT" />
+                                            <f:selectItem itemLabel="US" itemValue="US" />
+                                        </p:selectOneMenu> 
+                                    </p:column>
+                                        <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Base Datos Ejecución" for="dbEjecucion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:selectOneMenu id="dbEjecucion" value="#{cmRipsReglaBean.objeto.bdEjecucion}" required="true" requiredMessage="Base Datos Ejecución: campo obligatorio" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="BD 1" itemValue="1" />
+                                            <f:selectItem itemLabel="BD 2" itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row> 
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Orden" for="orden" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputNumber id="orden" value="#{cmRipsReglaBean.objeto.orden}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Contrato" for="contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputNumber id="contrato" 
+                                                       value="#{cmRipsReglaBean.objeto.maeCntTipoContratoCodigo}" />
+                                    </p:column>
+                                </p:row> 
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-9" >
+                                        <p:inputText id="descripcion" style="width:98%" 
+                                                     label="Descripción" 
+                                                     value="#{cmRipsReglaBean.objeto.descripcion}" 
+                                                     maxlength="512">
+                                        </p:inputText>
+                                    </p:column>
+                                </p:row>   
+                                
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pReglasEntradas" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Reglas de entrada"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelCrearReglaEntrada" style="margin-bottom: 20px; width: 100%;" columns="4"
+                                         layout="grid" >
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Orden función" for="entrada_orden" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputNumber id="entrada_orden" value="#{cmRipsReglaBean.reglaEntrada.orden}" minValue="0" decimalPlaces="0" style="width: 5px;" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-2" >
+                                        <p:outputLabel value="Tipo" for="tipoReglaEntrada" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-4">
+                                        <p:selectOneRadio id="tipoReglaEntrada" value="#{cmRipsReglaBean.reglaEntrada.tipo}">
+                                            <f:selectItem itemLabel="VARCHAR" itemValue="0" />
+                                            <f:selectItem itemLabel="NUMERICO" itemValue="1" />
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                </p:row>
+                                
+
+                                 <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Archivo" for="archivoEntrada" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                       <p:selectOneMenu id="archivoEntrada" value="#{cmRipsReglaBean.reglaEntrada.archivo}" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="AC" itemValue="AC" />
+                                    <f:selectItem itemLabel="AD" itemValue="AD" />
+                                    <f:selectItem itemLabel="AF" itemValue="AF" />
+                                    <f:selectItem itemLabel="AH" itemValue="AH" />
+                                    <f:selectItem itemLabel="AM" itemValue="AM" />
+                                    <f:selectItem itemLabel="AN" itemValue="AN" />
+                                    <f:selectItem itemLabel="AP" itemValue="AP" />
+                                    <f:selectItem itemLabel="AT" itemValue="AT" />
+                                    <f:selectItem itemLabel="AU" itemValue="AU" />
+                                    <f:selectItem itemLabel="CT" itemValue="CT" />
+                                    <f:selectItem itemLabel="US" itemValue="US" />
+                                </p:selectOneMenu> 
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Posición en archivo" for="posicion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputNumber id="posicion" value="#{cmRipsReglaBean.reglaEntrada.posicion}"  decimalPlaces="0" style="width: 5px;" />
+                                    </p:column>
+                                 </p:row>
+
+                                 <p:row>
+                                     <p:column styleClass="ui-widget-header ui-g-3">
+                                         <p:outputLabel value="Campo" for="campo" style="font-weight:bold"/>
+                                     </p:column>
+                                     <p:column styleClass=" ui-g-3" >
+                                         <p:inputText id="campo" style="width:98%" 
+                                                      label="Campo" 
+                                                      value="#{cmRipsReglaBean.reglaEntrada.campo}" 
+                                                      maxlength="32" >
+                                         </p:inputText>
+                                     </p:column>
+                                     <p:column styleClass="ui-g-3" >
+                                         <p:commandButton icon="pi pi-plus" action ="#{cmRipsReglaBean.adicionarReglaEntrada(2)}" 
+                                                          update="tablaEntradaSalida"  label="Agregar regla entrada" title="Agregar entrada"/>
+                                     </p:column>
+                                 </p:row>
+
+                            </p:panelGrid>
+                            <h:outputText>Tabla</h:outputText>
+                            <p:dataTable id="tablaEntradaSalida" var="reglaMensaje" value="#{cmRipsReglaBean.objeto.listaCmRipsReglaEntrada}" 
+                                         widgetVar="tablaWidgetMensajes" 
+                                         scrollable="true"
+                                         emptyMessage="Aún no has agregado ningun campo de entrada"
+                                         reflow="true">
+                                <p:column headerText="Orden" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.orden}" />
+                                </p:column>
+                                <p:column headerText="Archivo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.archivo}" title="#{reglaMensaje.archivo}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Posición" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.posicion}"/>
+                                </p:column>
+                                <p:column headerText="Campo" style="text-align: center;">
+                                    <h:outputText value="#{reglaMensaje.campo}"/>
+                                </p:column>
+                                <p:column headerText="Acción" style="text-align: center;">
+                                    <p:commandButton rendered="#{reglaMensaje.id == null}" title="Retirar Mensaje" action="#{cmRipsReglaBean.retirarReglaEntrada(reglaMensaje.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{reglaMensaje.id != null}" title="Borrar Mensaje" action="#{cmRipsReglaBean.borrarReglaEntrada(reglaMensaje.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                        <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                    </p:confirmDialog>    
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="pReglasSalida" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Respuestas"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid columns="4" layout="grid" style="margin-bottom: 20px;">
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-2">
+                                            <p:outputLabel value="Código" for="codigoSalida" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:inputNumber id="codigoSalida" style="width:98%" label="Valor respuesta función"
+                                               value="#{cmRipsReglaBean.reglaSalida.codigo}" 
+                                               maxlength="8" decimalPlaces="0">
+                                        </p:inputNumber>
+                                    </p:column>
+
+                                    <p:column styleClass="ui-widget-header ui-g-2" >
+                                        <p:outputLabel value="Descripción" for="descripcionSalida" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3">
+                                        <p:inputText id="descripcionSalida" style="width:98%" 
+                                                     label="Descripción" 
+                                                     value="#{cmRipsReglaBean.reglaSalida.descripcion}" 
+                                                     maxlength="256">
+                                        </p:inputText>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-2">
+                                        <p:commandButton 
+                                            icon="pi pi-plus" 
+                                            actionListener="#{cmRipsReglaBean.adicionarReglaSalida}"
+                                            validateClient="false" title="Agregar salida"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                            <p:dataGrid var="reglaSalida" value="#{cmRipsReglaBean.objeto.listaCmRipsReglaSalida}" columns="3" layout="grid"
+                                        rows="12" paginator="true" id="reglasSalida" emptyMessage="Aún no has agregado una salida"
+                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                        rowsPerPageTemplate="6,12,16"  >
+
+                                <f:facet name="header">
+                                    Respuestas
+                                </f:facet>
+
+                                <p:panel header="#{reglaSalida.codigo}">
+                                    <h:panelGrid columns="1" >
+                                        <h:outputText value="#{reglaSalida.descripcion}" />
+                                    </h:panelGrid>
+                                    <p:commandButton rendered="#{reglaSalida.id == null}" title="Retirar Respuesta" action="#{cmRipsReglaBean.retirarReglaSalida(reglaSalida.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada? #{reglaMensaje.idInsertar}" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{reglaSalida.id != null}" title="Borrar Respuesta" action="#{cmRipsReglaBean.borrarReglaSalida(reglaSalida.id)}" icon="ui-icon-trash" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:panel>
+                            </p:dataGrid>
+                        </p:panel>
+                    </p:scrollPanel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action ="#{cmRipsReglaBean.modificar()}" update="panelEditar"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <h:form id="exit">
+                <p:remoteCommand  id="limpiarRender" name="limpiarRender" action="#{cmRipsReglaBean.salir()}"/>
+            </h:form>
+        </center>
+    </ui:define>
+</ui:composition>

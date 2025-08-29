@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .cont-btnJson {
+                width: 600px;
+                margin: auto;
+                display:flex;
+                flex-wrap:wrap;
+                margin-top:15px;
+                margin-bottom:15px;
+            }
+            
+            .cont-cell {
+                display: inline;
+                border: 1px solid #dddddd;
+                padding: 8px;
+                flex-basis: 30%;
+                flex-wrap:wrap;
+                text-align:center;
+            }
+            
+            .cont-title {
+                background:whitesmoke;
+                font-weight: bold;
+                padding-top:12px;
+            }
+            .cont-modal {
+                width:600px;
+                margin:auto;
+            }
+            .cont-action {
+                display:inline;
+                border: 1px solid #dddddd;
+                padding: 8px;
+            }
+            
+        </style>
+        <center>
+            <h:form id="frmTransacciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{wsTransaccionBean.modulo.descripcion}">#{wsTransaccionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Desde"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{wsTransaccionBean.paramConsulta.parametroConsulta1}" pattern="yyyy-MM-dd HH:mm">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>                        
+                        <p:outputLabel value="Hasta"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{wsTransaccionBean.paramConsulta.parametroConsulta2}" pattern="yyyy-MM-dd HH:mm">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                        </p:calendar>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{wsTransaccionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{wsTransaccionBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{wsTransaccionBean.lazyTransacciones}" rowKey="#{obj.id}"
+                             rows="#{wsTransaccionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Id" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Id" maxlength="8" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText title="#{obj.id}" value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Servicio" filterBy="#{obj.wsServicio.id}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 85%;"  >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{wsTransaccionBean.listaServicios}" var="ser" itemValue="#{ser.id}" itemLabel="#{ser.nombre}" itemDescription="#{ser.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.wsServicio.nombre}" title="#{obj.wsServicio.descripcion}"/>
+                    </p:column>
+                    <p:column headerText="Conexión" filterBy="#{obj.wsConexion.id}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 85%;"  >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{wsTransaccionBean.listaConexiones}" var="con" itemValue="#{con.id}" itemLabel="#{con.nombre}" itemDescription="#{con.nombre}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.wsConexion.nombre}" title="#{obj.wsConexion.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Estado" sortBy="#{obj.estado}" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Solicitud" itemValue="1" />
+                                <f:selectItem itemLabel="Respuesta" itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+                    <p:column headerText="F.H. Solicitud" sortBy="#{obj.fechaHoraSolicitud}" filterBy="#{obj.fechaHoraSolicitud}">
+                        <f:facet name="filter">
+                            <p:inputText label="F.H. Solicitud" maxlength="20" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.fechaHoraSolicitud}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="F.H. Respuesta" sortBy="#{obj.fechaHoraRespuesta}" filterBy="#{obj.fechaHoraRespuesta}">
+                        <f:facet name="filter">
+                            <p:inputText label="F.H. Solicitud" maxlength="20" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.fechaHoraRespuesta}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Proceso" filterBy="#{obj.respuesta}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" />
+                                <f:selectItem itemLabel="N/A" itemValue="3" />
+                                <f:selectItem itemLabel="En Proceso" itemValue="false" />                                
+                                <f:selectItem itemLabel="Procesado" itemValue="true" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText style="max-width: 70%;" value="#{obj.respuestaStr}" />
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{wsTransaccionBean.accionVer}" title="Ver" actionListener="#{wsTransaccionBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{obj.respuesta eq false and wsTransaccionBean.accionAdicional2}" 
+                                         title="Desbloquear" actionListener="#{wsTransaccionBean.desbloquearFactura(obj.id)}" 
+                                         icon="ui-icon-info" style="float:right;"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true">
+                <h:form id="frmVer" style="height: 500px;">
+                    <p:panelGrid id="panelVer" >                        
+                        <p:row>
+                            <p:column styleClass="ui-widget-header" style="text-align: center;" colspan="4">
+                                Servicio
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.wsServicio.nombre}"/>
+                            </p:column>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.wsServicio.descripcion}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header" style="text-align: center;" colspan="4">
+                                Conexión
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column colspan="3">
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.wsConexion.nombre}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header" style="text-align: center;" colspan="4">
+                                Transacción
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.estadoStr}"/>
+                            </p:column>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Ip Solicita" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.ipSolicitud}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Usuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.usuario}"/>
+                            </p:column>
+                            <p:column styleClass="ui-widget-header" colspan="3">
+                                
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Fecha Hora Solicita" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.fechaHoraSolicitud}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                            <p:column styleClass="ui-widget-header">
+                                <p:outputLabel value="Fecha Hora Respuesta" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{wsTransaccionBean.objeto.fechaHoraRespuesta}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+
+</ui:composition>

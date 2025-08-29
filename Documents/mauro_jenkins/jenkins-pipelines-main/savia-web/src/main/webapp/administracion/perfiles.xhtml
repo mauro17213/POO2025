@@ -1,0 +1,525 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style>
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-g > div {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+            .btn-icono{
+                border: 0.6px solid #E1E1E196 !important;
+                padding: 0.14rem !important;
+                box-shadow: 0px 0px 29px -22px rgb(0 0 0 / 73%) !important;
+                margin: 0.1rem;
+                color: #353333 !important;
+                background: #D6DAE157 !important;
+                border-radius: 8px !important;
+            }
+            .btn-icono > span:first-child {
+                font-size: 0.76rem;
+                padding-top: 0.1rem;
+            }
+        </style>
+
+        <center>
+            <h:form id="frmPerfiles">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{perfilBean.modulo.descripcion}">#{perfilBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{perfilBean.accionListar}" title="Refrescar" class="btn-icono"  ajax="false" actionListener="#{perfilBean.refrescar()}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{perfilBean.accionCrear}" title="Crear" class="btn-icono"   actionListener="#{perfilBean.crear()}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{perfilBean.lazyPerfil}" rowKey="#{obj.id}"
+                             rows="#{perfilBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Descripción">
+                        <h:outputText value="#{obj.descripcionCorta}" title="#{obj.descripcion}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="true" />
+                                <f:selectItem itemLabel="NO" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{perfilBean.accionVer}" title="Ver" class="btn-icono"   actionListener="#{perfilBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{perfilBean.accionEditar}" title="Editar" class="btn-icono"   actionListener="#{perfilBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{perfilBean.accionAdicional1}" title="Permisos" class="btn-icono"   actionListener="#{perfilBean.editarPermisos(obj.id)}" icon="pi pi-arrows-h"/>
+                        <p:commandButton rendered="#{perfilBean.accionBorrar}" title="Borrar" class="btn-icono"   action="#{perfilBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?"  class="btn-icono"   icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes"   icon="pi pi-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono" styleClass="ui-confirmdialog-no"   icon="pi pi-times" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="60%">
+
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{perfilBean.getAuditoria(perfilBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{perfilBean.objeto.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{perfilBean.objeto.descripcion}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{perfilBean.objeto.activoStr}"/>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true">
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear" >
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{perfilBean.objeto.nombre}"  maxlength="16" required="true"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Descripcion" for="descripcion" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputTextarea id="descripcion" label="Descripción" value="#{perfilBean.objeto.descripcion}" cols="60" maxlength="512" style="width: 90%"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{perfilBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"   type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{perfilBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{perfilBean.getAuditoria(perfilBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{perfilBean.objeto.nombre}"  maxlength="16" required="true"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Descripcion" for="descripcion" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputTextarea id="descripcion" label="Descripción" value="#{perfilBean.objeto.descripcion}" cols="60" maxlength="512" style="width: 90%"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{perfilBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center">
+                                    <p:commandButton value="Modificar" class="btn-icono"  type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{perfilBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <style type="text/css">
+                .modulo {
+                    background-color: #D8D8D8 !important;
+                    background-image: none !important;
+                    color: #000000 !important;
+                }
+            </style>
+
+            <p:dialog header="Editar Permisos" widgetVar="dialogoEditarPermisos" appendTo="@(body)" modal="true" width="900px" height="500px" resizable="false">
+                <h:form id="frmEditarPermisos">
+                    <p:panelGrid id="panelEditarPermisos" columns="1">
+                        <p:dataTable id="tablaPermisos" var="permi" value="#{perfilBean.listaPermisos}" editable="true" widgetVar="tablaPermisosWidget" rowStyleClass="#{(permi.modulo.tipoModulo)? 'modulo' : null}">
+                            <f:facet name="header"> #{perfilBean.objeto.nombre} </f:facet>
+                            <p:ajax event="rowEdit" listener="#{perfilBean.modificarPermiso}"/>
+                            <p:column headerText="Módulo" style="width:100px">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{permi.modulo.nombre} (#{permi.modulo.tipoStr})" title="#{permi.modulo.descripcion}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:outputText value="#{permi.modulo.nombre} (#{permi.modulo.tipoStr})" title="#{permi.modulo.descripcion}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="L">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.listarPermiso}" value="#{permi.listarPermiso}" onclick="return false;" title="Listar" readonly="true"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="listar" rendered="#{permi.modulo.listarPermiso}" value="#{permi.listarPermiso}" title="Listar"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="V">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.verPermiso}" value="#{permi.verPermiso}" onclick="return false;" title="Ver" readonly="true"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="ver" rendered="#{permi.modulo.verPermiso}" value="#{permi.verPermiso}" title="Ver"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="C">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.crearPermiso}" value="#{permi.crearPermiso}" onclick="return false;" title="Crear" readonly="true"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="crear" rendered="#{permi.modulo.crearPermiso}" value="#{permi.crearPermiso}" title="Crear"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="E">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.editarPermiso}" value="#{permi.editarPermiso}" onclick="return false;" title="Editar" readonly="true"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="editar" rendered="#{permi.modulo.editarPermiso}" value="#{permi.editarPermiso}" title="Editar"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="B">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.borrarPermiso}" value="#{permi.borrarPermiso}" onclick="return false;" title="Borrar" readonly="true"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="borrar" rendered="#{permi.modulo.borrarPermiso}" value="#{permi.borrarPermiso}" title="Borrar"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 1">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional1Permiso}" value="#{permi.accionAdicional1Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional1Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional1" rendered="#{permi.modulo.accionAdicional1Permiso}" value="#{permi.accionAdicional1Permiso}" title="#{permi.modulo.adicional1Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 2">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional2Permiso}" value="#{permi.accionAdicional2Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional2Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional2" rendered="#{permi.modulo.accionAdicional2Permiso}" value="#{permi.accionAdicional2Permiso}" title="#{permi.modulo.adicional2Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 3">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional3Permiso}" value="#{permi.accionAdicional3Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional3Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional3" rendered="#{permi.modulo.accionAdicional3Permiso}" value="#{permi.accionAdicional3Permiso}" title="#{permi.modulo.adicional3Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 4">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional4Permiso}" value="#{permi.accionAdicional4Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional4Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional4" rendered="#{permi.modulo.accionAdicional4Permiso}" value="#{permi.accionAdicional4Permiso}" title="#{permi.modulo.adicional4Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 5">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional5Permiso}" value="#{permi.accionAdicional5Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional5Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional5" rendered="#{permi.modulo.accionAdicional5Permiso}" value="#{permi.accionAdicional5Permiso}" title="#{permi.modulo.adicional5Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>  
+
+                            <p:column headerText="Adi 6">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional6Permiso}" value="#{permi.accionAdicional6Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional6Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional6" rendered="#{permi.modulo.accionAdicional6Permiso}" value="#{permi.accionAdicional6Permiso}" title="#{permi.modulo.adicional6Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>   
+
+                            <p:column headerText="Adi 7">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional7Permiso}" value="#{permi.accionAdicional7Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional7Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional7" rendered="#{permi.modulo.accionAdicional7Permiso}" value="#{permi.accionAdicional7Permiso}" title="#{permi.modulo.adicional7Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 8">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional8Permiso}" value="#{permi.accionAdicional8Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional8Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional8" rendered="#{permi.modulo.accionAdicional8Permiso}" value="#{permi.accionAdicional8Permiso}" title="#{permi.modulo.adicional8Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 9">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional9Permiso}" value="#{permi.accionAdicional9Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional9Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional9" rendered="#{permi.modulo.accionAdicional9Permiso}" value="#{permi.accionAdicional9Permiso}" title="#{permi.modulo.adicional9Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 10">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional10Permiso}" value="#{permi.accionAdicional10Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional10Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional10" rendered="#{permi.modulo.accionAdicional10Permiso}" value="#{permi.accionAdicional10Permiso}" title="#{permi.modulo.adicional10Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 11">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional11Permiso}" value="#{permi.accionAdicional11Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional11Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional11" rendered="#{permi.modulo.accionAdicional11Permiso}" value="#{permi.accionAdicional11Permiso}" title="#{permi.modulo.adicional11Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 12">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional12Permiso}" value="#{permi.accionAdicional12Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional12Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional12" rendered="#{permi.modulo.accionAdicional12Permiso}" value="#{permi.accionAdicional12Permiso}" title="#{permi.modulo.adicional12Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 13">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional13Permiso}" value="#{permi.accionAdicional13Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional13Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional13" rendered="#{permi.modulo.accionAdicional13Permiso}" value="#{permi.accionAdicional13Permiso}" title="#{permi.modulo.adicional13Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 14">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional14Permiso}" value="#{permi.accionAdicional14Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional14" rendered="#{permi.modulo.accionAdicional14Permiso}" value="#{permi.accionAdicional14Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 15">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional15Permiso}" value="#{permi.accionAdicional15Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional15" rendered="#{permi.modulo.accionAdicional15Permiso}" value="#{permi.accionAdicional15Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 16">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional16Permiso}" value="#{permi.accionAdicional16Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional16" rendered="#{permi.modulo.accionAdicional16Permiso}" value="#{permi.accionAdicional16Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 17">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional17Permiso}" value="#{permi.accionAdicional17Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional17" rendered="#{permi.modulo.accionAdicional17Permiso}" value="#{permi.accionAdicional17Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 18">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional18Permiso}" value="#{permi.accionAdicional18Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional18" rendered="#{permi.modulo.accionAdicional18Permiso}" value="#{permi.accionAdicional18Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+
+                            <p:column headerText="Adi 19">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:selectBooleanCheckbox rendered="#{permi.modulo.accionAdicional19Permiso}" value="#{permi.accionAdicional19Permiso}" onclick="return false;" readonly="true" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <h:selectBooleanCheckbox id="adicional19" rendered="#{permi.modulo.accionAdicional19Permiso}" value="#{permi.accionAdicional19Permiso}" title="#{permi.modulo.adicional14Nombre}"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>                            
+                            <p:column>
+                                <p:rowEditor />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

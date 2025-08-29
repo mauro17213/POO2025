@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputStylesheet name="css/rips.css"/>
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                .responsive_input, .responsive_input input {
+                    width: 90%
+                }
+                
+                .tabla_altura_fija_cm .ui-datatable-table {
+                    min-height: 100px;
+                }
+            </style>
+            <h:form id="frmFinPostulaciones" >
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{finPostulacionBean.modulo.descripcion}" style="text-align: left;display: inherit;padding-left: 10px;margin-bottom: 3px;margin-top: 3px;">#{finPostulacionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{finPostulacionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{finPostulacionBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{finPostulacionBean.lazyFinPostulaciones}" paginator="true" rows="#{finPostulacionBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget" scrollable="true"
+                             scrollWidth="135%"
+                             style="font-size:11px;"
+                             rowKey="#{obj.id}" reflow="true">
+                    
+                    <p:column style="text-align: center;" width="80">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton  class="btnAuditoria" action="#{finPostulacionBean.getAuditoria(obj.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </p:column>
+                    <p:column headerText="Id Giro" filterBy="#{obj.finGiro.id}" style="text-align: center;">   
+                        <f:facet name="filter">
+                            <p:inputNumber thousandSeparator="" decimalSeparator="" decimalPlaces="0"  label="Consecutivo" maxlength="30" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }" style="width: 80%;" onchange="PF('tablaWidget').filter()" styleClass="responsive_input"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.finGiro.id}" title="#{obj.finGiro.id}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Tipo Giro" filterBy="#{obj.finGiro.tipo}" style="text-align: center;">   
+                        <f:facet name="filter">
+                          <p:selectOneMenu style="width:70%;min-width:inherit;" onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Giro directo subsidiado" itemValue="1"/>
+                                <f:selectItem itemLabel="Giro directo contributivo " itemValue="2"/>
+                                <f:selectItem itemLabel="Giro directo presupuestos máximos " itemValue="3"/>
+                                <f:selectItem itemLabel="Otros Pagos" itemValue="4"/>  
+                            </p:selectOneMenu> 
+                        </f:facet>
+                        <h:outputText value="#{obj.finGiro.tipoStr}" title="#{obj.finGiro.tipoStr}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Nombre Giro" filterBy="#{obj.finGiro.nombre}" style="text-align: center;">   
+                        <f:facet name="filter">
+                            <p:inputText label="Consecutivo" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.finGiro.nombre}" title="#{obj.finGiro.nombre}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Id Postulación" filterBy="#{obj.id}" style="text-align: center;">   
+                        <f:facet name="filter">
+                            <p:inputNumber thousandSeparator="" decimalSeparator="" decimalPlaces="0"   label="Consecutivo" maxlength="30" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }" style="width: 80%;" styleClass="responsive_input" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Prestador Nit" filterBy="#{obj.prestadorNit}" style="text-align: center;">  
+                        <f:facet name="filter">
+                            <p:inputText label="Nit" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.prestadorNit}" />
+                    </p:column>
+                    
+                    <p:column headerText="Prestador Razon Social" filterBy="#{obj.prestadorRazonSocial}" style="text-align: center;">  
+                        <f:facet name="filter">
+                            <p:inputText label="Nit" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.prestadorRazonSocial}" />
+                    </p:column>
+                    
+                    <p:column headerText="Prestador Departamento" style="text-align: center;">  
+                        <h:outputText value="#{obj.prestadorDepartamento}" />
+                    </p:column>
+                    
+                    <p:column headerText="Prestador Municipio" style="text-align: center;">  
+                        <h:outputText value="#{obj.prestadorMunicipio}" />
+                    </p:column>
+                    
+                     <p:column headerText="Prestador Naturaleza" style="text-align: center;">  
+                         <h:outputText value="#{obj.prestadorNaturaleza}" />
+                    </p:column>
+                    
+                    <p:column headerText="Prestador Estado Adres" style="text-align: center;">  
+                        <h:outputText value="#{obj.prestadorEstadoAdres}" />
+                    </p:column>
+
+                    <p:column headerText="Valor Capita" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorCapita}" title="#{obj.valorCapita}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Valor Capita Reajuste" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorCapitaReajuste}" title="#{obj.valorCapitaReajuste}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Valor PGP" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorPgp}" title="#{obj.valorPgp}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column headerText="Valor Compromisos" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorCompromisos}" title="#{obj.valorCompromisos}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column headerText="Valor Evento" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorEvento}" title="#{obj.valorEvento}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                    <p:column headerText="Valor Programado Total" style="text-align: center;">  
+                        <h:outputText value="#{obj.valorProgramadoTotal}" title="#{obj.valorProgramadoTotal}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+                    
+                     <p:column headerText="Total Pagado" style="text-align: center;">  
+                        <h:outputText value="#{obj.totalPagado}" title="#{obj.totalPagado}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+            </h:form> 
+            
+            <script type="javascript">
+                $(document).ready(function ()
+                {
+                $(function ()
+                {
+                PF('tablaWidgetIPS').filter();
+                });
+                });
+            </script>
+
+        </center>
+
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,604 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <h:outputStylesheet name="css/gp.css"/>
+        <h:outputStylesheet name="css/gestionAtencion.css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"  />
+        <center style="background: #f2f2f3; /*#FAFBFD;*/ height: 100%;">			 
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                .loader{
+                    transform: translate(-50%,-50%) !important;
+                    color: #fff !important;
+                }
+                #overlay{
+                    background: rgba(0,0,0,0.5) !important;
+                    display: none !important;
+                }
+
+            </style> 
+            <!-- Listar -->
+            <h:form id="frmAtenciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gatAtencionBean.modulo.descripcion}">#{gatAtencionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gatAtencionBean.accionListar}" class="item-normal2" value="Refrescar" title="Refrescar" ajax="false" actionListener="#{gatAtencionBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional6}" class="item-normal2" value="Reposo" title="Agregar resposo" actionListener="#{gatAtencionBean.reposoCrear()}" icon="ui-icon-plus"/>
+                        <p:commandButton id="btnAbandonar" class="item-normal2" value="Abandonar" title="Abandonar Taquilla" icon="ui-icon-circle-close" onclick="PF('dlgConfirm').show(); return false;"/>
+                        <p:confirmDialog widgetVar="dlgConfirm" header="Confirmación" message="¿Está seguro que desea abandonar la taquilla?"
+                                         severity="alert" appendTo="@(body)">
+                            <h:panelGroup style="display: flex; justify-content: center; gap: 10px; padding: 10px;">
+                                <p:commandButton value="Sí" oncomplete="PF('dlgConfirm').hide();" actionListener="#{gatAtencionBean.taquillaAbandonar}"/>
+                                <p:commandButton value="No" onclick="PF('dlgConfirm').hide();" type="button"/>
+                            </h:panelGroup>
+                        </p:confirmDialog>
+                    </f:facet>
+                </p:toolbar>
+                <div class="fondoInfo">
+                    <div class="fondoInfo-item" >
+                        <small class="small">Nombre</small>
+                        <strong class="strong">#{gatAtencionBean.conexion.usuario.nombre}</strong>
+                    </div>
+                    <div class="fondoInfo-item" >
+                        <small class="small">Sede</small>
+                        <strong class="strong">#{gatAtencionBean.objetoTaquilla.gnSedeId.nombre}</strong>
+                    </div>
+                    <div class="fondoInfo-item" >
+                        <small class="small">Taquilla</small>
+                        <strong class="strong">#{gatAtencionBean.objetoTaquilla.nombre}</strong>
+                    </div>
+                    <div class="fondoInfo-item-servicio" >
+                        <small class="small">Servicios</small>                        
+
+                        <div class="contenedor-servicios">
+
+                            <c:forEach items="#{gatAtencionBean.objetoTaquilla.gatTaquillaServicioList}" var="servicio">
+                                <div class="item-servicio">
+                                    #{servicio.maeTipoServicioValor}
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="fondoEstadisticas">
+                    <div class="fondoInfo-item-estadistica" >                        
+                        <strong class="strong">#{gatAtencionBean.totalAtendidos}</strong>
+                        <small class="small">Atendidos</small>
+                    </div>  
+                    <div class="fondoInfo-item-estadistica" >                        
+                        <strong class="strong">#{gatAtencionBean.totalSobreAtendidos}</strong>
+                        <small class="small">Sobre atendidos</small>
+                    </div> 
+                    <div class="fondoInfo-item-estadistica" >                        
+                        <strong class="strong">#{gatAtencionBean.totalEspera}</strong>
+                        <small class="small">En espera</small>
+                    </div> 
+                    <div class="fondoInfo-item-estadistica" >                        
+                        <strong class="strong">#{gatAtencionBean.totalAbandonados}</strong>
+                        <small class="small">Abandonados</small>
+                    </div> 
+                    <div class="fondoInfo-item-estadistica" >                        
+                        <strong id="estreposo" class="strong">#{gatAtencionBean.totalReposos}</strong>
+                        <small class="small">Reposos</small>
+                    </div> 
+                </div>
+
+                <div style="text-align: right !important">
+                    <p:commandButton rendered="#{gatAtencionBean.accionCrear &amp;&amp; gatAtencionBean.objetoSede.configuracion.turnero == 0}" class="btnTurno" title="Generar Nuevo Turno" value="Generar turno" actionListener="#{gatAtencionBean.turnoCrear()}" icon="pi pi-calendar-plus"/>
+                    <p:commandButton rendered="#{gatAtencionBean.accionModificar &amp;&amp; gatAtencionBean.objetoSede.configuracion.turnero > 0}" class="btnTurno" title="Solicitar Turno" value="Solicitar turno" actionListener="#{gatAtencionBean.turnoSolicitar()}" icon="pi pi-plus-circle"/>
+                </div>
+                <p:dataTable var="obj" class="tblAtenciones" value="#{gatAtencionBean.listaAtenciones}"
+                             emptyMessage="No se encontraron registros"
+                             id="tablaAtenciones" 
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true" draggableRows="false">
+
+                    <p:column headerText="Turno" filterBy="#{obj.gatTiquete.numero}">
+                        <f:facet name="filter">
+                            <p:inputText label="Turno" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gatTiquete.numero}"/>
+                    </p:column>
+
+                    <p:column headerText="Usuario">
+                        <h:outputText value="#{obj.gatUsuario.nombreCompleto}"/>
+                    </p:column>
+
+                    <p:column headerText="Prioritario">
+                        <h:outputText value="#{obj.gatTiquete.prioritarioStr}"/>
+                    </p:column> 
+
+                    <p:column headerText="Tiempo Transcurrido">
+                        <h:outputText value="#{gatAtencionBean.calcularTiempo(obj.fechaHoraCrea)}"/>                        
+                    </p:column>
+
+                    <p:column headerText="Tiempo Atencion">
+                        <ui:fragment rendered="#{obj.fueraTiempo}">
+                            <div class="alert-tiempo-pasado" >
+                                <h:outputText value="#{gatAtencionBean.calcularTiempoAt(obj.fechaHoraInicio,obj.gatTiquete.numero)} / 5 min"/>
+                            </div>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{!obj.fueraTiempo}">
+                            <div >
+                                <h:outputText value="#{gatAtencionBean.calcularTiempoAt(obj.fechaHoraInicio,obj.gatTiquete.numero)} / 5 min"/>
+                            </div>
+                        </ui:fragment>
+
+                    </p:column>
+
+                    <p:column headerText="Estado">
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Llamados">
+                        <h:outputText value="#{obj.llamados}"/>
+                    </p:column>
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional1}" class="item-normal" title="Gestionar" actionListener="#{gatAtencionBean.gestionEditar(obj.id)}" icon="ui-icon-clipboard"/>
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional2 and obj.estado > 0}" title="Rellamar" class="item-normal" actionListener="#{gatAtencionBean.rellamar(obj.id)}" icon="ui-icon-volume-on"/>
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional3 and obj.estado > 0}" title="Transferir" class="item-normal" actionListener="#{gatAtencionBean.transferenciaCrear(obj.id)}" icon="ui-icon-transferthick-e-w"/>
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional4 and obj.estado == 0}" title="Abandonar" class="item-normal" actionListener="#{gatAtencionBean.abandonar(obj.id)}" icon="ui-icon-cancel"/>
+                        <p:commandButton rendered="#{gatAtencionBean.accionAdicional5 and obj.estado == 0 and obj.llamados >= gatAtencionBean.llamadosMaximos}" title="Llamar" class="item-normal" actionListener="#{gatAtencionBean.llamar(obj.gatTiquete.id)}" icon="ui-icon-volume-off"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+                <p:poll id="pollActualiza"  interval="20" listener="#{gatAtencionBean.refrescar()}" update="frmAtenciones" widgetVar="pollPrincipal" autoStart="true" />
+            </h:form>
+
+            <!-- Sede - Taquilla - Seleccionar-->
+            <p:dialog header="Seleccion Taquilla" widgetVar="dialogoSedes" appendTo="@(body)" modal="true"  width="50%" dynamic="true" closable="false" >
+                <p:scrollPanel mode="native">
+                    <h:form id="frmSedes">
+                        <p:panel id="pSedes" header="Sedes y Taquillas usuario" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelSedes" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Sedes" for="sedesSeleccionar" style="font-weight:bold"/>
+                                <p:selectOneMenu id="sedesSeleccionar" value="#{gatAtencionBean.objetoSede.id}" required="true" requiredMessage="La sede : Este campo es obligatorio" >
+                                    <f:selectItem itemValue="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.listaSedes}" var="sede" itemValue="#{sede.id}" itemLabel="#{sede.nombre}" />
+                                    <p:ajax event="change" listener="#{gatAtencionBean.sedeSeleccionar()}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Taquilla" for="taquillaSeleccionar" style="font-weight:bold"/>
+                                <p:selectOneMenu id="taquillaSeleccionar" value="#{gatAtencionBean.objetoTaquilla.id}" required="true" requiredMessage="La taquilla : Este campo es obligatorio" >
+                                    <f:selectItem itemValue="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.objetoSede.gatSedeTaquillaList}" var="taq" itemValue="#{taq.id}" itemLabel="#{taq.nombre}" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesSedes" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Seleccionar" type="button" onclick="taquillaGuardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="taquillaGuardarRemote" action ="#{gatAtencionBean.taquillaGuardar}" update="frmSedes"/>
+                                        <p:commandButton value="Salir" action="#{gatAtencionBean.taquillaSalir()}" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Gestionar -->
+            <p:dialog header="Gestionar" widgetVar="dialogoGestionar" appendTo="@(body)" modal="true"  width="90%" dynamic="true" closable="false">
+                <h:form class="frmAuditoriaGestionar" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gatAtencionBean.getAuditoria(gatAtencionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmGestionar">
+                        <p:panel id="pInfoGestionar" header="Información" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelInfoGestionar" columns="4" columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4" layout="grid" styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Turno" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gatAtencionBean.objetoTiquete.numero}" />
+
+                                <p:outputLabel value="Tiempo Atención" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gatAtencionBean.calcularTiempo(gatAtencionBean.objeto.fechaHoraInicio)} de #{gatAtencionBean.obtenerUmbral()}" />
+
+                                <p:outputLabel value="Numero de llamados" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gatAtencionBean.objetoTiquete.gatTiketeLlamadosList.size()}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pCrear" header="Busqueda" style="margin-bottom:10px;" collapsed="false" toggleable="true" rendered="#{gatAtencionBean.objeto.gatUsuario.id == null}">
+                            <p:panelGrid id="panelCrear" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <h:outputText value="Tipo Documento"   class="header-back" />
+                                <p:selectOneMenu id="tipoDocumentoCrear" value="#{gatAtencionBean.objeto.gatUsuario.maeTipoDocumentoId}" filter="true" >
+                                    <f:selectItem value="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.listaTiposDocumentos}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" />
+                                    <p:ajax event="change" listener="#{gatAtencionBean.buscarAfiliadoGestionar()}" update="pDatosCrear" />
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Documento"   class="header-back"/>
+                                <p:inputText id="documentoCrear" value="#{gatAtencionBean.objeto.gatUsuario.numeroDocumento}" >
+                                    <p:ajax event="change" listener="#{gatAtencionBean.buscarAfiliadoGestionar()}" update="pDatosCrear" />
+                                </p:inputText>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pDatosCrear" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true" rendered="#{gatAtencionBean.mostrarDatosUsuario}">
+                            <p:panelGrid id="panelDatosCrear" columns="4" columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4" layout="grid" styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Nombres"  class="header-back"/>
+                                <p:inputText id="nombreTurnoDatos" value="#{gatAtencionBean.objeto.gatUsuario.nombres}" readonly="#{gatAtencionBean.editarDatosUsuario}" />
+
+                                <h:outputText value="Apellidos"  class="header-back"/>
+                                <p:inputText id="apellidoTurnoDatos" value="#{gatAtencionBean.objeto.gatUsuario.apellidos}" readonly="#{gatAtencionBean.editarDatosUsuario}" />
+
+                                <h:outputText value="Fecha Nacimiento"   class="header-back" />
+                                <p:calendar id="fechaNacimientoTurno" value="#{gatAtencionBean.objeto.gatUsuario.fechaNacimiento}" navigator="true" yearRange="c-100:c" maxdate="#{gatAtencionBean.fechaMaxima}" readonly="#{gatAtencionBean.editarDatosUsuario}" pattern="yyyy-MM-dd" locale="es" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Servicios -->
+                        <p:panel id="pServicios" header="Servicios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{gatAtencionBean.comentarioCrear()}" icon="ui-icon-document-b" title="Agregar Servicio"/>
+                            </div>
+                            <p:dataTable id="tablaServicios" var="servicio" value="#{gatAtencionBean.objeto.gatListaHistoricos}" resizableColumns="true" widgetVar="servicios" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Servicio">
+                                    <h:outputText value="#{servicio.maeTipoServicioValor}"/>
+                                </p:column>
+                                <p:column headerText="Inicio">
+                                    <h:outputText value="#{servicio.fechaHoraInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fin">
+                                    <h:outputText value="#{servicio.fechaHoraFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Usuario" >
+                                    <h:outputText value="#{servicio.usuarioCrea}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!-- Comentarios -->
+                        <p:panel id="pComentarios" header="Comentarios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{gatAtencionBean.comentarioCrear()}" icon="ui-icon-document-b" title="Agregar Comentario"/>
+                            </div>
+                            <p:dataTable id="tablaComentarios" var="comentario" value="#{gatAtencionBean.objeto.gatListaComentarios}" resizableColumns="true" widgetVar="comentarios" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Comentario">
+                                    <h:outputText value="#{comentario.comentario}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Hora" >
+                                    <h:outputText value="#{comentario.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Usuario" >
+                                    <h:outputText value="#{comentario.usuarioCrea}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="gestionGuardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="gestionGuardarRemote" action ="#{gatAtencionBean.gestionModificar}" update="frmGestionar"/>
+                                        <p:commandButton value="Finalizar" type="button" onclick="finalizarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="finalizarRemote" action ="#{gatAtencionBean.gestionFinalizar}" update="frmGestionar"/>
+                                        <p:commandButton value="Salir" action="#{gatAtencionBean.gestionSalir}" immediate="true" style="margin-left: 5px;" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                        <p:poll id="pollGestionar" widgetVar="pollGestionar" autoStart="true" interval="20" update="frmGestionar:pInfoGestionar" />
+                    </h:form>                    
+                </p:scrollPanel>
+            </p:dialog>            
+
+            <!-- Transferir -->
+            <p:dialog header="Transferir" widgetVar="dialogoTransferir" appendTo="@(body)" modal="true"  width="90%" dynamic="true" closable="false">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmTransferir">
+                        <p:panel id="pTransferir" header="Servicio a Tranferir" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTransferir" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Taquilla" for="taquillasTransferir" style="font-weight:bold"/>
+                                <p:selectOneMenu id="taquillasTransferir" value="#{gatAtencionBean.idTaquillaTransferir}" required="true" requiredMessage="La Taquilla : Este campo es obligatorio">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.listaTaquillasOcupadas}" var="taq" itemValue="#{taq.id}" itemLabel="#{taq.nombre}" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesTransferir" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Transferir" type="button" onclick="transferirRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="transferirRemote" action ="#{gatAtencionBean.transferenciaGuardar}" update="frmTransferir"/>
+                                        <p:commandButton value="Salir" action="#{gatAtencionBean.cerrarTransferir()}" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Comentario Crear -->
+            <p:dialog header="Comentario" widgetVar="dialogoComentario" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmComentario">
+                        <p:panel id="pComentario" header="Información Comentario" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelComentario">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Comentario" for="comentarioCrear"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:inputTextarea id="comentarioCrear" rows="5" value="#{gatAtencionBean.objetoComentario.comentario}" counter="display" maxlength="1024"
+                                                         counterTemplate="{0} Caracteres faltantes" />                                        
+                                        <h:outputText style="padding-left: 5px" id="display" class="block"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesComentario" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Agregar" type="button" onclick="crearRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="crearRemote" action ="#{gatAtencionBean.comentarioGuardar}" update="frmComentario"/>
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoComentario').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Servicio Crear -->
+            <p:dialog header="Servicio" widgetVar="dialogoServicio" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmServicio">
+                        <p:panel id="pServicio" header="Información Comentario" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelServicio">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Servicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesServicio" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Agregar" type="button" onclick="crearRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="crearRemote" action ="#{gatAtencionBean.servicioGuardar}" update="frmServicio"/>
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoComentario').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Turno -->
+            <p:dialog header="CrearTurno" widgetVar="dialogoCrearTurno" appendTo="@(body)" modal="true"  width="90%" dynamic="true" closable="false" >
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmCrearTurno">
+                        <!-- Servicios -->
+                        <p:panel id="pTurnoServicios" header="Servicios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTurnoServicio" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Tipo Servicio" for="tipoServicioTurno"  style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoServicioTurno" value="#{gatAtencionBean.objetoTiquete.maeTipoServicio}" filter="true" required="true" requiredMessage="Tipo Servicio : Este campo no es obligatorio" >
+                                    <f:selectItem value="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.objetoTaquilla.gatTaquillaServicioList}" var="tipoServ" itemValue="#{tipoServ.maeTipoServicioId}" itemLabel="#{tipoServ.maeTipoServicioValor}" />
+                                    <p:ajax event="change" update="frmCrearTurno" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Busqueda -->
+                        <p:panel id="pTurnoBuscar" header="Busqueda" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTurnoBuscar" columns="2" layout="grid" styleClass="showcase-text-align-center">                                
+
+                                <p:outputLabel value="Tipo Documento" for="tipoDocumentoTurno"  style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipoDocumentoTurno" value="#{gatAtencionBean.objetoTiquete.gatUsuario.maeTipoDocumentoId}" filter="true" required="true" requiredMessage="Tipo Documento : Este campo no es obligatorio" >
+                                    <f:selectItem value="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.listaTiposDocumentos}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" />
+                                    <p:ajax rendered="#{gatAtencionBean.objetoTiquete.afiliado}" event="change" listener="#{gatAtencionBean.buscarAfiliado()}" />
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Documento" for="documentoTurno"  style="font-weight:bold"/>
+                                <p:inputText id="documentoTurno" value="#{gatAtencionBean.objetoTiquete.gatUsuario.numeroDocumento}" required="true" requiredMessage="Documento : Este campo es obligatorio" >
+                                    <p:ajax rendered="#{gatAtencionBean.objetoTiquete.afiliado}" event="change" listener="#{gatAtencionBean.buscarAfiliado()}" />
+                                </p:inputText>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Datos -->
+                        <p:panel id="pTurnoDatos" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTurnoDatos" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Nombres" for="nombreTurnoDatos"  style="font-weight:bold"/>
+                                <p:inputText id="nombreTurnoDatos" value="#{gatAtencionBean.objetoTiquete.gatUsuario.nombres}" readonly="#{gatAtencionBean.objetoTiquete.afiliado}" required="#{!gatAtencionBean.objetoTiquete.afiliado}" requiredMessage="Los nombres : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Apellidos" for="apellidoTurnoDatos"  style="font-weight:bold"/>
+                                <p:inputText id="apellidoTurnoDatos" value="#{gatAtencionBean.objetoTiquete.gatUsuario.apellidos}" readonly="#{gatAtencionBean.objetoTiquete.afiliado}" required="#{!gatAtencionBean.objetoTiquete.afiliado}" requiredMessage="Los apellidos : Este campo es obligatorio" />
+
+                                <p:outputLabel value="Fecha Nacimiento" for="fechaNacimientoTurnoDatos"  style="font-weight:bold"/>
+                                <p:datePicker id="fechaNacimientoTurnoDatos" value="#{gatAtencionBean.objetoTiquete.gatUsuario.fechaNacimiento}" monthNavigator="true" yearNavigator="true" yearRange="1900:2050" readonly="#{gatAtencionBean.objetoTiquete.afiliado}" pattern="yyyy-MM-dd" locale="es" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{gatAtencionBean.turnoGuardar}" update="frmCrearTurno"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrearTurno').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Reposos -->
+            <p:dialog header="Reposo" widgetVar="dialogoReposo" appendTo="@(body)" modal="true"  width="400" dynamic="false" closable="false" >
+                <p:scrollPanel mode="native">
+                    <h:form id="frmReposos">
+                        <p:panel id="pSedes" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelSedes" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Tipo" for="tipo"  style="font-weight:bold"/>
+                                <p:selectOneMenu id="tipo" value="#{gatAtencionBean.objReposo.servicioUbralId}"  required="true" requiredMessage="Tipo : Este campo es obligatorio" >
+                                    <f:selectItem itemValue="#{null}" itemLabel=" -- " noSelectionOption="true" />
+                                    <f:selectItems value="#{gatAtencionBean.listaResposos}" var="reposo" itemValue="#{reposo.id}" itemLabel="#{reposo.maeTipoServicioValor}" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesSedes" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Iniciar tiempo reposo" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action="#{gatAtencionBean.reposoGuardar}"  update="frmReposos"/>
+                                        <p:commandButton value="Salir"  onclick="PF('dialogoReposo').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- confirmar Reposos -->
+            <p:dialog header="Reportar reposo" widgetVar="dialogoReporReposo" appendTo="@(body)" modal="true"  width="400" dynamic="false" closable="false" >
+                <p:scrollPanel mode="native">
+                    <h:form id="frmRepoReposos">
+                        <p:panel id="pSedes" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p style="margin-top: 0px;">Actualmente se encuentra iniciado su tiempo de reposo, ha transcurrido el siguiente tiempo.</p>
+                            <div id="outTiempoReposo" class="tiempo-repo-trnscurrido">
+                                <div class="conte">
+                                    <input id="minutos"  name="minutos" value="#{gatAtencionBean.minutosReposo}" readonly="true" />
+                                    <p>Min</p>
+                                </div>
+                                <div class="conte">
+                                    <input id="segundo" name="segundo" value="#{gatAtencionBean.segundosReposo}" readonly="true" />
+                                    <p>Seg</p>
+                                </div>                                    
+                            </div>  
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesSedes" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Finalizar tiempo reposo" class="item-normal2" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action="#{gatAtencionBean.reposoFinalizar}"  update="frmReposos,frmAtenciones"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Contacdor tiempo reposo -->
+            <script type="text/javascript">
+                $(document).on("ajaxStart pfAjaxComplete", function () {
+                    $("html").removeClass("progress");
+                    $("#overlay").css("display", "none");
+                });
+                var minutos = 5;
+                var seconds = 0;
+                var campo = document.getElementById("cronometro");
+                var campo_div = document.getElementById("cronometro_div");
+
+                var cronos;
+                var tiempo;
+                var minutos = document.getElementById('minutos').value;
+
+                function init() {
+                    cronos = setInterval(function () {
+                        timer();
+                    }, 1000);
+                }
+
+                function timer() {
+                    tiempo = parseInt(document.getElementById('segundo').value);
+                    if (tiempo === 59) {
+                        minutos++;
+                        document.getElementById('minutos').value = eval(minutos);
+                        document.getElementById('segundo').value = eval(0);
+                    } else {
+                        document.getElementById('segundo').value = eval(tiempo + 1);
+                    }
+
+                }
+
+                function reset() {
+                    tiempo = 0;
+                    minutos = 0;
+                    document.getElementById('minutos').value = eval(minutos);
+                    document.getElementById('segundo').value = eval(tiempo);
+                }
+
+                function stop() {
+                    clearInterval(cronos);
+                }
+            </script>
+
+        </center>
+    </ui:define>
+</ui:composition>

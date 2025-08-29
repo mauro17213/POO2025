@@ -1,0 +1,454 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <script>
+            function bloquearCopiar() {
+                document.getElementById('frmCrear:txtPrimerNombrePro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmCrear:txtPrimerApellidoPro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmCrear:txtSegundoNombrePro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmCrear:txtSegundoApellidoPro').onpaste = function (event) {
+                    return false;
+                };
+            }
+
+            function bloquearCopiarEditar() {
+                document.getElementById('frmEditar:txtPrimerNombrePro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmEditar:txtPrimerApellidoPro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmEditar:txtSegundoNombrePro').onpaste = function (event) {
+                    return false;
+                };
+
+                document.getElementById('frmEditar:txtSegundoApellidoPro').onpaste = function (event) {
+                    return false;
+                };
+            }
+
+            function crearSoloNumero() {
+                var input = document.getElementById('frmCrear:txtDocumentoPro');
+                input.onkeypress = soloNumeros;
+            }
+
+            function crearAlfaNumrico() {
+                var input = document.getElementById('frmCrear:txtDocumentoPro');
+                input.onkeypress = alfaNumerico;
+            }
+            //<![CDATA[ 
+            function soloNumeros(e) {
+                var key = window.Event ? e.which : e.keyCode
+                return (key >= 48 && key <= 57)
+            }
+            ;
+
+            function alfaNumerico(e) {
+                var key = window.Event ? e.which : e.keyCode
+                return key;
+            }
+            ;
+            //]]>
+        </script>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <h:form id="frmProfesionales">
+                <p:remoteCommand name="cerrarDialogoEspecialidad" action="#{profesionalesBean.cerrarDialogoEspecialidad()}"/>
+                <p:remoteCommand name="cerrarDialogoSelPrestador" action="#{profesionalesBean.cerrarDialogoSelPrestador()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{profesionalesBean.modulo.descripcion}">#{profesionalesBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{profesionalesBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{profesionalesBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{profesionalesBean.accionCrear}" title="Crear" ajax="false" actionListener="#{profesionalesBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{profesionalesBean.lazyProfesionales}" paginator="true" rows="#{profesionalesBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             rowKey="#{obj.id}" reflow="true">
+                    <p:column headerText="Acciones" style="text-align: center;">
+                        <p:commandButton rendered="#{profesionalesBean.accionVer}" title="Detalle Afiliado" actionListener="#{profesionalesBean.ver(obj.cntProfesionalesId.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{profesionalesBean.accionEditar}" title="Editar" actionListener="#{profesionalesBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{profesionalesBean.accionBorrar}" title="Borrar" action="#{profesionalesBean.borrar(obj.cntProfesionalesId.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar el profesional?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <!--Profesional-->
+                    <p:column headerText="Tipo documento" filterBy="#{obj.cntProfesionalesId.maeTipoCodumentoId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 90%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{profesionalesBean.listaTiposDocumentoProfesional}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.cntProfesionalesId.maeTipoDocumentoValor}" title="#{obj.cntProfesionalesId.maeTipoDocumentoValor}"/>
+                    </p:column>
+                    <p:column headerText="Documento" sortBy="#{obj.cntProfesionalesId.documento}" filterBy="#{obj.cntProfesionalesId.documento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.cntProfesionalesId.documento}" title="#{obj.cntProfesionalesId.documento}"/>
+                    </p:column>
+                    <p:column headerText="Registro médico" sortBy="#{obj.cntProfesionalesId.registroMedico}" filterBy="#{obj.cntProfesionalesId.registroMedico}">
+                        <f:facet name="filter">
+                            <p:inputText label="Registro médico" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.cntProfesionalesId.registroMedico}" title="#{obj.cntProfesionalesId.registroMedico}"/>
+                    </p:column>
+                    <p:column headerText="Nombres y apellidos" sortBy="#{obj.cntProfesionalesId.nombreCompleto}" filterBy="#{obj.cntProfesionalesId.nombreCompleto}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres y apellidos" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.cntProfesionalesId.nombreCompleto}"/>
+                    </p:column>
+                    <p:column headerText="Fecha crea" sortBy="#{obj.cntProfesionalesId.fechaHoraCrea}">
+                        <p:outputLabel value="#{obj.cntProfesionalesId.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                        </p:outputLabel>
+                    </p:column>                    
+                    <!--Profesional-->
+
+                    <p:column headerText="Prestador" sortBy="#{obj.cntPrestador.razonSocial}" >
+                        <p:outputLabel value="#{obj.cntPrestador.razonSocial}"/>
+                    </p:column>
+                    <p:column headerText="Especialidad" sortBy="#{obj.maEspecialidadValor}" filterBy="#{obj.maEspecialidadValor}">
+                        <p:outputLabel value="#{obj.maEspecialidadValor}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{profesionalesBean.getAuditoria(profesionalesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panel id="pnlPersona" header="Profesional que solicita la referencia" style="width:99%;margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelPersona" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.maeTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.documento}" />
+
+                                <p:outputLabel value="Primer nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.primerNombre}"/>
+
+                                <p:outputLabel value="Segundo nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.segundoNombre}"/>
+
+                                <p:outputLabel value="Primer apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.primerApellido}"/>
+
+                                <p:outputLabel value="Segundo apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.segundoApellido}"/>
+
+                                <p:outputLabel value="Registro Médico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.registroMedico}" style="width: 94%;"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlEspecialidad" header="Prestador y especialidad" style="width:99%;margin:10px 0px" toggleable="true">
+                            <p:dataTable id="tablaAdjuntosEditar" style="margin: 10px;" value="#{profesionalesBean.objeto.cntProfesionalesId.listaCntProfesionalPrestador}" 
+                                         var="prof" widgetVar="tablaProfesionalPrestador" paginator="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100">
+                                <p:column headerText="Tipo Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{prof.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{prof.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Nombre prestador" style="text-align: center;">
+                                    <p:outputLabel value="#{prof.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Especialidad" style="text-align: center;">
+                                    <p:outputLabel value="#{prof.maEspecialidadValor}"/>
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <p:outputLabel value="#{prof.activo ? 'SI' : 'NO'}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmCrear">
+                        <p:panel id="pnlPersona" header="Profesional" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelPersona" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo documento" for="somTipoDocumentoPersona" style="font-weight:bold"/>
+                                <p:selectOneMenu id="somTipoDocumentoPersona" required="true" style="width: 90%;" value="#{profesionalesBean.objeto.cntProfesionalesId.maeTipoCodumentoId}">
+                                    <p:ajax event="itemSelect" listener="#{profesionalesBean.validarDocumentoCrear()}" update="txtDocumentoPro"/>
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{profesionalesBean.listaTiposDocumentoProfesional}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                                </p:selectOneMenu>   
+
+                                <p:outputLabel value="Número documento" for="txtDocumentoPro" style="font-weight:bold"/>
+                                <p:column>
+                                    <p:inputText id="txtDocumentoPro" required="true" value="#{profesionalesBean.objeto.cntProfesionalesId.documento}" 
+                                                 maxlength="16" onchange="buscarProfesionalRemoto()" autocomplete="off"/>
+                                    <p:spacer width="10"/>
+                                    <p:remoteCommand name="buscarProfesionalRemoto" action="#{profesionalesBean.consultarProfesional()}" oncomplete="bloquearCopiar()"/>
+                                </p:column>
+                                <p:outputLabel value="Primer nombre" for="txtPrimerNombrePro" style="font-weight:bold"/>
+                                <p:inputText id="txtPrimerNombrePro" 
+                                             value="#{profesionalesBean.objeto.cntProfesionalesId.primerNombre}" style="width: 94%;" 
+                                             maxlength="64" disabled="#{!profesionalesBean.objeto.cntProfesionalesId.guardar}"/>
+
+                                <p:outputLabel value="Segundo nombre" style="font-weight:bold"/>
+                                <p:inputText id="txtSegundoNombrePro" value="#{profesionalesBean.objeto.cntProfesionalesId.segundoNombre}" 
+                                             style="width: 94%;" maxlength="64"
+                                             disabled="#{!profesionalesBean.objeto.cntProfesionalesId.guardar}"/>
+
+                                <p:outputLabel value="Primer apellido" for="txtPrimerApellidoPro" style="font-weight:bold"/>
+                                <p:inputText id="txtPrimerApellidoPro" value="#{profesionalesBean.objeto.cntProfesionalesId.primerApellido}" 
+                                             style="width: 94%;" maxlength="64"
+                                             disabled="#{!profesionalesBean.objeto.cntProfesionalesId.guardar}"/>
+
+                                <p:outputLabel value="Segundo apellido" style="font-weight:bold"/>
+                                <p:inputText id="txtSegundoApellidoPro" value="#{profesionalesBean.objeto.cntProfesionalesId.segundoApellido}" style="width: 94%;" 
+                                             maxlength="64" disabled="#{!profesionalesBean.objeto.cntProfesionalesId.guardar}"/>
+
+                                <p:outputLabel value="Registro Médico" for="txtRegMed" style="font-weight:bold"/>
+                                <p:inputText id="txtRegMed" value="#{profesionalesBean.objeto.cntProfesionalesId.registroMedico}" maxlength="16"
+                                             style="width: 94%;" disabled="#{!profesionalesBean.objeto.cntProfesionalesId.guardar}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelPrestador" header="Prestador y especialidad" style="width:99%;margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{profesionalesBean.abrirConsultarPrestador()}" icon="ui-icon-document" title="Agregar"/>
+                            </div>
+                            <p:dataTable id="tablaCrear" style="margin: 10px;" value="#{profesionalesBean.listaCntProfesionalPrestador}" 
+                                         var="profC" widgetVar="tablaProfesionalPrestador" paginator="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100">
+                                <p:column headerText="Tipo Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Nombre prestador" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Especialidad" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.maEspecialidadValor}"/>
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.activo ? 'SI' : 'NO'}"/>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Borrar" rendered="#{profC.id != null}" action="#{profesionalesBean.borrarProfesionalIps(profC.id)}" icon="ui-icon-trash"/>
+                                    <p:commandButton title="Borrar" rendered="#{profC.id == null}" action="#{profesionalesBean.cancelar(profC)}" icon="ui-icon-closethick"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{profesionalesBean.guardar()}" update="frmCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true" onShow="bloquearCopiarEditar()" >
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{profesionalesBean.getAuditoria(profesionalesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panel id="pnlPersona" header="Profesional" style="margin:10px 0px" toggleable="true">
+                            <p:panelGrid id="panelPersona" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.maeTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntProfesionalesId.documento}" />
+
+                                <p:outputLabel value="Primer nombre" for="txtPrimerNombrePro" style="font-weight:bold"/>
+                                <p:inputText id="txtPrimerNombrePro" class="bloquearCopiar"
+                                             value="#{profesionalesBean.objeto.cntProfesionalesId.primerNombre}" style="width: 94%;" 
+                                             maxlength="64" disabled="#{!profesionalesBean.accionAdicional1}"/>
+
+                                <p:outputLabel value="Segundo nombre" style="font-weight:bold"/>
+                                <p:inputText id="txtSegundoNombrePro" value="#{profesionalesBean.objeto.cntProfesionalesId.segundoNombre}" 
+                                             style="width: 94%;" maxlength="64" class="bloquearCopiar"
+                                             disabled="#{!profesionalesBean.accionAdicional1}"/>
+
+                                <p:outputLabel value="Primer apellido" for="txtPrimerApellidoPro" style="font-weight:bold"/>
+                                <p:inputText id="txtPrimerApellidoPro" value="#{profesionalesBean.objeto.cntProfesionalesId.primerApellido}" 
+                                             style="width: 94%;" maxlength="64"
+                                             disabled="#{!profesionalesBean.accionAdicional1}"/>
+
+                                <p:outputLabel value="Segundo apellido" style="font-weight:bold"/>
+                                <p:inputText id="txtSegundoApellidoPro" value="#{profesionalesBean.objeto.cntProfesionalesId.segundoApellido}" style="width: 94%;" 
+                                             maxlength="64" disabled="#{!profesionalesBean.accionAdicional1}"/>
+
+                                <p:outputLabel value="Registro Médico" for="txtRegMed" style="font-weight:bold"/>
+                                <p:inputText id="txtRegMed" value="#{profesionalesBean.objeto.cntProfesionalesId.registroMedico}" maxlength="16"
+                                             style="width: 94%;" disabled="#{!profesionalesBean.accionAdicional1}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelPrestador" header="Prestador y especialidad" style="width:99%;margin:10px 0px" toggleable="true">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{profesionalesBean.abrirConsultarPrestador()}" icon="ui-icon-document" title="Agregar"/>
+                            </div>
+                            <p:dataTable id="tablaEditar" style="margin: 10px;" value="#{profesionalesBean.listaCntProfesionalPrestador}" 
+                                         var="profC" widgetVar="tablaProfesionalPrestador" paginator="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100">
+                                <p:column headerText="Tipo Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Documento" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Nombre prestador" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Especialidad" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.maEspecialidadValor}"/>
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <p:outputLabel value="#{profC.activo ? 'SI' : 'NO'}"/>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Borrar" rendered="#{profC.id != null}" action="#{profesionalesBean.borrarProfesionalIps(profC)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar el registro?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton title="Borrar" rendered="#{profC.id == null}" action="#{profesionalesBean.cancelar(profC)}" icon="ui-icon-closethick"/>
+                                </p:column>
+                            </p:dataTable>
+                            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                            </p:confirmDialog>
+                        </p:panel>
+                        <p:panelGrid id="panelEditar" style="width:100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action="#{profesionalesBean.modificar()}" process="@all"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Consultar" widgetVar="dialogoConsultarEspPres" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true" width="50%">
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmConsultarEspPres">
+                        <p:panelGrid id="panelIPS" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Especialidad" style="font-weight:bold"/>
+                            <p:column>
+                                <p:outputLabel value="#{profesionalesBean.objeto.maEspecialidadValor}" />
+                                <p:spacer width="10"/>
+                                <p:commandButton action="#{profesionalesBean.consultarEspecialidad()}" immediate="true" icon="ui-icon-person" title="Especilidades"/>
+                            </p:column>
+                            <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                            <p:column>
+                                <p:outputLabel value="#{profesionalesBean.objeto.cntPrestador.razonSocial}"/>
+                                <p:spacer width="10"/>
+                                <p:commandButton immediate="true" rendered="#{profesionalesBean.buscaPrestador}" action="#{profesionalesBean.consultarPrestador()}" icon="ui-icon-home" title="Prestador"/>
+                            </p:column>
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditar" style="width:100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Agregar" action="#{profesionalesBean.agregarProfesionalPrestador()}" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <ui:include src="../maestro/seleccion/sel_especialidades.xhtml" />
+            <ui:include src="../contratacion/seleccion/sel_prestador.xhtml" />
+        </center>
+    </ui:define>
+</ui:composition>

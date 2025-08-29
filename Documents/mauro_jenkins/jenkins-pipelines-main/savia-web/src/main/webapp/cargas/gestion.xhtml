@@ -1,0 +1,360 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+
+        <style>
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-g > div {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <center>
+            <!-- Listar -->
+            <h:form id="frmGestion">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cargaGestionBean.modulo.descripcion}">#{cargaGestionBean.modulo.nombre}</span>
+
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cargaGestionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cargaGestionBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cargaGestionBean.lazyCargaRegistros}" paginator="true" rows="#{cargaGestionBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget" scrollable="true"
+                             rowKey="#{obj.id}" reflow="true"
+                             >
+                    <p:columnGroup type="header">
+
+                        <p:row>
+                            <p:column colspan="8" headerText="" />
+
+                            <p:column colspan="2" headerText="Carga" />
+                        </p:row>
+
+                        <p:row>
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>                        
+                            </p:column>
+
+                            <p:column headerText="Proceso" filterBy="#{obj.carCargasId.carProcesoId.id}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu  onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                        <f:selectItems value="#{cargaGestionBean.listaProcesos}" var="use" itemValue="#{use.id}" itemLabel="#{use.nombre}" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                            </p:column>
+
+                            <p:column headerText="Prestador" filterBy="#{obj.carCargasId.prestador.id}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cargaGestionBean.listaPrestadores}" var="use" itemValue="#{use.id}" itemLabel="#{use.razonSocial}" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+
+                            </p:column>
+
+                            <p:column headerText="Exitosos"></p:column>
+
+                            <p:column headerText="Fallidos" ></p:column>
+
+                            <p:column headerText="Estado">
+                            </p:column>
+
+                            <p:column headerText="Periodo"></p:column>
+
+                            <p:column headerText="Fecha Hora Carga" sortBy="#{obj.carCargasId.fechaHoraCrea}"></p:column>
+
+                            <p:column headerText="Tipo"></p:column>
+
+                            <p:column headerText="Acciones" style="text-align: center;">
+                            </p:column>
+                        </p:row>
+                    </p:columnGroup>
+
+
+                    <p:column groupRow="true" style="text-align: center;">
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+                        <p:commandButton rendered="#{cargaGestionBean.accionVer}" title="Ver" actionListener="#{cargaGestionBean.ver(obj)}" icon="ui-icon-search"/>
+                    </p:column>
+
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.carCargasId.carProcesoId.nombre}"/>
+                    </p:column>
+
+                    <p:column groupRow="true">    
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.carCargasId.prestador.razonSocial}"/>
+                    </p:column>
+
+                    <p:column groupRow="true" >
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.carCargasId.exitosos}"/>
+                    </p:column>
+
+                    <p:column groupRow="true" >  
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+
+                        <h:outputText value="#{obj.carCargasId.fallidos}"/>
+                    </p:column>
+
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+
+                        <h:outputText value="#{cargaGestionBean.getEstadoArchivo(obj.carCargasId.estado)}"/>
+                    </p:column>
+
+                    <p:column groupRow="true">
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+
+                        <h:outputText value="#{obj.carCargasId.carPeriodoId.nombre}"/>
+                    </p:column>
+
+                    <p:column groupRow="true" >    
+                        <h:outputText value="#{obj.carCargasId.id}" title="#{obj.id}" style="color: white;display: none"/>
+                        <h:outputText value="#{obj.carCargasId.fechaHoraCrea}">
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column style="text-align: center;">    
+                        <h:outputText value="#{cargaGestionBean.getTipoCarga(obj)}"/>
+                    </p:column>
+
+                    <p:column style="text-align: center;">    
+                        <p:commandButton rendered="#{cargaGestionBean.accionVer}" title="Gestionar" actionListener="#{cargaGestionBean.verCargas(obj)}" icon="ui-icon-folder-open"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="80%">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cargaGestionBean.getAuditoria(cargaGestionBean.objeto.carCargasId.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Prestador" style="font-weight:bold"  />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{cargaGestionBean.objeto.carCargasId.prestador.razonSocial}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Proceso" style="font-weight:bold"  />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{cargaGestionBean.objeto.carCargasId.carProcesoId.nombre}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Periodo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <h:outputLabel value="#{cargaGestionBean.objeto.carCargasId.carPeriodoId.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{cargaGestionBean.getEstadoArchivo(cargaGestionBean.objeto.carCargasId.estado)}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre Archivo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{cargaGestionBean.objeto.carCargasId.nombreArchivo}"/>
+                            </p:column>
+
+                        </p:row>
+
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Ver Carga-->
+            <p:dialog header="Ver carga" id="dialogoVerCargas" widgetVar="dialogoVerCargas" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" dynamic="true" style="max-width:1060px;">
+                <h:form id="frmVerCargas">
+
+                    <p:panel id="pVerCarga" header="" style="margin-bottom:-10px;max-height: 200px;overflow-y: scroll;" collapsed="false">
+                        <f:facet name="header">
+
+
+                        </f:facet>
+                        <p:dataTable id="tablaCargas" rows="25"
+                                     var="carga" value="#{cargaGestionBean.listaTipoCargas}" 
+                                     widgetVar="tablaWidgetErroresEstructura" scrollable="true"  
+                                     tableStyle="width: 100%;" paginator="true" 
+                                     paginatorPosition="top" 
+                                     rowsPerPageTemplate="25,50,100"  
+                                     emptyMessage="No se encontraron registros">
+
+                            <p:column headerText="Tipo carga">
+                                <h:outputText value="#{carga.tipo}"/>
+                            </p:column>
+
+                            <p:column headerText="Fila">
+                                <h:outputText value="#{carga.fila}"/>
+                            </p:column>
+
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <p:commandButton title="Ver Fila" immediate="true" action="#{cargaGestionBean.verFila(carga)}" icon="ui-icon-search"/>
+                                <p:commandButton rendered="#{cargaGestionBean.accionEditar and carga.carCargasId.carProcesoId.editable}" 
+                                                 title="Editar Fila" 
+                                                 immediate="true" 
+                                                 actionListener="#{cargaGestionBean.editarCarga(carga)}" 
+                                                 icon="ui-icon-pencil"/>
+                            </p:column>                          
+
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerCargas').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Ver Fila Carga-->
+            <p:dialog header="Ver Fila Carga" id="dialogoVerFila" widgetVar="dialogoVerFila" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" dynamic="true" style="max-width:860px;">
+                <h:form id="frmVerFila">
+
+                    <p:panel id="pVerFila" header="" style="margin-bottom:-10px;max-height: 200px;overflow-y: scroll;" collapsed="false">
+                        <p:dataTable id="tablaFilas" rows="25"
+                                     var="dato" value="#{cargaGestionBean.datosFilaEditables}" 
+                                     widgetVar="tablaWidgetFila" scrollable="true"  
+                                     tableStyle="width: 100%;" paginator="true" 
+                                     paginatorPosition="top" 
+                                     rowsPerPageTemplate="25,50,100"  
+                                     emptyMessage="No se encontraron registros">
+
+                            <p:column headerText="Tipo">
+                                <h:outputText value="#{dato.tipo}" />
+                            </p:column>
+
+                            <p:column headerText="Valor">
+                                <h:outputText value="#{dato.valor}" />
+                            </p:column>
+
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{dato.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="Descripción">
+                                <h:outputText value="#{dato.descripcion}" />
+                            </p:column>
+
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center;">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerFila').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+
+            <p:dialog header="Editar Fila Carga" id="dialogoEditarCarga" widgetVar="dialogoEditarCarga" appendTo="@(body)" 
+                      modal="true"  width="95%;overflow-x:hidden;" dynamic="true" style="max-width:860px;">
+                <h:form id="frmEditarCargas">
+
+                    <p:panel id="pEditarFilaCarga" header="" style="margin-bottom:-10px;max-height: 200px;overflow-y: scroll;" collapsed="false" >
+                        <p:dataTable value="#{cargaGestionBean.datosFilaEditables}" var="dato" editable="true" editMode="cell">
+                            <p:column headerText="Tipo de Carga">
+                                <h:outputText value="#{dato.tipo}" />
+                            </p:column>
+
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{dato.nombre}" />
+                            </p:column>
+
+                            <p:column headerText="Descripción">
+                                <h:outputText value="#{dato.descripcion}" />
+                            </p:column>
+
+                            <p:column headerText="Valor">
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{dato.valor}" />
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{dato.valor}" styleClass="ui-inputfield ui-state-default ui-corner-all"/>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px 6px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{cargaGestionBean.modificarFila}" update="pEditarFilaCarga" />
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditarCarga').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

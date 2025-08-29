@@ -1,0 +1,392 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <f:facet name="first">
+            <h:outputStylesheet name="css/default.css"/>
+            <h:outputStylesheet name="css/cssLayout.css"/>
+            <h:outputStylesheet name="css/inicio.css"/>
+            <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
+            <link rel="icon" type="image/x-icon" href="/savia/resources/images/icono.png"/>
+            <title>Creación del Caso</title>
+        </f:facet>
+        <style type="text/css">
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+
+            }
+        </style>
+    </h:head>
+    <p:growl id="mensajeGeneral" showSummary="false" showDetail="true" sticky="false">
+        <p:autoUpdate />
+    </p:growl>
+    <h:body style=" background-color: #FFFFFF; background-size: 100%; ">
+        <f:view>
+            <p:toolbar id="toolbarTituloModulo">
+                <f:facet id="tituloSeccion" name="left">
+                    <span title="Funcionalidad que permite solicitud caso">Creación del Caso</span> 
+                </f:facet>
+            </p:toolbar>
+            <p:ajaxStatus onstart="PF('statusDialog').show()" onsuccess="PF('statusDialog').hide()" />
+            <p:dialog widgetVar="statusDialog" modal="true" draggable="false" closable="false" resizable="false" showHeader="false">
+                <p:graphicImage name="images/ajax-loader.gif" />
+            </p:dialog>
+            <p:panelGrid id="panelActualizacionDatosCaso" style="width: 80%;" >   
+                <p:panelGrid id="panelDatosLogo" style="width: 100%;" class="ui-fluid">                   
+                    <div style="padding: 2px 0 0 5px;">
+                        <h:graphicImage value="/resources/images/logo_savia_formulario.png" style="height: 82px; width: 165px" title="Creación del Caso" />
+                    </div>
+                </p:panelGrid>
+                <h:form id="frmCrear">
+                    <div id="mensajeBusqueda" align="left">
+                        <p:messages id="msgs"/>
+                    </div>
+                    <p:panel id="pPersonaCrear" header="INFORMACIÓN DE LA PERSONA" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelPersonaCrear" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;">
+
+                            <p:outputLabel value="Anonimo" for="personaAnonima" style="font-weight:bold"/>
+                            <p:selectOneMenu id="personaAnonima" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.personaAnonima}" required="true" label="Anonimo" requiredMessage="Anonimo: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                <f:selectItem itemLabel="No" itemValue="false" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <p:ajax event="change"  listener="#{atencionCreacionCasoBean.evaluarHabilitarCampoPorEstadoInsert}" update="email"/>
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Tipo Documento" for="tipoDocumento" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                            <p:selectOneMenu id="tipoDocumento" label="Tipo Documento" required="true" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.mae_tipo_documento_id}" requiredMessage="Tipo Documento: Este campo es obligatorio." editable="fase" style="width: 200px;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{atencionCreacionCasoBean.listaTiposDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.nombre}" itemDescription="#{tipoDoc.descripcion}" />
+                                <p:ajax event="change"  listener="#{atencionCreacionCasoBean.buscarPersonaEnSistema(1)}"></p:ajax>
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Documento" for="documento" style="font-weight:bold"/>
+                            <p:inputText id="documento" label="Documento" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.documento}" size="20" maxlength="16" required="true" requiredMessage="Documento: Este campo es obligatorio.">
+                                <p:ajax event="blur" listener="#{atencionCreacionCasoBean.buscarPersonaEnSistema(1)}"></p:ajax>
+                            </p:inputText>
+
+                            <p:outputLabel value="Nombres" for="nombres" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                            <p:inputText id="nombres" label="Nombres" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.nombres}" size="30" maxlength="62" required="true" requiredMessage="Nombres: Este campo es obligatorio.">
+                            </p:inputText>
+
+                            <p:outputLabel value="Apellidos" for="apellidos" style="font-weight:bold"/>
+                            <p:inputText id="apellidos" label="Apellidos" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.apellidos}" size="30" maxlength="62" required="true" requiredMessage="Apellidos: Este campo es obligatorio.">
+ </p:inputText>
+                                <p:outputLabel value="Fecha Nacimiento" for="fechaNacimiento" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                                <p:calendar id="fechaNacimiento" yearRange="c-100:c" label="Fecha Nacimiento" navigator="true" pattern="yyyy-MM-dd"  value="#{atencionCreacionCasoBean.objeto.ausPersonasId.fechaNacimiento}" size="7" maxlength="10"></p:calendar>     
+
+                                <p:outputLabel value="Sexo" for="sexo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="sexo" label="Sexo" editable="fase"  value="#{atencionCreacionCasoBean.objeto.ausPersonasId.mae_sexo_id}" required="true" requiredMessage="Sexo: Este campo es obligatorio.">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{atencionCreacionCasoBean.listaSexo}" var="tipSex" itemValue="#{tipSex.id}" itemLabel="#{tipSex.nombre}" itemDescription="#{tipSex.descripcion}"/>                                            
+                                </p:selectOneMenu>
+
+                                <p:outputLabel value="Telefono Fijo" for="telefonoFijo" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                                <p:inputText id="telefonoFijo" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.telefonoFijo}" size="7" maxlength="7">
+                                    <p:keyFilter mask="num" />
+ </p:inputText>
+                                    <p:outputLabel value="Número Celular" for="numeroCelular" style="font-weight:bold" />
+                                    <p:inputText id="numeroCelular" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.numeroCelular}" size="10" maxlength="10" >
+                                        <p:keyFilter mask="num" />
+                                    </p:inputText>
+
+                                    <p:outputLabel value="Municipio de Residencia" for="ubicacion" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                                    <p:autoComplete id="ubicacion" dropdown="false" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.personaUbicacion}" completeMethod="#{atencionCreacionCasoBean.completarUbicacion}"
+                                                    var="ubica" itemLabel="#{atencionCreacionCasoBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterAtencionCreacionCasoBean" forceSelection="true" size="60" required="true" requiredMessage="Municipio de Residencia: Este campo es obligatorio."> 
+                                    </p:autoComplete>
+
+                                    <p:outputLabel id="prueba" value="Tipo Entrega Correspondencia"  for="tipoRecepcion" style="font-weight:bold"  rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                                    <p:selectOneRadio id="tipoRecepcion" value="#{atencionCreacionCasoBean.objeto.modalidadEntrega}" unselectable="true" required="true" requiredMessage="Tipo Recepción: Este campo es obligatorio.">
+                                        <f:selectItem itemLabel="Dirección" itemValue="1"/>
+                                        <f:selectItem itemLabel="Email" itemValue="0"/>
+                                        <p:ajax update="labalEmailPersona direccionPersona email" listener="#{atencionCreacionCasoBean.campoObligatoriosDirrecionOcorreo()}"></p:ajax>
+                                    </p:selectOneRadio>
+
+                                    <p:outputLabel value="Dirección" for="direccionPersona" style="font-weight:bold"  rendered="#{atencionCreacionCasoBean.objeto.ausPersonasId.desHabilitarCampoPersona}"/>
+                                    <p:commandButton id="direccionPersona" process="@this,direccion" title="Dirección*" action="#{atencionCreacionCasoBean.verDireccion()}" value="Dirección" disabled="#{atencionCreacionCasoBean.habilitarCampoDireccion}" />       
+
+                                    <p:outputLabel id="direccion" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccion}" />
+                                    <p:outputLabel value=""/>
+
+                                    <p:outputLabel id="labalEmailPersona" value="Correo Electrónico" for="email" style="font-weight:bold"/>
+                                    <p:inputText  id="email" label="Correo Electrónico" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.correoElectronico}" size="30" maxlength="64" style="width:95%;" disabled="#{atencionCreacionCasoBean.habilitarCampoEmail}" required="#{atencionCreacionCasoBean.campoObligatorioCorreoPersona}" requiredMessage="Correo Electrónico: Este campo es obligatorio." />
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:separator />
+                    <p:panel id="pCasoCrear" header="INFORMACIÓN DEL CASO" style="margin-bottom:10px;" collapsed="false">
+                        <p:panelGrid id="panelCasos" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid"
+                                     style="border:0px none; background-color:transparent;">
+
+                            <p:outputLabel value="Tipo Solicitud" for="tiposolicitud" style="font-weight:bold" />
+                            <p:selectOneMenu id="tiposolicitud" label="Tipo Solicitud" value="#{atencionCreacionCasoBean.objeto.maeSolicitudTipoId}" editable="fase" required="true" requiredMessage="Tipo Solicitud: Este campo es obligatorio." style="width:150px;">                                    
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                <f:selectItems value="#{atencionCreacionCasoBean.listaTipoSolicitud}" var="tipSol" itemValue="#{tipSol.id}" itemLabel="#{tipSol.nombre}" itemDescription="#{tipSol.descripcion}"/>                                    
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Número Radicado" for="numeroradicado" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.deshabilitarCampoNumeroRadicado}"/>
+                            <p:inputText id="numeroradicado" label="Número Radicado" required="false" value="#{atencionCreacionCasoBean.objeto.radicado}" size="20" maxlength="16"  requiredMessage="Campo Número de radicado, es obligatorio" rendered="#{atencionCreacionCasoBean.deshabilitarCampoNumeroRadicado}">
+                                <p:keyFilter regEx="/[A-Za-z0-9]/" preventPaste="false"/>
+                            </p:inputText>
+
+                            <p:outputLabel value="Canal SuperSalud" for="canalSuperSalud" style="font-weight:bold" rendered="#{atencionCreacionCasoBean.deshabilitarCampoNumeroRadicado}"/>
+                            <p:selectOneMenu id="canalSuperSalud" label="Canal SuperSalud" value="#{atencionCreacionCasoBean.objeto.maeCanalSupersaludId}" editable="false" style="width:150px;" required="true" requiredMessage="Canal SuperSalud: Este campo es obligatorio." rendered="#{atencionCreacionCasoBean.deshabilitarCampoNumeroRadicado}">                                    
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                <f:selectItems value="#{atencionCreacionCasoBean.listaCanalSuperSalud}" var="canalSuper" itemValue="#{canalSuper.id}" itemLabel="#{canalSuper.nombre}" itemDescription="#{canalSuper.descripcion}"/>                                    
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Pertinencia"  for="pertinenciaCasoCrear" style="font-weight:bold"/>
+                            <p:inputSwitch id="pertinenciaCasoCrear" onLabel="SI" offLabel="NO" value="#{atencionCreacionCasoBean.objeto.pertinencia}" required="true" requiredMessage="Pertinencia: Este campo es obligatorio.">
+                            </p:inputSwitch>
+
+                            <p:outputLabel value="Observación" for="observacion" style="font-weight:bold"/>
+                            <p:inputTextarea id="observacion" label="Observacion" value="#{atencionCreacionCasoBean.objeto.seguimientoInicial.observacion}" cols="80" maxlength="2048" required="true" requiredMessage="Observación: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Fecha Notificación" for="fechaNotificacion" style="font-weight:bold"/>
+                            <p:calendar id="fechaNotificacion" label="Fecha Notificación"  navigator="true" pattern="yyyy-MM-dd"  value="#{atencionCreacionCasoBean.objeto.fechaNotificacion}" size="7" maxlength="10" ></p:calendar>     
+
+                            <p:outputLabel value="Fecha Vencimiento" for="fechaVencimiento" style="font-weight:bold"/>
+                            <p:calendar id="fechaVencimiento" label="Fecha Vencimiento"  navigator="true" pattern="yyyy-MM-dd"  value="#{atencionCreacionCasoBean.objeto.fechaVencimiento}" size="7" maxlength="10"></p:calendar>     
+
+                            <p:outputLabel value="Municipio" for="ubicacionCaso" style="font-weight:bold"/>
+                            <p:autoComplete id="ubicacionCaso" dropdown="false" value="#{atencionCreacionCasoBean.objeto.ubicacion}" completeMethod="#{atencionCreacionCasoBean.completarUbicacion}" 
+                                            var="ubica" itemLabel="#{atencionCreacionCasoBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterAtencionCreacionCasoBean" forceSelection="true" size="60" required="true" requiredMessage="Municipio: Este campo es obligatorio."> 
+                            </p:autoComplete>
+
+                        </p:panelGrid>
+                        <p:dataTable  id="tablaAnexosCasos" var="anexV" value="#{atencionCreacionCasoBean.objeto.adjuntosList}" widgetVar="tablaAnexosCasos" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron registros">                                                           
+                            <f:facet name="header">
+                                <p:fileUpload id="inptAnexo" label="Agregar Adjuto Caso" uploadLabel="Subir"  cancelLabel="Cancelar"  
+                                              fileLimitMessage="Máximo número de archivos excedido, los permitidos son: #{atencionCreacionCasoBean.maxCantAnexos}" 
+                                              invalidFileMessage="Tipo inválido de archivo"   
+                                              invalidSizeMessage="Tamaño de archivo no permitido, el tamaño límite es : #{atencionCreacionCasoBean.convertirBytesParaMegasTamAdjunto()}."
+                                              listener="#{atencionCreacionCasoBean.handleFileUpload}" 
+                                              mode="advanced" 
+                                              dragDropSupport="true" auto="false" 
+                                              multiple="true"
+                                              sizeLimit="#{atencionCreacionCasoBean.sizeLimitByAnexo}"
+                                              fileLimit="#{atencionCreacionCasoBean.maxCantAnexos}"
+                                              allowTypes="/(\.|\/)(pdf|jpe?g|png|mp3)$/"/>  
+                                <div>
+                                    ADJUNTOS CASOS
+                                </div>
+                            </f:facet>      
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{anexV.nombre}" />
+                            </p:column>
+                            <p:column headerText="Fecha Hora Carga">
+                                <h:outputText value="#{anexV.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton title="Borrar" action="#{atencionCreacionCasoBean.borrarAdjuntoCasoDeMemoria(anexV.pos)}" icon="ui-icon-trash" immediate="true">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                    </p:panel>
+                    <p:separator />
+                    <p:panelGrid id="panelDatosBusquedaAfiliadoBotones" style="width: 100%;">
+                        <p:commandButton  update="frmCrear" actionListener="#{atencionCreacionCasoBean.terminosCondiciones()}" value="Enviar"/>       
+                        <p:commandButton  update="frmCrear" value="Cancelar" immediate="true" style="margin-left: 5px;" actionListener="#{atencionCreacionCasoBean.limpiarFormularioBusqueda()}"/>
+                    </p:panelGrid>
+                </h:form>
+            </p:panelGrid>
+            <!--ACEPTO TERMINOS Y CONDICIONES-->
+            <p:dialog header="Terminos y condiciones" widgetVar="dialogoTerminosYcondiciones" appendTo="@(body)" modal="true" width="80%" >
+                <p:scrollPanel mode="native" style="height:270px">
+                    <h:form id="frmTerminosCondiones">
+                        <p:panel id="pTerminosCondiones" header="AVÍSO DE ACEPTACIÓN DE CONDICIONES" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelTerminosCondiones" columns="1" layout="grid" styleClass="showcase-text-align-center" >
+                                <h:outputText value="Al hacer clic el botón enviar, usted acepta la remisión de la PQRS a la entidad (Savia Salud EPS). Sus datos serán recolectados y tratados conforme con la Política de Tratamiento de Datos. En la opción consulta de PQRSD podrá verificar el estado de la respuesta. En caso que la solicitud de información sea de naturaleza de identidad reservada, deberá efectuar el respectivo trámite ante la Procuraduría General de la Nación, haciendo clic en el siguiente link: https://www.procuraduria.gov.co/portal/solicitud_informacion_identificacion_reservada. Page Se deberá indicar los términos que aplican en la presentación de quejas anónimas, para lo cual, se deben indicar las condiciones para aceptarlas conforme con la siguiente normativa: artículo 38 de la Ley 190 de 1995; artículo 69; de la Ley 734 de 2002 y artículo 81 de la Ley 962 de 2005."/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">      
+                                            <p:commandButton value="Acepto" type="button" onclick="guardarRemoteCaso()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemoteCaso" action="#{atencionCreacionCasoBean.guardar()}" update="frmCrear" />
+                                            <p:commandButton  update="frmCrear" value="No Acepto" immediate="true" style="margin-left: 5px;" actionListener="#{atencionCreacionCasoBean.limpiarFormularioBusqueda()}"/>                           
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>     
+                </p:scrollPanel>
+            </p:dialog>
+            <!--Componente Direccion -->            
+            <p:dialog header="Dirección" widgetVar="dialogoDireccion" appendTo="@(body)" modal="true" width="60%" dynamic="true">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmDireccion">
+
+                        <p:panelGrid columns="2" layout="grid" styleClass="showcase-text-align-center" id="panelGridDireccion" >
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <p:selectOneMenu style="width:100px;" label="Tipo de Vía" editable="false" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionVia}" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Avenida" itemValue="AV" />
+                                            <f:selectItem itemLabel="Calle" itemValue="CL" />
+                                            <f:selectItem itemLabel="Circular" itemValue="CQ" />
+                                            <f:selectItem itemLabel="Carrera" itemValue="CR" />
+                                            <f:selectItem itemLabel="Diagonal" itemValue="DG" />
+                                            <f:selectItem itemLabel="Sin Direcci&#243;n" itemValue="SD" />
+                                            <f:selectItem itemLabel="Transversal" itemValue="TR"/>
+                                            <p:ajax event="change"  listener="#{atencionCreacionCasoBean.cambiarExigenciaDatosSegunVia}" update="panelGridDireccion"></p:ajax>
+                                        </p:selectOneMenu>
+                                    </td>
+                                    <td>
+                                        <p:inputText style="width:30px;" label="Nro" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionNro}" id="numeroDirecion" maxlength="3" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}" >
+                                            <p:keyFilter regEx="/[\d]/"/>
+                                        </p:inputText>
+                                    </td>
+                                    <td>
+                                        <p:selectOneMenu style="width:50px;" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionOrd1}" label="Ord."  editable="false" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="A" itemValue="A" />
+                                            <f:selectItem itemLabel="AA" itemValue="AA" />
+                                            <f:selectItem itemLabel="AB" itemValue="AB" />
+                                            <f:selectItem itemLabel="AC" itemValue="AC" />
+                                            <f:selectItem itemLabel="AE" itemValue="AE" />
+                                            <f:selectItem itemLabel="AF" itemValue="AF" />
+                                            <f:selectItem itemLabel="B" itemValue="B" />   
+                                            <f:selectItem itemLabel="BB" itemValue="BB" />
+                                            <f:selectItem itemLabel="BC" itemValue="BC" />
+                                            <f:selectItem itemLabel="C" itemValue="C" />
+                                            <f:selectItem itemLabel="CC" itemValue="CC" />
+                                            <f:selectItem itemLabel="CCC" itemValue="CCC" />
+                                            <f:selectItem itemLabel="D" itemValue="D" />
+                                            <f:selectItem itemLabel="DA" itemValue="DA" />
+                                            <f:selectItem itemLabel="DD" itemValue="DD" />
+                                            <f:selectItem itemLabel="E" itemValue="E" />
+                                            <f:selectItem itemLabel="EE" itemValue="EE" />
+                                            <f:selectItem itemLabel="F" itemValue="F" />
+                                            <f:selectItem itemLabel="FF" itemValue="FF" />
+                                            <f:selectItem itemLabel="G" itemValue="G" />
+                                            <f:selectItem itemLabel="GG" itemValue="GG" />
+                                            <f:selectItem itemLabel="H" itemValue="H" />
+                                            <f:selectItem itemLabel="HA" itemValue="HA" />
+                                            <f:selectItem itemLabel="HB" itemValue="HB" />
+                                            <f:selectItem itemLabel="HC" itemValue="HC" />   
+                                            <f:selectItem itemLabel="HD" itemValue="HD" />
+                                            <f:selectItem itemLabel="HE" itemValue="HE" />
+                                            <f:selectItem itemLabel="HF" itemValue="HF" />
+                                            <f:selectItem itemLabel="HG" itemValue="HG" />
+                                        </p:selectOneMenu>
+                                    </td>
+                                    <td>
+                                        <p:selectOneMenu style="width:50px;" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionOrientacion}" label="Orientación." editable="false" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}"  >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="SUR" itemValue="SUR" />
+                                            <f:selectItem itemLabel="ESTE" itemValue="ESTE" />
+                                            <f:selectItem itemLabel="OESTE" itemValue="OESTE" />
+                                            <f:selectItem itemLabel="NORTE" itemValue="NORTE" />
+                                        </p:selectOneMenu>
+                                    </td>
+                                    <td>
+                                        <p:outputLabel value=" # "/>
+                                    </td>
+                                    <td>
+                                        <p:inputText style="width:30px;" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionPlaca1}" label="Placa" id="placa" maxlength="3" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}" >
+                                            <p:keyFilter regEx="/[\d]/"/>
+                                        </p:inputText>
+                                    </td>
+                                    <td>
+                                        <p:selectOneMenu value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionOrd2}" style="width:50px;" label="Ord." editable="false" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}"  >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="A" itemValue="A" />
+                                            <f:selectItem itemLabel="AA" itemValue="AA" />
+                                            <f:selectItem itemLabel="AB" itemValue="AB" />
+                                            <f:selectItem itemLabel="AC" itemValue="AC" />
+                                            <f:selectItem itemLabel="AE" itemValue="AE" />
+                                            <f:selectItem itemLabel="AF" itemValue="AF" />
+                                            <f:selectItem itemLabel="B" itemValue="B" />   
+                                            <f:selectItem itemLabel="BB" itemValue="BB" />
+                                            <f:selectItem itemLabel="BC" itemValue="BC" />
+                                            <f:selectItem itemLabel="C" itemValue="C" />
+                                            <f:selectItem itemLabel="CC" itemValue="CC" />
+                                            <f:selectItem itemLabel="CCC" itemValue="CCC" />
+                                            <f:selectItem itemLabel="D" itemValue="D" />
+                                            <f:selectItem itemLabel="DA" itemValue="DA" />
+                                            <f:selectItem itemLabel="DD" itemValue="DD" />
+                                            <f:selectItem itemLabel="E" itemValue="E" />
+                                            <f:selectItem itemLabel="EE" itemValue="EE" />
+                                            <f:selectItem itemLabel="F" itemValue="F" />
+                                            <f:selectItem itemLabel="FF" itemValue="FF" />
+                                            <f:selectItem itemLabel="G" itemValue="G" />
+                                            <f:selectItem itemLabel="GG" itemValue="GG" />
+                                            <f:selectItem itemLabel="H" itemValue="H" />
+                                            <f:selectItem itemLabel="HA" itemValue="HA" />
+                                            <f:selectItem itemLabel="HB" itemValue="HB" />
+                                            <f:selectItem itemLabel="HC" itemValue="HC" />   
+                                            <f:selectItem itemLabel="HD" itemValue="HD" />
+                                            <f:selectItem itemLabel="HE" itemValue="HE" />
+                                            <f:selectItem itemLabel="HF" itemValue="HF" />
+                                            <f:selectItem itemLabel="HG" itemValue="HG" />
+                                        </p:selectOneMenu>
+                                    </td>
+                                    <td>
+                                        <p:selectOneMenu style="width:50px;" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionOrientacion2}" label="Orientación." editable="false" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}"  >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="SUR" itemValue="SUR" />
+                                            <f:selectItem itemLabel="ESTE" itemValue="ESTE" />
+                                            <f:selectItem itemLabel="OESTE" itemValue="OESTE" />
+                                            <f:selectItem itemLabel="NORTE" itemValue="NORTE" />
+                                        </p:selectOneMenu>
+                                    </td>
+                                    <td>
+                                        <p:outputLabel value=" - "/>
+                                    </td>
+                                    <td>
+                                        <p:inputText style="width:30px;" value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionPlaca2}" label="Placa2" id="placa2" maxlength="3" disabled="#{atencionCreacionCasoBean.estaHabilitadoCampo}" >
+                                            <p:keyFilter regEx="/[\d]/"/>
+                                        </p:inputText>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            <p:inputText  value="#{atencionCreacionCasoBean.objeto.ausPersonasId.direccionDescripcion}" style="width: 90%;" label="Descripcion" maxlength="35" onkeyup="return mayus(this)">
+                                <p:keyFilter regEx="/[A-ZÀ-ÿ\s\d]/i" />
+                            </p:inputText>
+
+                            <f:facet name="footer" >
+                                <p:row>
+                                    <p:column colspan="8" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:remoteCommand name="guardarDireccionRemote" action ="#{atencionCreacionCasoBean.actualizarDireccion()}" />
+                                            <p:commandButton value="Actualizar" type="button" onclick="guardarDireccionRemote()" validateClient="true"/>
+                                            <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoDireccion').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </f:view>
+    </h:body>
+</html>
+

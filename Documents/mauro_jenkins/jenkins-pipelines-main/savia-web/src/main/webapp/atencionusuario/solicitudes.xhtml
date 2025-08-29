@@ -1,0 +1,343 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmSolicitudes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{solicitudBean.modulo.descripcion}">#{solicitudBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{solicitudBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{solicitudBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{solicitudBean.lazySolicitudes}" paginator="true" rows="#{solicitudBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{solicitudBean.accionVer}" title="Ver" actionListener="#{solicitudBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{solicitudBean.accionAdicional1 and solicitudBean.estadoValidoSolicitud(obj)}" title="Enviar Correo" actionListener="#{solicitudBean.crearCorreo(obj)}" icon="ui-icon-mail-closed"/>
+                        <p:commandButton rendered="#{solicitudBean.accionAdicional2 and solicitudBean.estadoValidoSolicitudCrearCaso(obj)}" title="Crear Caso" actionListener="#{solicitudBean.crearCaso(obj)}" icon="ui-icon-document"/>
+                        <p:commandButton rendered="#{solicitudBean.accionBorrar}" title="Borrar" action="#{solicitudBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="Número Solicitud" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Solicitud" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Caso" sortBy="#{obj.ausCaso.id}" filterBy="#{obj.ausCaso.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Caso" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.ausCaso.id}" title="#{obj.ausCaso.id}"/>
+                    </p:column>
+                    <p:column headerText="Tipo Solicitud" sortBy="#{obj.maeTipoSolicitudId}" filterBy="#{obj.maeTipoSolicitudId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{solicitudBean.listaTipoSolicitud}" var="TIPO_SOL" itemValue="#{TIPO_SOL.id}" itemLabel="#{TIPO_SOL.nombre}" itemDescription="#{TIPO_SOL.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoSolicitudValor}" title="#{obj.maeTipoSolicitudValor}"/>
+                    </p:column>
+                    <p:column headerText="Tipo Documento" sortBy="#{obj.maeTipoDocumentoId}" filterBy="#{obj.maeTipoDocumentoId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{solicitudBean.listaTipoDocumento}" var="TIPO_DOC" itemValue="#{TIPO_DOC.id}" itemLabel="#{TIPO_DOC.nombre}" itemDescription="#{TIPO_DOC.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoDocumentoValor}" title="#{obj.maeTipoDocumentoValor}"/>
+                    </p:column>
+                    <p:column headerText="Número Documento" sortBy="#{obj.numeroDocumento}" filterBy="#{obj.numeroDocumento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Documento" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroDocumento}" title="#{obj.numeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Nombres" sortBy="#{obj.nombres}" filterBy="#{obj.nombres}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombres}" title="#{obj.nombres}"/>
+                    </p:column>
+                    <p:column headerText="Apellidos" sortBy="#{obj.apellidos}" filterBy="#{obj.apellidos}">
+                        <f:facet name="filter">
+                            <p:inputText label="Apellidos" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.apellidos}" title="#{obj.apellidos}"/>
+                    </p:column>
+                    <p:column headerText="Descripción" sortBy="#{obj.descripcion}" filterBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcionCorta}" title="#{obj.descripcionCorta}"/>
+                        <p:commandButton rendered="#{obj.descripcion.length() > 30 }" actionListener="#{solicitudBean.mostrarMensaje(obj.descripcion)}" icon="ui-icon-comment"/>
+                    </p:column>
+                    <p:column headerText="Estado Solicitud" sortBy="#{obj.maeEstadoSolicitudId}" filterBy="#{obj.maeEstadoSolicitudId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{solicitudBean.listaEstadoSolicitud}" var="EST_SOL" itemValue="#{EST_SOL.id}" itemLabel="#{EST_SOL.nombre}" itemDescription="#{EST_SOL.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeEstadoSolicitudValor}" title="#{obj.maeEstadoSolicitudValor}"/>
+                    </p:column>
+                    <p:column headerText="Fecha Hora Crea" sortBy="#{obj.fechaHoraCrea}" style="width: 10%;">
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Usuario Gestiona" >
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario Gestiona" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioModifica}" title="#{obj.usuarioModifica}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="60%">
+                <p:scrollPanel mode="native" style="height:350px">
+                    <h:form class="frmAuditoria" style=" text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{solicitudBean.getAuditoria(solicitudBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelSolicitudes" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+
+                            <p:outputLabel value="Tipo Solicitud" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.maeTipoSolicitudValor}" />
+
+                            <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.maeTipoDocumentoValor}" />
+                            
+                            <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.numeroDocumento}" />
+
+                            <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.nombres}" />
+                            
+                            <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.apellidos}" />
+
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.direccionNotificacion}" />
+                            
+                            <p:outputLabel value="Email" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.email}" />
+
+                            <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.telefono}" />
+                            
+                            <p:outputLabel value="Estado Solicitud" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.maeEstadoSolicitudValor}" />
+
+                            <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            <p:outputLabel value="#{solicitudBean.objeto.descripcion}" />
+                            
+                            <p:outputLabel rendered="#{solicitudBean.getEstadoValidoCorreo(solicitudBean.objeto)}" value="Detalle Email" style="font-weight:bold"/>
+                            <p:outputLabel rendered="#{solicitudBean.getEstadoValidoCorreo(solicitudBean.objeto)}" value="#{solicitudBean.objeto.detalleEmail}" />
+                            
+                        </p:panelGrid>
+                        <p:panel id="pAdjunto" header="ADJUNTOS" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable  id="tablaAnexosSolicitud" var="anexSoli" value="#{solicitudBean.objeto.ausAdjuntosList}" widgetVar="tablaAnexosSolicitud" scrollable="true" emptyMessage="No se encontraron registros">                                                           
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>                                  
+                                    <p:commandButton action="#{ausCasoBean.descargarAnexo(anexSoli)}"
+                                                     icon="ui-icon-arrowthickstop-1-s" styleClass="btn-primary" title="Descargar"
+                                                     ajax="false" process="@this"/>
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{anexSoli.nombre}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Carga">
+                                    <h:outputText value="#{anexSoli.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+
+
+            <!-- Pantalla Editar -->
+            
+            <!-- Pantalla Enviar Correo -->
+            <p:dialog header="Enviar Correo" widgetVar="dialogoEnviarCorreo" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmEnviarCorreo">
+                        <p:panelGrid id="panelEnvioCorreo" columns="2"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid" >
+                            
+                            <p:outputLabel value="Asunto" for="asunto" style="font-weight:bold"/>
+                            <p:inputText id="asunto"  value="#{solicitudBean.asuntoCorreo}" maxlength="128" style="width:100%"/>
+                            
+                            <p:outputLabel value="Mensaje" for="mensaje" style="font-weight:bold"/>
+                            <p:inputTextarea id="mensaje" value="#{solicitudBean.mensajeCorreo}" maxlength="2048" style="width:100%"/>
+                            
+                        </p:panelGrid>
+                        <p:dataTable  id="tablaAnexoSolicitud" var="anexV" value="#{solicitudBean.listaAdjuntosCorreo}" widgetVar="tablaAnexoSolicitud" scrollable="true" scrollHeight="80" emptyMessage="No se encontraron registros">                                                           
+                            <f:facet name="header">
+                                <p:fileUpload id="inptAnexo" label="Agregar Adjunto Caso" uploadLabel="Subir"  cancelLabel="Cancelar"  
+                                              fileLimitMessage="Máximo número de archivos excedido, los permitidos son: #{solicitudBean.maxCantAnexos}" 
+                                              invalidFileMessage="Tipo inválido de archivo" 
+                                              invalidSizeMessage="Tamaño de archivo no permitido, el tamaño límite es : #{solicitudBean.convertirBytesParaMegasTamAdjunto()}."
+                                              listener="#{solicitudBean.handleFileUpload}" 
+                                              mode="advanced" 
+                                              dragDropSupport="true" auto="false" 
+                                              sizeLimit="#{solicitudBean.sizeLimitByAnexo}"
+                                              fileLimit="#{solicitudBean.maxCantAnexos}"
+                                              multiple="true"
+                                              allowTypes="/(\.|\/)(pdf|jpe?g|png|mp3)$/"/>  
+                                <div>
+                                    Adjuntos
+                                </div>
+                            </f:facet>
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton  title="Borrar" action="#{solicitudBean.borrarAdjuntoCasoDeMemoria(anexV.pos)}" icon="ui-icon-trash" immediate="true">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{anexV.nombre}" />
+                            </p:column>
+                            <p:column headerText="Fecha Hora Carga">
+                                <h:outputText value="#{anexV.fechaHoraCrea}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Enviar" type="button" onclick="enviarCorreoRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="enviarCorreoRemote" action ="#{solicitudBean.enviarCorreo}" update="frmEnviarCorreo"/>
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoEnviarCorreo').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- descripciones genericas -->
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmObservacion">
+                        <p:panelGrid id="panelObservacion" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                            <p:inputTextarea  value="#{solicitudBean.descripcionGenerica}" readonly="true" style="width:100%"/>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

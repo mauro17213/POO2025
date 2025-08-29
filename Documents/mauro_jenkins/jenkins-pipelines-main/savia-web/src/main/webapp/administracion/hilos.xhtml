@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <h:form id="frmHilos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{hiloBean.modulo.descripcion}">#{hiloBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{hiloBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{hiloBean.refrescar()}" icon="pi pi-sync"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="hilo" value="#{hiloBean.registros}" paginator="true" rows="50" 
+                                 emptyMessage="No se encontraron hilos activos"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="10,30,50,100" id="tablaHilos" 
+                                 widgetVar="tablaWidgetHilos" tableStyle=""
+                                 style="font-size:11px;width:100%;text-align:center;" 
+                                 rowKey="#{hilo.id}" reflow="true">
+
+                        <p:column headerText="Acciones">
+                            <p:commandButton icon="pi pi-cancel" title="Detener hilo" actionListener="#{hiloBean.terminarHilo(hilo.id)}">
+                                <p:confirm header="Confirmación" message="¿Está seguro que desea detener el hilo?" icon="pi pi-alert" />
+                            </p:commandButton>
+                        </p:column>
+
+                        <p:column headerText="Id" sortBy="#{hilo.id}" filterBy="#{hilo.id}">   
+                            <f:facet name="filter">
+                                <p:inputText label="" maxlength="64" />
+                            </f:facet>
+                            <h:outputText value="#{hilo.id}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Nombre Hilo" sortBy="#{hilo.nombre}" filterBy="#{hilo.nombre}">   
+                            <f:facet name="filter">
+                                <p:inputText label="" maxlength="64" />
+                            </f:facet>
+                            <h:outputText value="#{hilo.nombre}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Tipo" filterBy="#{hilo.tipoStr}">   
+                            <f:facet name="filter">
+                                <p:inputText label="" maxlength="64" />
+                            </f:facet>
+                            <h:outputText value="#{hilo.tipoStr}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Proceso" sortBy="#{hilo.proceso}">   
+                            <h:outputText value="#{hilo.proceso}">
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Fecha Inicio" sortBy="#{hilo.fechaInicio}">   
+                            <h:outputText value="#{hilo.fechaInicio}">
+                                <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                            </h:outputText>
+                        </p:column>
+
+                    </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono" styleClass="ui-confirmdialog-no" icon="pi pi-times" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+        </center>
+    </ui:define>
+
+</ui:composition>

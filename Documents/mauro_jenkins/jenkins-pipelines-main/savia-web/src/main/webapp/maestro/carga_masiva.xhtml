@@ -1,0 +1,201 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmCargaMasiva">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{maCargaMasivaBean.modulo.descripcion}">#{maCargaMasivaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{maCargaMasivaBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionCrear}" title="Crear Adjunto" ajax="false" actionListener="#{maCargaMasivaBean.crear}" icon="ui-icon-circle-arrow-n"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{maCargaMasivaBean.lazyCargaMasiva}" paginator="true" rows="#{maCargaMasivaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionAdicional1}" 
+                                         title="Descargar Archivo"
+                                         icon="ui-icon-circle-arrow-s" 
+                                         action="#{maCargaMasivaBean.descargarArchivo(obj)}"
+                                         ajax="false" process="@this"/>
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionAdicional3}" title="Descargar Opcional" disabled="#{maCargaMasivaBean.validarEstadoCarga(obj.estado)}" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-circle-arrow-s">
+                            <p:fileDownload value="#{maCargaMasivaBean.generarArchivoResultados(obj.id)}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionAdicional1}" 
+                                         title="Descargar Archivo" disabled="#{maCargaMasivaBean.validarEstadoCarga(obj.estado)}"
+                                         icon="ui-icon-circle-arrow-s" 
+                                         action="#{maCargaMasivaBean.descargarArchivoResultados(obj)}"
+                                         ajax="false" process="@this"/>
+                        <p:commandButton rendered="#{maCargaMasivaBean.accionAdicional2}" title="Cancelar" disabled="#{maCargaMasivaBean.validarEstadoCargaProcesando(obj.estado)}" action="#{maCargaMasivaBean.abortar(obj.id)}" icon="ui-icon-circle-arrow-w">
+                            <p:confirm header="Confirmación" message="Está seguro que desea cancelar la carga masiva?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Id Carga" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo de Archivo" sortBy="#{obj.tipo}" filterBy="#{obj.tipo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu   editable="false" style="margin-right: 10px; width: 85%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="MA-Tecnologías" itemValue="1"  />
+                                <f:selectItem itemLabel="MA-Medicamentos" itemValue="2" />
+                                <f:selectItem itemLabel="MA-Insumos" itemValue="3"  />
+                                <f:selectItem itemLabel="MA-Paquetes" itemValue="4"   />
+                                <f:selectItem itemLabel="MA-Especialidades" itemValue="5"   />
+                                <f:selectItem itemLabel="MA-Diagnósticos" itemValue="6"  />
+                                <f:selectItem itemLabel="MA-Servicios de habilitación" itemValue="7"  />
+                                <f:selectItem itemLabel="MA-Relación insumos mipres" itemValue="8"  />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{maCargaMasivaBean.getTipoArchivo(obj.tipo)} " title="#{maCargaMasivaBean.getTipoArchivo(obj.tipo)}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre Archivo" sortBy="#{obj.archivo}" filterBy="#{obj.archivo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Archivo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.archivo}" title="#{obj.archivo}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado del Proceso" sortBy="#{obj.estado}" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu   editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="En Cola " itemValue="0" />
+                                <f:selectItem itemLabel="En Proceso " itemValue="1" />
+                                <f:selectItem itemLabel="Procesado " itemValue="2" />
+                                <f:selectItem itemLabel="Cancelado " itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{maCargaMasivaBean.getEstado(obj.estado)}" title="#{maCargaMasivaBean.getEstado(obj.estado)}"/>
+                    </p:column> 
+                    <!-- nuevos campos -->
+                    <p:column headerText="Registros" sortBy="#{obj.registros}">
+                        <h:outputText value="#{obj.registros}" title="#{obj.registros}"/> de 
+                        <h:outputText value="#{obj.registrosPendientes}" title="#{obj.registrosPendientes}"/>
+                    </p:column>
+                    <p:column headerText="Exitosos" sortBy="#{obj.exitosos}">
+                        <h:outputText value="#{obj.exitosos}" title="#{obj.exitosos}"/>
+                    </p:column>
+                    <p:column headerText="Fallidos" sortBy="#{obj.fallidos}">
+                        <h:outputText value="#{obj.fallidos}" title="#{obj.fallidos}"/>
+                    </p:column>
+
+                    <p:column headerText="Inicio" sortBy="#{obj.fechaHoraInicio}">
+                        <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fin" sortBy="#{obj.fechaHoraFin}">
+                        <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Usuario responsable" sortBy="#{obj.usuarioCrea}" filterBy="#{obj.usuarioCrea}">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario responsable" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Crear Adjunto -->
+
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" modal="true" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrearAdjunto" >
+                        <p:panelGrid id="panelCrearAdjunto" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Tipo Archivo" for="tipoArchivo" style="font-weight:bold"/>
+                            <p:selectOneMenu id="tipoArchivo" label="Tipo Archivo" required="true" value="#{maCargaMasivaBean.objeto.tipo}"  
+                                             editable="fase" style="width: 170px;" requiredMessage="Tipo Archivo: Este campo es obligatorio.">
+                                <f:selectItem itemLabel="MA-Tecnologia" itemValue="1"  />
+                                <f:selectItem itemLabel="MA-Medicamentos" itemValue="2"  />
+                                <f:selectItem itemLabel="MA-Insumos" itemValue="3" />
+                                <f:selectItem itemLabel="MA-Paquetes" itemValue="4" />
+                                <f:selectItem itemLabel="MA-Especialidades" itemValue="5" />
+                                <f:selectItem itemLabel="MA-Diagnósticos" itemValue="6" />
+                                <f:selectItem itemLabel="MA-Servicios de habilitación" itemValue="7"/>
+                                <f:selectItem itemLabel="MA-Relación insumos mipres" itemValue="8"  />
+                                <p:ajax event="change" listener="#{maCargaMasivaBean.cargarDato}" update="tipoArchivo"/>
+                            </p:selectOneMenu>
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrearAdjunto2" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                            <p:fileUpload id="cargarDocumento" label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                          fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                          invalidFileMessage="Tipo inválido de archivo"   
+                                          listener="#{maCargaMasivaBean.cargarAdjunto}" mode="advanced" dragDropSupport="false"
+                                          required="true" requiredMessage="Se debe agregar un Documento." 
+                                          sizeLimit="10000000" fileLimit="1" allowTypes="/(\.|\/)(txt)$/" />
+
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

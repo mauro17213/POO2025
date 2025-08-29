@@ -1,0 +1,1212 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <center>
+            <h:form id="frmPrescripciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gestionMipresBean.modulo.descripcion}">#{gestionMipresBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gestionMipresBean.accionListar}" title="Refrescar" actionListener="#{gestionMipresBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" value="#{gestionMipresBean.lazyRegistros}" paginator="true" rows="#{gestionMipresBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;width:130%;min-width:1600px;"
+                             rowKey="#{obj.id}" reflow="true">
+                    <p:column headerText="Acciones" style="text-align: center;">
+                        <p:commandButton rendered="#{gestionMipresBean.accionVer}" title="Ver" actionListener="#{gestionMipresBean.ver(obj.id)}" icon="ui-icon-search"/>
+                    </p:column>
+
+                    <p:column headerText="Número prescripción" sortBy="#{obj.numeroPrescripcion}" filterBy="#{obj.numeroPrescripcion}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:inputText label="Número prescripción" maxlength="32" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.numeroPrescripcion}" title="#{obj.numeroPrescripcion}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha prescripción" sortBy="#{obj.fechaPrescripcion}" style="text-align: center;">
+                        <h:outputText value="#{obj.fechaPrescripcion}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                        </h:outputText>
+                        <h:outputText value="-"></h:outputText>
+                        <h:outputText value="#{obj.horaPrescripcion}">
+                            <f:convertDateTime type="date" pattern="HH:mm" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Tipo Doc. Afiliado" filterBy="#{obj.asegAfiliado.maeTipoDocumento}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 90%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionMipresBean.listaTiposDocumentoPersona}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{gestionMipresBean.obtenerTipoDocumentoPersona(obj.asegAfiliado.maeTipoDocumento)}"/>
+                    </p:column>
+
+                    <p:column headerText="Nro. Doc. Afiliado" sortBy="#{obj.asegAfiliado.numeroDocumento}" filterBy="#{obj.asegAfiliado.numeroDocumento}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliado.numeroDocumento}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre completo afiliado" sortBy="#{obj.asegAfiliado.nombres}" filterBy="#{obj.asegAfiliado.nombres}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombres" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliado.nombreCompleto}"/>
+                    </p:column>
+
+                    <p:column headerText="Recobrante" filterBy="#{obj.recobrante}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" NO " itemValue="0"  />
+                                <f:selectItem itemLabel=" SI " itemValue="1" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{gestionMipresBean.obtenerRecobrante(obj.recobrante)}"/>
+                    </p:column>
+
+                    <p:column headerText="Régimen afiliado" filterBy="#{obj.asegAfiliado.regimen}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 88%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Subsidiado " itemValue="1"  />
+                                <f:selectItem itemLabel=" Contributivo " itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{gestionMipresBean.obtenerRegimen(obj.asegAfiliado.regimen)}"/>
+                    </p:column>
+
+                    <p:column headerText="Número documento IPS" sortBy="#{obj.prestadorNumeroDocumento}" filterBy="#{obj.prestadorNumeroDocumento}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:inputText label="Nro. Documento IPS" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.prestadorNumeroDocumento}"/>
+                    </p:column>
+
+                    <p:column headerText="Razón social IPS" sortBy="#{obj.prestadorRazonSocial}" filterBy="#{obj.prestadorRazonSocial}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:inputText label="Razón Social" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.prestadorRazonSocial}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre completo profesional" sortBy="#{obj.cntProfesional.nombreCompleto}" filterBy="#{obj.cntProfesional.nombreCompleto}" style="text-align: center;">
+                        <f:facet name="filter">                            
+                            <p:inputText label="Nombre Completo" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <p:outputLabel value="#{obj.cntProfesional.nombreCompleto}"/>
+                    </p:column>
+
+                </p:dataTable>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog widgetVar="dialogoVer" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Ver</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gestionMipresBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionMipresBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmVer">
+                        <p:panel header="Tipo de gestión" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Número prescripción" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.numeroPrescripcion}"/>
+
+                                <p:outputLabel value="Fecha prescripción" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.fechaPrescripcion}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                                <h:outputLabel value="#{obj.horaPrescripcion}">
+                                    <f:convertDateTime type="date" pattern="HH:mm" timeZone="America/Bogota"/>
+                                </h:outputLabel>
+                                <p:spacer/>
+
+                                <p:outputLabel value="Ambito" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerAmbito(gestionMipresBean.objeto.codAmbAte)}"/>
+
+                                <p:outputLabel value="Enfermedad huerfana"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.enfermedadHuerfana ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Código enfermedad huerfana"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.codigoEnfermedadHuerfana}"/>
+
+                                <p:outputLabel value="Código Diagnóstico Principal"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.maDiagnosticoPrincipalCodigo}"/>
+
+                                <p:outputLabel value="Diagnóstico Principal"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.maDiagnosticoPrincipalValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlAfiliado" header="Información del afiliado" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelAfiliado" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo documento"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoDocumentoPersona(gestionMipresBean.objeto.asegAfiliado.maeTipoDocumento)}"/>                                        
+
+                                <p:outputLabel value="Número documento"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.numeroDocumento}"/>
+
+                                <p:outputLabel value="Nombres"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.nombres}"/>
+
+                                <p:outputLabel value="Apellidos"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.apellidos}"/>
+
+                                <p:outputLabel value="Género"  style="font-weight:bold"/>
+                                <h:outputText value="#{gestionMipresBean.obtenerTipoGenero(gestionMipresBean.objeto.asegAfiliado.genero)}"/>
+
+                                <p:outputLabel value="Fecha nacimiento"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.fechaNacimiento}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Régimen"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.regimen == '1' ? 'Subsidiado' : gestionMipresBean.objeto.asegAfiliado.regimen == '2' ? 'Contributivo' : ''}"/>
+
+                                <p:outputLabel value="Estado afiliación"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstadoAfiliacion(gestionMipresBean.objeto.asegAfiliado.maeEstadoAfiliacion)}"/>
+
+                                <p:outputLabel value="Dirección"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.direccionResidencia}"/>
+
+                                <p:outputLabel value="Teléfono"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.telefonoFijo}"/>
+
+                                <p:outputLabel value="Celular"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.telefonoMovil}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlIPS" header="Información IPS" rendered="#{gestionMipresBean.objeto.recobrante == 0}" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="panelIPS" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.prestadorNumeroDocumento}"/>
+
+                                <p:outputLabel value="Razón social" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntPrestadorSede.cntPrestador.razonSocial}"/>                                        
+
+                                <p:outputLabel value="Ciudad/Municipio"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntPrestadorSede.ubicacion.nombre}"/>
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntPrestadorSede.ubicacion.ubicacionPadre.nombre}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlProfesional" header="Profesional" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="panelPersona" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.maeTipoDocumentoValor}"/>
+
+                                <p:outputLabel value="Número documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.documento}"  />
+
+                                <p:outputLabel value="Primer nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.primerNombre}"/>
+
+                                <p:outputLabel value="Segundo nombre" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.segundoNombre}"/>
+
+                                <p:outputLabel value="Primer apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.primerApellido}"/>
+
+                                <p:outputLabel value="Segundo apellido" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.segundoApellido}"/>
+
+                                <p:outputLabel value="Registro Médico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objeto.cntProfesional.registroMedico}" style="width: 94%;"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlRecobrante" header="Detalles tutela" rendered="#{gestionMipresBean.objeto.recobrante == 1}" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="panelRecobrante" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Fallo"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fallo}"/>
+
+                                <p:outputLabel value="Fecha Fallo"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fechaFallo}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha 1ra Instancia"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fechaPrimeraInstancia}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha 2da Instancia"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fechaSegundaInstancia}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Corte"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fechaCorte}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Desacatoa"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.fechaDesacato}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Codigo Diagnostico Principal"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.maDiagnosticoMotivaPrincipalCodigo}"/>
+
+                                <p:outputLabel value="Diagnostico Principal"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.maDiagnosticoMotivaPrincipalValor}"/>
+
+                                <p:outputLabel value="Diagnostico 2"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.maDiagnosticoMotiva2Valor}"/>
+
+                                <p:outputLabel value="Diagnostico 3"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoRecobrante.maDiagnosticoMotiva3Valor}"/>
+
+                                <p:outputLabel value="criterio 1"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerConfirmacion(gestionMipresBean.objetoRecobrante.criterio1Corte)}"/>
+
+                                <p:outputLabel value="criterio 2"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerConfirmacion(gestionMipresBean.objetoRecobrante.criterio2Corte)}"/>
+
+                                <p:outputLabel value="criterio 3"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerConfirmacion(gestionMipresBean.objetoRecobrante.criterio3Corte)}"/>
+
+                                <p:outputLabel value="criterio 4"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerConfirmacion(gestionMipresBean.objetoRecobrante.criterio4Corte)}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Tecnologías" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="dto" value="#{gestionMipresBean.listaMpDetalleDTO}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{dto.id}">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{gestionMipresBean.accionVer}" title="Ver Programadas" actionListener="#{gestionMipresBean.verProgramadas(dto.id,dto.tipoTecnologiaId)}" icon="ui-icon-calendar"/>
+                                    <p:commandButton rendered="#{gestionMipresBean.accionVer}" title="Ver Entregadas" actionListener="#{gestionMipresBean.verEntregadas(dto.id,dto.tipoTecnologiaId)}" icon="ui-icon-transferthick-e-w"/>
+                                </p:column>
+                                <p:column headerText="Consecutivo" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.consecutivo}"/>
+                                </p:column>
+                                <p:column headerText="Tipo tecnología" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.tipoTecnologia}"/>
+                                </p:column>
+                                <p:column headerText="Tipo medicamento" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.tipoMedicamento}"/>
+                                </p:column>
+                                <p:column headerText="Tipo prestación" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.tipoPrestacion}"/>
+                                </p:column>
+                                <p:column headerText="Código" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.codigoFormaFarmaceutica}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.nombreTecnologiaPrescripta}"/>
+                                </p:column>
+                                <p:column headerText="Duración tratamiento ordenado" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.duracionTratamientoOrdenado}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad total prescrita" style="text-align: center;">                                    
+                                    <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(dto.cantidadTotalPrescrita)}" value="#{dto.cantidadTotalPrescrita}">
+                                        <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                    </p:outputLabel>
+                                    <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(dto.cantidadTotalPrescrita)}" value="#{gestionMipresBean.convertirTextoAEntero(dto.cantidadTotalPrescrita)}">
+                                        <f:convertNumber integerOnly="true"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Código tecnología" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.codigoTecnologia}"/>
+                                </p:column>
+                                <p:column headerText="Nombre tecnología" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.nombreTecnologia}"/>
+                                </p:column>
+                                <p:column headerText="Código tecnología avalada eps" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.codigoTecnologiaAvalEps}"/>
+                                </p:column>
+                                <p:column headerText="Nombre tecnología avalada eps" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.nombreTecnologiaAvalEps}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad total" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.cantidadTotal}"/>
+                                </p:column>
+                                <p:column headerText="Entregados" style="text-align: center;">
+                                    <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(dto.numeroEntregas)}" value="#{dto.numeroEntregas}">
+                                        <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                    </p:outputLabel>
+                                    <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(dto.numeroEntregas)}" value="#{dto.numeroEntregas}">
+                                        <f:convertNumber integerOnly="true"/>
+                                    </p:outputLabel>                                    
+                                </p:column>
+                                <p:column headerText="Pendientes" style="text-align: center;">
+                                    <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(dto.pendientes)}" value="#{dto.pendientes}">
+                                        <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                    </p:outputLabel>
+                                    <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(dto.pendientes)}" value="#{dto.pendientes}">
+                                        <f:convertNumber integerOnly="true"/>
+                                    </p:outputLabel>  
+                                </p:column>
+                                <p:column headerText="Unidades aprobadas periodo" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.unidadesAprobadasPeriodo}"/>
+                                </p:column>
+                                <p:column headerText="Concepto junta profesionales" style="text-align: center;">
+                                    <p:outputLabel value="#{dto.conceptoJuntaProfesional}"/>
+                                </p:column>
+                                <p:column headerText="Concepto evaluación" style="text-align: center;" visible="false">
+                                    <p:outputLabel value="#{dto.conceptoEvaluacion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Programadas Medidicamentos -->
+            <p:dialog widgetVar="dialogoProgramadasMed" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Programadas</b>
+                </header>
+                <h:form id="frmAuditoriaProgramadasMed" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gestionMipresBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionMipresBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmProgramadasMed">
+                        <p:panel id="pnlMedicamento" header="Información Prescripción Medicamentos" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="panelm1" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstado(gestionMipresBean.objetoMedicamento.estado)}"/>
+
+                                <p:outputLabel value="Estado Junta Profesional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstadoJuntaProfesional(gestionMipresBean.objetoMedicamento.estadoJuntaProfesionales)}"  />
+
+                                <p:outputLabel value="Consecutivo Orden" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.consecutivoOrden}"/>
+
+                                <p:outputLabel value="Tipo tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoTecnologia(gestionMipresBean.objetoMedicamento.tipoTecnologia)}"  />
+
+                                <p:outputLabel value="Tipo Medicamento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoMedicamento(gestionMipresBean.objetoMedicamento.tipoMedicamento)}"/>
+
+                                <p:outputLabel value="Tipo prestación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoPrestacion(gestionMipresBean.objetoMedicamento.tipoPrestacion)}"  />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlMedicamento2" header="Medicamento, causa y razones" style="margin:10px 0px;" toggleable="true" collapsed="true">
+                            <p:panelGrid id="panelm2" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Medicamento utilizado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.medPbsUtilizado}"/>
+
+                                <p:outputLabel value="Causa solicitud 1" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud1 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Causa solicitud 2" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud2 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Causa solicitud 3" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud3 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Causa solicitud 4" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud4 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Causa solicitud 5" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud5 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Causa solicitud 6" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.causaSolicitud6 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 31" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud31 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 31" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon31}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 32" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud32 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 32" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon32}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 41" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud41 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 41" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon41}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 42"  style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud42 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 42" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon42}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 43" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud43 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 43" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon43}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 44" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud44 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 44" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon44}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 51" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud51 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 51" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon51}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 52" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud52 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 52" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon52}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 53" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud53 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 53" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon53}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 54" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud54 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 54" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon54}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 5" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.razonCausaSolicitud5 ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción razón 5" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionRazon5}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlMedicamento3" header="Detalles" style="margin:10px 0px;" toggleable="true" collapsed="true" >
+                            <p:panelGrid id="panelm3" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Descripción medicamento principio Activo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionMedicamentoPrincipioActivo}"/>
+
+                                <p:outputLabel value="Código formula farmaceutica" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.codigoFormulaFarmaceutica}"/>
+
+                                <p:outputLabel value="Código vía administración" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.codigoViaAdministracion}"/>
+
+                                <p:outputLabel value="Justificación no pbs" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.justificacionNoPbs}"/>
+
+                                <p:outputLabel value="Dosis" style="font-weight:bold"/>
+                                <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoMedicamento.dosis)}" value="#{gestionMipresBean.objetoMedicamento.dosis}">
+                                    <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                </p:outputLabel>
+                                <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoMedicamento.dosis)}" value="#{gestionMipresBean.objetoMedicamento.dosis}">
+                                    <f:convertNumber integerOnly="true"/>
+                                </p:outputLabel>  
+                                <p:spacer/>
+
+                                <p:outputLabel value="Dosis unidad medida" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.dosisUnidadMedida}"/>
+
+                                <p:outputLabel value="Número frecuencia administración" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.numeroFrecuenciaAdministracion}"/>
+
+                                <p:outputLabel value="Código frecuencia administración" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerFrecuenciaTratamiento(gestionMipresBean.objetoMedicamento.codigoFrecuenciaAdministracion)}"/>
+
+                                <p:outputLabel value="Indicaciones especiales" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerIndicacionEspacial(gestionMipresBean.objetoMedicamento.indicacionesEspeciales)}"/>
+
+                                <p:outputLabel value="Cantidad tratamiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.cantidadTratamiento}"/>
+
+                                <p:outputLabel value="Duración tratamiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerFrecuenciaTratamiento(gestionMipresBean.objetoMedicamento.duracionTratamiento)}"/>
+
+                                <p:outputLabel value="Cantidad total formulada" style="font-weight:bold"/>
+                                <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoMedicamento.cantidadTotalFormulada)}" value="#{gestionMipresBean.objetoMedicamento.cantidadTotalFormulada}">
+                                    <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                </p:outputLabel>
+                                <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoMedicamento.cantidadTotalFormulada)}" value="#{gestionMipresBean.objetoMedicamento.cantidadTotalFormulada}">
+                                    <f:convertNumber integerOnly="true"/>
+                                </p:outputLabel>  
+                                <p:spacer/>
+
+                                <p:outputLabel value="Unidad Farmacéutica cantidad total" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.unidadFarmaceuticaCantidadTotal}"/>
+
+                                <p:outputLabel value="Indicación recibida" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.indicacionRecibida}"/>
+
+                                <p:outputLabel value="Diagnóstico VIH" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.esDiagnosticoVih ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Diagnóstico cancer" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.esDiagnosticoCancer ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Diagnóstico enfermedad renal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.esDiagnosticoEnfermedadRenal ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Diagnóstico desnutrición" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.esDiagnosticoDesnutricion ? 'Si' : 'No'}"/>
+
+                                <p:outputLabel value="Descripción producto nutricional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.descripcionProductoNutricional}"/>
+
+                                <p:outputLabel value="Cantidad total a entregar" style="font-weight:bold"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Programadas" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="pro" value="#{gestionMipresBean.listaMpPrescripcionProgramadas}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{pro.id}">
+                                <p:column headerText="Número entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaNumero}"/>
+                                </p:column>
+                                <p:column headerText="Razón social ips direccionada" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.prestadorRazonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad a entregar" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaCantidad}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Maxima Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaMaximaEntrega}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Fecha direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaDireccionamiento}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Estado" style="text-align: center;">
+                                    <p:outputLabel value="#{gestionMipresBean.obtenerEstado(pro.estado)}"/>
+                                </p:column>
+                                <p:column headerText="Transaccion" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idTransaccion}"/>
+                                </p:column>
+                                <p:column headerText="Direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idDireccionamiento}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoProgramadasMed').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>            
+
+            <!-- Programadas Tecnologia -->
+            <p:dialog widgetVar="dialogoProgramadasTecn" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Programadas</b>
+                </header>
+                <h:form id="frmAuditoriaProgramadasTecn" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gestionMipresBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionMipresBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmProgramadasTecn">
+                        <p:panel id="pnlTecnologia" header="Información Prescripción Tecnologia" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="panelt1" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstado(gestionMipresBean.objetoTecnologia.estado)}"/>
+
+                                <p:outputLabel value="Estado Junta Profesional" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstadoJuntaProfesional(gestionMipresBean.objetoTecnologia.estadoJuntaProfesionales)}"  />
+
+                                <p:outputLabel value="Consecutivo Orden" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.consecutivoOrden}"/>
+
+                                <p:outputLabel value="Tipo tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoTecnologia(gestionMipresBean.objetoTecnologia.tipoTecnologia)}"  />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlTecnologia2" header="Tecnologia, causa y razones" style="margin:10px 0px;" 
+                                 toggleable="true" collapsed="true">
+                            <p:panelGrid id="panelt2" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Tipo prestación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoPrestacion(gestionMipresBean.objetoTecnologia.tipoPrestacion)}"  />
+
+                                <p:outputLabel value="Causa Solicitud 2" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud2}"/>
+
+                                <p:outputLabel value="Causa Solicitud 3" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud3}"/>
+
+                                <p:outputLabel value="Causa Solicitud 4" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud4}"/>
+
+                                <p:outputLabel value="Causa solicitud 5" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud5}"/>
+
+                                <p:outputLabel value="Causa solicitud 6" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud6}"/>
+
+                                <p:outputLabel value="Causa solicitud 7" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud7}"/>
+
+                                <p:outputLabel value="Causa solicitud 11" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud11}"/>
+
+                                <p:outputLabel value="Causa solicitud 12" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.causaSolicitud12}"/>
+
+                                <p:outputLabel value="Razón causa solicitud 51" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.razonCausaSolicitud51}"/>
+
+                                <p:outputLabel value="Descripción razón 51" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.descripcionRazon51}"/>
+
+                                <p:outputLabel value="Razón causa 52" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.codigoRazonCausa52}"/>
+
+                                <p:outputLabel value="Descripción razón 52" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.descripcionRazon52}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlTecnologia3" header="Detalles" style="margin:10px 0px;" 
+                                 toggleable="true" collapsed="true" >
+                            <p:panelGrid id="panelt3" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Tecnología código" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.maTecnologiaCodigo}"/>
+
+                                <p:outputLabel value="Tecnologia valor" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.maTecnologiaValor}"/>
+
+                                <p:outputLabel value="Cantidad formulada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.cantidadFormulada}"/>
+
+                                <p:outputLabel value="Frecuencia de uso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.frecuenciaDeUso}"/>
+
+                                <p:outputLabel value="Código unidad tiempo frecuencia uso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.codigoUnidadTiempoFrecuenciaUso}"/>
+
+                                <p:outputLabel value="Cantidad duración tratamiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.cantidadDuracionTratamiento}"/>
+
+                                <p:outputLabel value="Cantidad total" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.cantidadTotal}"/>
+
+                                <p:outputLabel value="Código periodo duración tratamiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.codigoPeriodoDuracionTratamiento}"/>
+
+                                <p:outputLabel value="Justificación no pds" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.justificacionNoPbs}"/>
+
+                                <p:outputLabel value="Indicaciones paciente" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoTecnologia.indicacionesPaciente}"/>
+
+                                <p:outputLabel value="Cantidad total entrega" style="font-weight:bold"/>
+                                <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoTecnologia.cantidadTotalEntrega)}" value="#{gestionMipresBean.objetoTecnologia.cantidadTotalEntrega}">
+                                    <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                </p:outputLabel>
+                                <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoTecnologia.cantidadTotalEntrega)}" value="#{gestionMipresBean.objetoTecnologia.cantidadTotalEntrega}">
+                                    <f:convertNumber integerOnly="true"/>
+                                </p:outputLabel>                                                                                 
+                                <p:spacer/>
+
+                                <p:outputLabel value="Entregados" style="font-weight:bold"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Programadas" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="pro" value="#{gestionMipresBean.listaMpPrescripcionProgramadas}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{pro.id}">
+                                <p:column headerText="Número entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaNumero}"/>
+                                </p:column>
+                                <p:column headerText="Razón social ips direccionada" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.prestadorRazonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad a entregar" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaCantidad}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Maxima Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaMaximaEntrega}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Fecha direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaDireccionamiento}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Estado" style="text-align: center;">
+                                    <p:outputLabel value="#{gestionMipresBean.obtenerEstado(pro.estado)}"/>
+                                </p:column>
+                                <p:column headerText="Transaccion" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idTransaccion}"/>
+                                </p:column>
+                                <p:column headerText="Direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idDireccionamiento}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoProgramadasTecn').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Programadas Insumo -->
+            <p:dialog widgetVar="dialogoProgramadasInsu" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Programadas</b>
+                </header>
+                <h:form id="frmAuditoriaProgramadasInsu" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gestionMipresBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionMipresBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmProgramadasInsu">
+                        <p:panel id="pnlInsumo" header="Información Prescripción Insumos" style="margin:10px 0px;" toggleable="true">
+                            <p:panelGrid id="paneli1" columns="2" layout="grid" styleClass="showcase-text-align-center" >
+
+                                <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstado(gestionMipresBean.objetoInsumo.estado)}"/>
+
+                                <p:outputLabel value="Estado Junta Profesional" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.obtenerEstadoJuntaProfesional(gestionMipresBean.objetoInsumo.estadoJuntaProfesionales)}"  />
+
+                                <p:outputLabel value="Consecutivo Orden" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.consecutivoOrden}"/>
+
+                                <p:outputLabel value="Tipo prestación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoPrestacion(gestionMipresBean.objetoInsumo.tipoPrestacion)}"  />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlInsumo2" header="Insumo, causa y razones" style="margin:10px 0px;" 
+                                 toggleable="true" collapsed="true">
+                            <p:panelGrid id="paneli2" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Tipo tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.obtenerTipoTecnologia(gestionMipresBean.objetoInsumo.tipoTecnologia)}"/>
+
+                                <p:outputLabel value="Causa Solicitud 1" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.causaSolicitud1}"  />
+
+                                <p:outputLabel value="Causa Solicitud 2" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.causaSolicitud2}"/>
+
+                                <p:outputLabel value="Causa Solicitud 3" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.causaSolicitud3}" />
+
+                                <p:outputLabel value="Causa solicitud 4" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.causaSolicitud4}"/>
+
+                                <p:outputLabel value="Causa solicitud 5" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.causaSolicitud5}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlInsumo3" header="Detalles" style="margin:10px 0px;" 
+                                 toggleable="true" collapsed="true" >
+                            <p:panelGrid id="paneli3" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <p:outputLabel value="Código dispositivo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.codigoDispositivo}"/>
+
+                                <p:outputLabel value="Cantidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.cantidad}"/>
+
+                                <p:outputLabel value="Frecuencia uso" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.frecuenciaUso}"/>
+
+                                <p:outputLabel value="Nombre tecnologia avalada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.nombreTecnologiaAvalada}"/>
+
+                                <p:outputLabel value="Descripción causa s4" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.descripcionCausaS4}"/>
+
+                                <p:outputLabel value="Código forma" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.codigoForma}"/>
+
+                                <p:outputLabel value="Cantidad formulada " style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.cantidadFormulada}"/>
+
+                                <p:outputLabel value="Descripción causa 4" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.descripcionCausa4}"/>
+
+                                <p:outputLabel value="Código servicio complementario" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.codigoServicioComplementario}"/>
+
+                                <p:outputLabel value="Duración tratamiento" style="font-weight:bold" />
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.duracionTratamiento}"/>
+
+                                <p:outputLabel value="Cantidad formulada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.cantidadFormulada}"/>
+
+                                <p:outputLabel value="Tipo transporte" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.tipoTransporte}"/>
+
+                                <p:outputLabel value="Req acom" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.reqAcom}"/>
+
+                                <p:outputLabel value="Tipo documento acompañante albergue" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.tipoDocumentoAcompananteAlbergue}"/>
+
+                                <p:outputLabel value="Tipo documento acompañante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.tipoDocumentoAcompanante}"/>
+
+                                <p:outputLabel value="Número documento acompañante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.numeroDocumentoAcompanante}"/>
+
+                                <p:outputLabel value="Parentesco acompañante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.parentezcoAcompanante}"/>
+
+                                <p:outputLabel value="Nombre alb" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.nombreAlb}"/>
+
+                                <p:outputLabel value="Código municipio origen albergue" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.codigoMunicipioOrigenAlb}"/>
+
+                                <p:outputLabel value="Código municipio destino albergue" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.codigoMunicipioDestinoAlb}"/>
+
+                                <p:outputLabel value="Justificacion no pbs" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.justificacionNoPbs}"/>
+
+                                <p:outputLabel value="Indicaciones recomendaciones" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoInsumo.indicacionesRecomendaciones}"/>
+
+                                <p:outputLabel value="Cantidad total a entregar" style="font-weight:bold"/>
+                                <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoInsumo.cantidadTotalEntrega)}" value="#{gestionMipresBean.objetoInsumo.cantidadTotalEntrega}">
+                                    <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                </p:outputLabel>
+                                <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(gestionMipresBean.objetoInsumo.cantidadTotalEntrega)}" value="#{gestionMipresBean.objetoInsumo.cantidadTotalEntrega}">
+                                    <f:convertNumber integerOnly="true"/>
+                                </p:outputLabel>      
+                                <p:spacer/>
+
+                                <p:outputLabel value="Fecha Máxima Entrega" style="font-weight:bold"/>
+                                <p:outputLabel value="#{gestionMipresBean.objetoMedicamento.fechaMaximaEntrega}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel header="Programadas" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="pro" value="#{gestionMipresBean.listaMpPrescripcionProgramadas}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{pro.id}">
+                                <p:column headerText="Número entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaNumero}"/>
+                                </p:column>
+                                <p:column headerText="Razón social ips direccionada" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.prestadorRazonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad a entregar" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.entregaTotal}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Maxima Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaMaximaEntrega}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Fecha direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.fechaDireccionamiento}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Estado" style="text-align: center;">
+                                    <p:outputLabel value="#{gestionMipresBean.obtenerEstado(pro.estado)}"/>
+                                </p:column>
+                                <p:column headerText="Transaccion" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idTransaccion}"/>
+                                </p:column>
+                                <p:column headerText="Direccionamiento" style="text-align: center;">
+                                    <p:outputLabel value="#{pro.idDireccionamiento}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoProgramadasInsu').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Entregadas -->
+            <p:dialog widgetVar="dialogoEntregada" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <header style="font-size: 30px;">
+                    <b>Entregadas</b>
+                </header>
+                <h:form id="frmAuditoriaEntregada" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{gestionMipresBean.objeto.asegAfiliado.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionMipresBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmEntregadas">
+                        <p:panel id="pnlEntrega" header="Entregadas" style="margin:10px 0px" toggleable="true">
+                            <p:dataTable var="entregada" value="#{gestionMipresBean.listaMpPrescripcionEntregadas}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{entregada.id}">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{gestionMipresBean.accionVer}" title="Ver" actionListener="#{gestionMipresBean.verSuministradas(entregada.id)}" icon="ui-icon-search"/>
+                                </p:column>
+                                <p:column headerText="Reporte Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{entregada.idReporteEntrega}"/>
+                                </p:column>
+                                <p:column headerText="Cantidad" style="text-align: center;">
+                                    <p:outputLabel rendered="#{gestionMipresBean.validarResiduoDecimal(entregada.cantidad)}" value="#{entregada.cantidad}">
+                                        <f:convertNumber maxFractionDigits="2" pattern = "#000.00" />
+                                    </p:outputLabel>
+                                    <p:outputLabel rendered="#{!gestionMipresBean.validarResiduoDecimal(entregada.cantidad)}" value="#{entregada.cantidad}">
+                                        <f:convertNumber integerOnly="true"/>
+                                    </p:outputLabel>                                    
+                                </p:column>                                
+                                <p:column headerText="Entrega Total" style="text-align: center;">
+                                    <p:outputLabel value="#{entregada.entregaTotal ? 'SI':'NO'}" />
+                                </p:column>
+                                <p:column headerText="Causa No Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{entregada.causaNoEntrega}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{entregada.fechaEntrega}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>                                    
+                                </p:column>
+                                <p:column headerText="Fecha Anulación" style="text-align: center;">
+                                    <p:outputLabel value="#{entregada.fechaAnulacion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEntregada').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Suministrada" widgetVar="dialogoSuministrada" appendTo="@(body)" modal="true" style="max-width: 95%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px;">
+                    <h:form id="frmSuministradas">
+                        <p:panel id="pnlSuministradas" header="Suministradas" style="margin:10px 0px" toggleable="true">
+                            <p:dataTable var="suministro" value="#{gestionMipresBean.listaEntregaSuministros}"
+                                         emptyMessage="No se encontraron registros" id="tablaRegistrosDTO"
+                                         widgetVar="tablaWidgetDTO" style="font-size:11px;"
+                                         rowKey="#{suministro.id}">
+                                <p:column headerText="Suministro" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.idSuministro}"/>
+                                </p:column>
+                                <p:column headerText="Número Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.numeroEntrega}"/>
+                                </p:column>                                
+                                <p:column headerText="Última Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.ultimaEntrega ? 'SI':'NO'}"/>
+                                </p:column>
+                                <p:column headerText="Entrega Completa" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.entregaCompleta? 'SI':'NO'}"/>
+                                </p:column>
+                                <p:column headerText="Causa No Entrega" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.causaNoEntrega}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Suministro" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.fechaSuministro}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                                <p:column headerText="Fecha Anulación" style="text-align: center;">
+                                    <p:outputLabel value="#{suministro.fechaAnulacion}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </p:outputLabel>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid id="panelCrear" style="width:99%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                   
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoSuministrada').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Auditoria -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" class="modal-no-scroll" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Estado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.maeEstadoAfiliacionValor}" />
+
+                            <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.nombres}" />
+
+                            <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.apellidos}" />
+
+                            <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.maeTipoDocumentoCodigo}" />
+
+                            <p:outputLabel value="Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.numeroDocumento}" />
+
+                            <p:outputLabel value="Correo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.email}" />
+
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.direccionResidencia}" />
+
+                            <p:outputLabel value="Ubicación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.obtenerMunicipio(gestionMipresBean.objeto.asegAfiliado.residenciaUbicacion.id)}" />
+
+                            <p:outputLabel value="Regimen" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.maeRegimenValor}" />
+
+                            <p:outputLabel value="Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{gestionMipresBean.objeto.asegAfiliado.idAfiliado}" />
+
+                        </p:panelGrid>
+                        <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactosGeneralAseg" var="contacto" value="#{gestionMipresBean.objeto.asegAfiliado.listaAsegAfiliadoContacto}" widgetVar="tablaContactosGestionarAseg" scrollable="true" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número Contacto">
+                                        <h:outputText value="#{contacto.numeroContacto}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo">
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+
+</ui:composition>

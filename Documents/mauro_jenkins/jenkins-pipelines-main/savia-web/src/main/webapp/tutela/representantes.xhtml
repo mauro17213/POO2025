@@ -1,0 +1,196 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <style type="text/css">
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>
+        <center>
+            <h:form id="frmRepresentantes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{tuRepresentanteBean.modulo.descripcion}">#{tuRepresentanteBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton title="Refrescar" ajax="true" actionListener="#{tuRepresentanteBean.listar}" icon="ui-icon-refresh"/>
+                        <p:commandButton title="Crear" actionListener="#{tuRepresentanteBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{tuRepresentanteBean.lazyTuRepresentante}" paginator="true" rows="#{tuRepresentanteBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             scrollable="true"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center; width: 100px">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{tuRepresentanteBean.accionVer}"  title="Ver" actionListener="#{tuRepresentanteBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{tuRepresentanteBean.accionEditar}" title="Editar" actionListener="#{tuRepresentanteBean.editar(obj.id)}" icon="ui-icon-pencil"/>   
+                        <p:commandButton rendered="#{tuRepresentanteBean.accionBorrar}" title="Borrar" action="#{tuRepresentanteBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Número Representante" filterBy="#{obj.id}" style="width: 100px">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Representante" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}" style="text-align: center; width: 100px">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" sortBy="#{obj.activo}" style="text-align: center; width: 100px">
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!--VER -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="80%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmVer">
+                        <p:panel id="pRepresentanteVer" header="REPRESENTANTE" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton id="auditoria" class="btnAuditoria" action="#{tuRepresentanteBean.getAuditoria(tuRepresentanteBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelRepresentanteVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Número Representante" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuRepresentanteBean.objeto.id}" />
+
+                                <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuRepresentanteBean.objeto.nombre}" />
+
+                                <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{tuRepresentanteBean.objeto.activoStr}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>  
+            </p:dialog>
+            <!--CREAR-->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" position="center" width="80%" modal="true" style="max-height:35%;">
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrear">
+                        <p:panel id="pRepresentanteCrear" header="REPRESENTANTE" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelRepresentanteCrear" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid"
+                                         style="border:0px none; background-color:transparent;">
+
+                                <p:outputLabel value="Nombres" for="nombres" style="font-weight:bold"/>
+                                <p:inputText id="nombres" label="Nombres" value="#{tuRepresentanteBean.objeto.nombre}" size="30" maxlength="62" required="true" requiredMessage="Nombres: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="activo" label="Activo" value="#{tuRepresentanteBean.objeto.activo}"  editable="fase" style="width: 100px;" required="true" requiredMessage="Activo: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="false" />
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:separator/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Guardar" type="button" process="@form" immediate="true" onclick="guardarRemote()" validateClient="true"/>   
+                                        <p:remoteCommand name="guardarRemote" action ="#{tuRepresentanteBean.guardar}" update="frmCrear"/>
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>  
+            </p:dialog>
+            <!--EDITAR -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" dynamic="true" width="80%" height="80%">
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmEditar">
+                        <p:panel id="pRepresentanteEditar" header="REPRESENTANTE" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton id="auditoria" class="btnAuditoria" action="#{tuRepresentanteBean.getAuditoria(tuRepresentanteBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelRepresentanteEditar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Nombres" for="nombres" style="font-weight:bold"/>
+                                <p:inputText id="nombres" label="Nombres" value="#{tuRepresentanteBean.objeto.nombre}" size="30" maxlength="62" required="true" requiredMessage="Nombres: Este campo es obligatorio.">
+                                </p:inputText>
+
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                <p:selectOneMenu id="activo" label="Activo" value="#{tuRepresentanteBean.objeto.activo}" editable="fase" style="width: 100px;" required="true" requiredMessage="Activo: Este campo es obligatorio.">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="false" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                        </p:panel>   
+                        <p:separator/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action="#{tuRepresentanteBean.modificar}" update="frmEditar" />
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

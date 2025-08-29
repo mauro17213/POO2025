@@ -1,0 +1,1188 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <h:form id="frmFacturas">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmFacturasBean.modulo.descripcion}">#{cmFacturasBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cmFacturasBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmFacturasBean.refrescar}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cmFacturasBean.lazyFacturas}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidgetFacturas"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="115%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>     
+                        <p:commandButton rendered="#{cmFacturasBean.accionVer}" title="Ver Factura" actionListener="#{cmFacturasBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{cmFacturasBean.accionVer}" title="Ver Transacciones" actionListener="#{cmFacturasBean.verFacturaTransacciones(obj.id)}" icon="ui-icon-contact"/>
+                        <p:commandButton rendered="#{cmFacturasBean.accionVer and obj.tieneNotas}" title="Ver Notas" actionListener="#{cmFacturasBean.verNota(obj)}" icon="ui-icon-copy"/>
+                    </p:column>
+
+                    <p:column headerText="Número radicado" sortBy="#{obj.numeroRadicado}" filterBy="#{obj.numeroRadicado}">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Radicado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroRadicado}" title="#{obj.numeroRadicado}"/>
+                    </p:column>
+
+                    <p:column  headerText="Número facturado" sortBy="#{obj.numeroFacturado}" filterBy="#{obj.numeroFacturado}">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Facturado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroFacturado}" title="#{obj.numeroFacturado}"/>
+                    </p:column>
+
+                    <p:column  headerText="NIT" sortBy="#{obj.nit}" filterBy="#{obj.nit}">
+                        <f:facet name="filter">
+                            <p:inputText label="NIT" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                    </p:column>
+
+                    <p:column headerText="IPS" sortBy="#{obj.ips}" filterBy="#{obj.ips}" width="120">
+                        <f:facet name="filter">
+                            <p:inputText label="IPS" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                    </p:column>
+                    
+                    <p:column headerText="Versión" sortBy="#{obj.version}" filterBy="#{obj.version}"
+                                  exportable="false" style="text-align: center;">          
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="3047" itemValue="0"/>
+                                    <f:selectItem itemLabel="2284" itemValue="1"/>
+                                </p:selectOneMenu>
+                            </f:facet>     
+                            <h:outputText value="#{obj.versionStr}" title="#{obj.versionStr}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha radicación" sortBy="#{obj.fechaRadicacion}">
+                        <h:outputText value="#{obj.fechaRadicacion}"/>
+                    </p:column>
+
+                    <p:column  headerText="Valor factura" sortBy="#{obj.valorFactura}" width="100" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="Valor factura" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.valorFactura}" title="#{obj.valorFactura}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor inicial glosa" sortBy="#{obj.valorInicialGlosa}" width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorInicialGlosa}" title="#{obj.valorInicialGlosa}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}"  width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Fecha Asignación Técnico" >
+                        <h:outputText value="#{obj.fechaAsignacionTecnico}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha Asignación Médico" >
+                        <h:outputText value="#{obj.fechaAsignacionMedico}"/>
+                    </p:column>           
+
+                    <p:column  headerText="Fecha Auditoría" >
+                        <h:outputText value="#{obj.fechaHoraAudita}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado factura" sortBy="#{obj.estadoFactura}" filterBy="#{obj.estadoFactura}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Radicado" itemValue="0"/>
+                                <f:selectItem itemLabel="Radicado - Espera SAP (M1)" itemValue="10"/>
+                                <f:selectItem itemLabel="Radicado - Espera SAP (M1) - ERROR" itemValue="11"/>
+                                <f:selectItem itemLabel="En Auditoría" itemValue="1"/>
+                                <f:selectItem itemLabel="Auditada-Glosada" itemValue="2" />
+                                <f:selectItem itemLabel="Conciliada" itemValue="4" />
+                                <f:selectItem itemLabel="Conciliada - Espera SAP (M3)" itemValue="8" />
+                                <f:selectItem itemLabel="Devuelta" itemValue="5" />
+                                <f:selectItem itemLabel="Devuelta - Espera SAP (DEV)" itemValue="6" />
+                                <f:selectItem itemLabel="Auditada - Espera SAP (M2)" itemValue="7" />
+                                <f:selectItem itemLabel="Auditada" itemValue="9" />
+                            </p:selectOneMenu>
+                        </f:facet>    
+                        <h:outputText value="#{obj.estadoFacturaStr}" title="#{obj.estadoFacturaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Origen" filterBy="#{obj.origenFactura}">  
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="IntraSavia" itemValue="1" />
+                                <f:selectItem itemLabel="SomosMas" itemValue="2" />
+                                <f:selectItem itemLabel="Conexiones" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getOrigenFacturaStr()}" title="#{obj.getOrigenFacturaStr()}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+            <p:dialog header="Ver Factura" id="dialogoVer" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height:95%;">
+                <p:scrollPanel id="scrollPanelVer" mode="native" style="height:70vh">
+                    <h:form id="frmVer">
+                        <p:panel id="pFactura" toggleable="true" header="Factura" style="margin-bottom:10px;width: 150%;">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(cmFacturasBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelFactura" columns="4" layout="grid" >                                
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row> 
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor inicial glosa" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.valorInicialGlosa}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>                                
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha inicial bloqueo" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.fechaMarcacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha final bloqueo" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.fechaVencimiento}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Origen" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.origenFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmFacturasBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número contrato" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.numeroContrato}"/>
+                                    </p:column>
+                                    
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Versión" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.objeto.versionStr}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pDetalles" toggleable="true" header="Servicios" style="margin-bottom:10px; width: 150%;">                               
+                            <p:dataTable var="detalle" value="#{cmFacturasBean.lazyDetalles}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                                         widgetVar="tablaWidgetDetalles"
+                                         scrollable="true"
+                                         scrollHeight="250"
+                                         scrollWidth="100%"
+                                         style="font-size:12px;"
+                                         rowKey="#{detalle.id}" >
+                                <p:column style="width:16px">
+                                    <p:rowToggler />
+                                </p:column>  
+                                <p:column style="text-align: center;">                                 
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>    
+                                    <p:commandButton  title="Ver Auditoria Servicio" actionListener="#{cmFacturasBean.verServicioAuditado(detalle.id)}" icon="ui-icon-search"/> 
+                                </p:column>                           
+                                <p:column  headerText="Id descripción" sortBy="#{detalle.id}">
+                                    <h:outputText value="#{detalle.id}" title="#{detalle.id}"/>
+                                </p:column>
+                                <p:column  headerText="Estado" sortBy="#{detalle.estado}">
+                                    <h:outputText value="#{detalle.estadoStr}" title="#{detalle.estadoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Código servicio" sortBy="#{detalle.maServicioCodigo}" filterBy="#{detalle.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{detalle.maServicioCodigo}" title="#{detalle.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{detalle.maServicioValor}" filterBy="#{detalle.maServicioValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{detalle.nombreServicioCorto}" title="#{detalle.nombreServicioCorto}"/>
+                                    <p:commandButton rendered="#{detalle.nombreServicioCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(detalle.maServicioValor)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>   
+                                </p:column>
+                                <p:column  headerText="Código Mipres" style="text-align: center; ">
+                                    <h:outputText value="#{detalle.codigoMiPress}" title="#{detalle.codigoMiPress}"/>
+                                </p:column> 
+                                <p:column  headerText="Tipo documento" sortBy="#{detalle.maeTipoDocumentoValor}">
+                                    <h:outputText value="#{detalle.maeTipoDocumentoValor}" title="#{detalle.maeTipoDocumentoValor}"/>
+                                </p:column> 
+                                <p:column  headerText="Documento afiliado" sortBy="#{detalle.documento}" filterBy="#{detalle.documento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{detalle.documento}" title="#{detalle.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{detalle.nombreCompletoAfiliado}">
+                                    <h:outputText value="#{detalle.nombreCompletoAfiliado}" title="#{detalle.nombreCompletoAfiliado}"/>
+                                </p:column>
+
+                                <p:column  headerText="Radicado glosa" sortBy="#{detalle.radicadoGlosa}" filterBy="#{detalle.radicadoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Radicado glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>    
+                                    <h:outputText value="#{detalle.radicadoGlosa}" title="#{detalle.radicadoGlosa}"/>
+                                </p:column>
+
+                                <p:column  headerText="Motivos glosa" sortBy="#{detalle.motivoGlosa}" filterBy="#{detalle.motivoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Motivos glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>   
+                                    <h:outputText value="#{detalle.motivoGlosaCorto}" />
+                                    <p:commandButton  rendered="#{detalle.motivoGlosaCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(detalle.motivoGlosa)}" icon="ui-icon-comment" title="Ver completo"/>       
+                                </p:column>
+                                <p:column  headerText="Valor copago" sortBy="#{detalle.valorCopago}">
+                                    <h:outputText value="#{detalle.valorCopago}" title="#{detalle.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{detalle.valorFacturado}">
+                                    <h:outputText value="#{detalle.valorFacturado}" title="#{detalle.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{detalle.valorPagado}">
+                                    <h:outputText value="#{detalle.valorPagado}" title="#{detalle.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pendiente inicial" sortBy="#{detalle.valorPendiente}">
+                                    <h:outputText value="#{detalle.valorPendiente}" title="#{detalle.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{detalle.valorPendienteActual}">
+                                    <h:outputText value="#{detalle.valorPendienteActual}" title="#{detalle.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{detalle.observacion}">
+                                    <h:outputText value="#{detalle.observacionCorto}" />
+                                    <p:commandButton  rendered="#{detalle.observacionCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(detalle.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>
+                                <p:column  headerText="Aplica AC" width="40" sortBy="#{detalle.aplicaAc}">
+                                    <h:outputText value="#{detalle.aplicaAcStr}" title="#{detalle.aplicaAcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica DC" width="40" sortBy="#{detalle.aplicaDc}">
+                                    <h:outputText value="#{detalle.aplicaDcStr}" title="#{detalle.aplicaDcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica PBS" width="30" sortBy="#{detalle.aplicaPbs}" >
+                                    <h:outputText value="#{detalle.aplicaPbsStr}" title="#{detalle.aplicaPbsStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica diagnóstico" width="40" sortBy="#{detalle.aplicaDx}">
+                                    <h:outputText value="#{detalle.aplicaDxStr}" title="#{detalle.aplicaDxStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica autorización" width="40" sortBy="#{detalle.aplicaAutorizacion}">
+                                    <h:outputText value="#{detalle.aplicaAutorizacionStr}" title="#{detalle.aplicaAutorizacionStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica concepto" width="40" sortBy="#{detalle.aplicaConcepto}">
+                                    <h:outputText value="#{detalle.aplicaConceptoStr}" title="#{detalle.aplicaConceptoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica glosa" width="40" sortBy="#{detalle.aplicaGlosa}">
+                                    <h:outputText value="#{detalle.aplicaGlosaStr}" title="#{detalle.aplicaGlosaStr}"/>
+                                </p:column>
+                                <p:column  headerText="Valor glosa" style="width: 80px;">
+                                    <h:outputText value="#{detalle.valorGlosa}" title="#{detalle.valorGlosa}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Fecha prestación" sortBy="#{detalle.fechaPrestacion}">
+                                    <h:outputText value="#{detalle.fechaPrestacion}" title="#{detalle.fechaPrestacion}"/>
+                                </p:column>
+                                <p:rowExpansion>                     
+                                    <p:dataTable id="subDetalle" widgetVar="subDetalles" var="subDetalle" value="#{detalle.listaRespuestaDetalle}" paginator="true" emptyMessage="No se encontraron registros">                                        
+                                        <p:column  headerText="Tipo respueta " sortBy="#{subDetalle.tipoRespuestaStr}">
+                                            <h:outputText value="#{subDetalle.tipoRespuestaStr}" />
+                                        </p:column>
+
+                                        <p:column  headerText="Documento afiliado" sortBy="#{subDetalle.documento}">
+                                            <h:outputText value="#{subDetalle.documento}" title="#{subDetalle.documento}">
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="Valor facturado" sortBy="#{subDetalle.valorFacturado}">
+                                            <p:outputLabel value="#{subDetalle.valorFacturado}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </p:outputLabel>
+                                        </p:column>
+                                        <p:column  headerText="Valor pagado" sortBy="#{subDetalle.valorPagado}">
+                                            <p:outputLabel value="#{subDetalle.valorPagado}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </p:outputLabel>
+                                        </p:column>
+
+                                        <p:column  headerText="Valor pendiente">
+                                            <p:outputLabel value="#{subDetalle.valorPendiente}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </p:outputLabel>
+                                        </p:column>
+
+                                        <p:column  headerText="Valor pagado EPS" sortBy="#{subDetalle.valorPagadoEps}">
+                                            <h:outputText value="#{subDetalle.valorPagadoEps}" >
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </p:column>
+
+                                        <p:column  headerText="Porcentaje pagado EPS" sortBy="#{subDetalle.porcentajePagadoEps}">
+                                            <h:outputText value="#{subDetalle.porcentajePagadoEps}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>   
+                                        </p:column>
+
+                                        <p:column  headerText="Valor aceptado IPS" sortBy="#{subDetalle.valorAceptadoIps}">
+                                            <h:outputText value="#{subDetalle.valorAceptadoIps}" >
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column  headerText="Porcentaje pagado IPS" sortBy="#{subDetalle.porcentajeAceptadoIps}">
+                                            <h:outputText value="#{subDetalle.porcentajeAceptadoIps}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </p:column>
+
+                                        <p:column  headerText="Observación" sortBy="#{subDetalle.observacion}">
+                                            <h:outputText value="#{subDetalle.observacionCorto}" />
+                                            <p:commandButton rendered="#{subDetalle.observacionCorto.length() > 1 }" actionListener="#{cmFacturasBean.verTextoAmpliado(subDetalle.observacion)}" icon="ui-icon-comment" title="Ver completo"/>                                
+                                        </p:column>
+
+                                        <p:column  headerText="Fecha creación" sortBy="#{subDetalle.fechaHoraCrea}">
+                                            <h:outputText value="#{subDetalle.fechaHoraCrea}" title="#{subDetalle.fechaHoraCrea}"/>
+                                        </p:column>
+
+                                        <p:column  headerText="Usuario crea" sortBy="#{subDetalle.usuarioCrea}">
+                                            <h:outputText value="#{subDetalle.usuarioCrea}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:rowExpansion>
+                            </p:dataTable>                             
+                        </p:panel>
+
+                        <p:panel id="pRespuesta" toggleable="true" header="Respuesta Glosas" style="margin-bottom:10px;">                               
+                            <p:dataTable var="respuestaGlosa" value="#{cmFacturasBean.lazyGlosaRespuesta}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100,200" id="tablaWidgetRespuestaGlosas" lazy="true"
+                                         widgetVar="tablaWidgetRespuestaGlosas"
+                                         scrollable="true"
+                                         scrollWidth="100%"
+                                         scrollHeight="250"
+                                         style="font-size:12px;"
+                                         rowKey="#{respuestaGlosa.id}">
+                                <p:column  headerText="Id respuesta" sortBy="#{respuestaGlosa.id}">
+                                    <h:outputText value="#{respuestaGlosa.id}" title="#{respuestaGlosa.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id factura" sortBy="#{respuestaGlosa.cmFactura.id}">
+                                    <h:outputText value="#{respuestaGlosa.cmFactura.id}" title="#{respuestaGlosa.cmFactura.id}"/>
+                                </p:column>
+                                <p:column  headerText="Tipo respuesta" sortBy="#{respuestaGlosa.tipoRespuesta}">
+                                    <h:outputText value="#{respuestaGlosa.tipoRespuestaStr}" title="#{respuestaGlosa.tipoRespuestaStr}"/>
+                                </p:column>  
+                                <p:column  headerText="Representante Saviasalud Eps" sortBy="#{respuestaGlosa.representanteEps}">
+                                    <h:outputText value="#{respuestaGlosa.representanteEps}" title="#{respuestaGlosa.representanteEps}"/>
+                                </p:column>
+                                <p:column  headerText="Representante IPS" sortBy="#{respuestaGlosa.representanteIps}">
+                                    <h:outputText value="#{respuestaGlosa.representanteIps}" title="#{respuestaGlosa.representanteIps}"/>
+                                </p:column>
+                                <p:column  headerText="Id conciliación masiva" sortBy="#{respuestaGlosa.cmConciliacion.id}">
+                                    <h:outputText value="#{respuestaGlosa.cmConciliacion.id}" title="#{respuestaGlosa.cmConciliacion.id}"/>
+                                </p:column>
+                                <p:column  headerText="Valor cobro detalle" sortBy="#{respuestaGlosa.valorCobroDetalle}">
+                                    <h:outputText value="#{respuestaGlosa.valorCobroDetalle}" title="#{respuestaGlosa.valorCobroDetalle}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{respuestaGlosa.valorFacturado}">
+                                    <h:outputText value="#{respuestaGlosa.valorFacturado}" title="#{respuestaGlosa.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{respuestaGlosa.valorPagado}">
+                                    <h:outputText value="#{respuestaGlosa.valorPagado}" title="#{respuestaGlosa.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{respuestaGlosa.valorPagadoEps}">
+                                    <h:outputText value="#{respuestaGlosa.valorPagadoEps}" title="#{respuestaGlosa.valorPagadoEps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente" sortBy="#{respuestaGlosa.valorPendiente}">
+                                    <h:outputText value="#{respuestaGlosa.valorPendiente}" title="#{respuestaGlosa.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor aceptado IPS" sortBy="#{respuestaGlosa.valorAceptadoIps}">
+                                    <h:outputText value="#{respuestaGlosa.valorAceptadoIps}" title="#{respuestaGlosa.valorAceptadoIps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{respuestaGlosa.observacion}">
+                                    <h:outputText value="#{respuestaGlosa.observacionCorto}" />
+                                    <p:commandButton  rendered="#{respuestaGlosa.observacionCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(respuestaGlosa.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+                                <p:column  headerText="Fecha hora creación" sortBy="#{respuestaGlosa.fechaHoraCrea}">
+                                    <h:outputText value="#{respuestaGlosa.fechaHoraCrea}" title="#{respuestaGlosa.fechaHoraCrea}"/>
+                                </p:column>
+                            </p:dataTable>  
+                        </p:panel>
+
+                        <p:panel id="panelVerAdjuntosFactura" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVerAdjuntosFactura" var="adjunto" value="#{cmFacturasBean.registrosAdjuntosFactura}" widgetVar="tablaWidgetAdjuntosFactura" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmFacturasBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="panelVerGestiones" header="Gestiones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Gestiones"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelGestionesFactura" columns="4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >        
+                                <p:row rendered="#{cmFacturasBean.validarUsuarioMomento(cmFacturasBean.objeto.usuarioAudita)}">
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Usuario Audita" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.usuarioAudita}" />
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Auditoría" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.fechaHoraAudita}"/>
+                                    </p:column>
+                                </p:row>
+                        
+                                <p:row rendered="#{cmFacturasBean.validarUsuarioMomento(cmFacturasBean.objeto.usuarioRespuesta)}">
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Usuario Responde" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.usuarioRespuesta}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Respuesta"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.fechaHoraRespuesta}"/>
+                                    </p:column>
+                                </p:row>
+
+
+                                <p:row rendered="#{cmFacturasBean.validarUsuarioMomento(cmFacturasBean.objeto.usuarioConcilia)}">
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Usuario Concilia" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.usuarioConcilia}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Conciliación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.fechaHoraConcilia}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row rendered="#{cmFacturasBean.validarUsuarioMomento(cmFacturasBean.objeto.usuarioDevuelve)}">
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Usuario Devuelve" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.usuarioDevuelve}"/>
+
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3" >
+                                        <p:outputLabel value="Fecha Devolución" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-g-3">
+                                        <p:outputLabel value="#{cmFacturasBean.objeto.fechaHoraDevuelve}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>     
+                        
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoVerAuditoriaServicio" header="Auditoría de servicio" appendTo="@(body)" responsive="true" modal="true" width="90%" style="max-height:90%;">
+                <p:scrollPanel mode="native" style="height:70vh;">
+                    <h:form id="frmVerAuditoriaServicio">
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                        <p:panel id="panelVerServicio" header="Servicio" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Servicio"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(cmFacturasBean.detalleServicioActual.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosServicio" columns="4"
+                                         layout="grid" >
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.documento}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre completo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.nombreCompletoAfiliado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Consecutivo item" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.consecutivoItem}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Código servicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.maServicioCodigo}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre servicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.maServicioValor}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor facturado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.detalleServicioActual.valorFacturado}" title="#{cmFacturasBean.detalleServicioActual.valorFacturado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pagado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.detalleServicioActual.valorPagado}" title="#{cmFacturasBean.detalleServicioActual.valorPagado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.detalleServicioActual.valorPendiente}" title="#{cmFacturasBean.detalleServicioActual.valorPendiente}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturasBean.detalleServicioActual.valorPendienteActual}" title="#{cmFacturasBean.detalleServicioActual.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturasBean.detalleServicioActual.fechaPrestacion}"/>
+                                    </p:column>
+                                </p:row>
+                             
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelGestionGlosaItem" header="Conceptos Contables" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="concepto" value="#{cmFacturasBean.registrosConceptoContable}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaConceptos" lazy="false"
+                                         widgetVar="tablaWidgetConceptos"
+                                         style="font-size:11px;"
+                                         rowKey="#{concepto.id}" >
+                                <p:column  headerText="Concepto Contable" sortBy="#{concepto.maestroConceptos.id}">
+                                    <h:outputText value="#{concepto.maestroConceptos.nombre}" title="#{concepto.maestroConceptos.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Centro Costo">
+                                    <h:outputText value="#{concepto.maestroCentroCosto.nombre}" title="#{concepto.maestroCentroCosto.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Ubicación" sortBy="#{concepto.municipioAfiliado}">
+                                    <h:outputText value="#{concepto.municipioAfiliado}" title="#{concepto.municipioAfiliado}"/>
+                                </p:column>
+                                <p:column  headerText="Porcentaje" sortBy="#{concepto.porcentaje}">
+                                    <h:outputText value="#{concepto.porcentaje}" title="#{concepto.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>   
+                                <p:column  headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(concepto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>                              
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="panelDiagnostico" header="Diagnóstico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Diagnóstico"></h:outputLabel>
+                            </f:facet>
+                            <p:panel id="pDiagnosticoCrear" header="Diagnósticos Opcionales" style="margin-bottom:10px;" collapsed="false" toggleable="true">        
+                                <p:dataTable var="diagnostico" value="#{cmFacturasBean.registrosAuditoriaDiagnostico}" paginator="false" rows="#{cmFacturasBean.tamanoPagina}" 
+                                             emptyMessage="No se encontraron registros"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" id="tablaDiagnosticosCrear" lazy="false"
+                                             widgetVar="tablaWidgetListaDiagnosticos"
+                                             style="font-size:11px;"
+                                             rowKey="#{diagnostico.id}" >
+                                    <p:column headerText="Código">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoCodigo}" />
+                                    </p:column>
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoValor}" />
+                                    </p:column>
+                                    <p:column headerText="Es principal">
+                                        <h:outputText value="#{diagnostico.principalStr}" />
+                                    </p:column>
+                                    <p:column headerText="Auditoría" style="text-align: center;">
+                                        <p:commandButton class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(diagnostico.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                        </p:panel>
+
+                        <p:panel id="panelVerMotivos" header="Motivos" style="margin-bottom:10px;" collapsed="false" toggleable="true">  
+                            <p:dataTable var="motivo" value="#{cmFacturasBean.registrosAuditoriaMotivoGlosa}" paginator="false" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaMotivos" lazy="false"
+                                         widgetVar="tablaWidgetMotivos"
+                                         style="font-size:11px;"
+                                         rowKey="#{motivo.id}" >     
+                                <p:column  headerText="Motivo glosa" sortBy="#{motivo.maestroMotivo.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivo.nombre}" title="#{motivo.maestroMotivo.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Motivo específico" sortBy="#{motivo.maestroMotivoEspecifico.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivoEspecifico.nombre}" title="#{motivo.maestroMotivoEspecifico.nombre}"/>
+                                </p:column>
+                                
+                                <p:column  headerText="Motivo aplicación" sortBy="#{motivo.maestroMotivoAplicacion.nombre}">
+                                    <h:outputText value="#{motivo.motivoAplicacionCorto}" title="#{motivo.motivoAplicacionCorto}"/>
+                                    <p:commandButton rendered="#{motivo.esMotivoAplicacionExtenso}" actionListener="#{cmFacturasBean.verTextoAmpliado(motivo.motivoAplicacionCompleto)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+
+                                <p:column  headerText="Tipología" sortBy="#{motivo.tipologia}" style="text-align: center;">
+                                    <h:outputText value="#{motivo.tipologiaStr}" title="#{motivo.tipologiaStr}"/>
+                                </p:column>  
+
+                                <p:column  headerText="Porcentaje" sortBy="#{motivo.porcentaje}" style="text-align: center;">
+                                    <h:outputText value="#{motivo.porcentaje}" title="#{motivo.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>  
+
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{motivo.observacionCorto}" title="#{motivo.observacionCorto}"/>
+                                    <p:commandButton rendered="#{motivo.observacionCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(motivo.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+
+                                <p:column headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(motivo.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />                               
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>                        
+
+                        <p:panel id="panelVerAutorizaciones" header="Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="autorizacion" value="#{cmFacturasBean.registrosAuditoriaAutorizacion}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaAutorizaciones" lazy="false"
+                                         widgetVar="tablaWidgetAutorizacion"
+                                         style="font-size:11px;"
+                                         rowKey="#{autorizacion.id}" >
+
+                                <p:column  headerText="Código servicio" sortBy="#{autorizacion.codigoServicio}">
+                                    <h:outputText value="#{autorizacion.codigoServicio}" title="#{autorizacion.codigoServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Número autorización" sortBy="#{autorizacion.numeroAutorizacion}">
+                                    <h:outputText value="#{autorizacion.numeroAutorizacion}" title="#{autorizacion.numeroAutorizacion}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre del servicio" sortBy="#{autorizacion.nombreServicio}">
+                                    <h:outputText value="#{autorizacion.nombreServicio}" title="#{autorizacion.nombreServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Id anexo 4" sortBy="#{autorizacion.anexo4.id}">
+                                    <h:outputText value="#{autorizacion.anexo4.id}" title="#{autorizacion.anexo4.id}"/>
+                                </p:column>
+                                <p:column  headerText="Prestador" sortBy="#{autorizacion.razonSocialPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.razonSocialPrestador}" title="#{autorizacion.razonSocialPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Nit Prestador" sortBy="#{autorizacion.nitPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.nitPrestador}" title="#{autorizacion.nitPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Autorización" sortBy="#{autorizacion.fechaAutorizacion}">
+                                    <h:outputText value="#{autorizacion.fechaAutorizacion}" title="#{autorizacion.fechaAutorizacion}"/>
+                                </p:column>                                                          
+                            </p:dataTable>
+                        </p:panel>
+                        
+                        <p:panel id="panelVerContratos" header="Descuento Capita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="descuentoC" value="#{cmFacturasBean.registrosDescuentoCapita}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaCapitaDescuento" lazy="false"
+                                         widgetVar="tablaWidgetCapitaDescuento"
+                                         style="font-size:11px;"
+                                         rowKey="#{descuentoC.id}" >
+
+                                <p:column  headerText="Número contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.contrato}" title="#{descuentoC.contrato}"/>
+                                </p:column>
+
+                                <p:column  headerText="Nit" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+
+                                <p:column  headerText="Razón social">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.razonSocial}" title="#{descuentoC.cntContrato.cntPrestador.razonSocial}"/>
+                                </p:column>
+
+                                <p:column  headerText="Representante legal">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}" title="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}"/>
+                                </p:column>
+
+                                <p:column  headerText="Número documento prestador">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column  headerText="Estado contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.maeEstadoContratoValor}" title="#{descuentoC.cntContrato.maeEstadoContratoValor}"/>
+                                </p:column>
+                                <p:column  headerText="Marcación" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.marcacionStr}" title="#{descuentoC.cntContrato.diasLimitePago}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Inicio">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaInicio}" title="#{descuentoC.cntContrato.fechaInicio}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Fin">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaFin}" title="#{descuentoC.cntContrato.fechaFin}"/>
+                                </p:column>
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{descuentoC.observacionCorto}" />
+                                    <p:commandButton rendered="#{descuentoC.observacionCorto.length() > 1 }" actionListener="#{cmFacturasBean.verTextoAmpliado(descuentoC.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel widgetVar="panelVerAdjuntosCmDetalles" id="panelVerAdjuntosCmDetalles" header="Adjuntos Detalle" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdjuntosCmDetalles" var="adjunto" value="#{cmFacturasBean.registrosAuditoriaAdjutoCmDetalle}" widgetVar="tablaWidgetAdjuntosCmDetalles" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmFacturasBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerAuditoriaServicio').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Descripción" widgetVar="dialogoTextoApliado" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmTextoAmpliado" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{cmFacturasBean.textoAmpliado}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoTextoApliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoVerTransacciones" header="Transacciones de Factura" appendTo="@(body)" responsive="true" modal="true" width="100%">
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmVerTransacciones" style="padding: 10px;">
+                        <p:panel id="panelVerTransacciones" header="Transacciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="transaccion" value="#{cmFacturasBean.lazyFacturasTransaccion}" paginator="true" rows="#{cmFacturasBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaTransacciones" lazy="true"
+                                         widgetVar="tablaWidgetTransacciones"
+                                         style="font-size:11px;"
+                                         rowKey="#{transaccion.id}" >
+
+                                <p:column  headerText="Número Facturado" sortBy="#{transaccion.cmFactura.numeroFacturado}">
+                                    <h:outputText value="#{transaccion.cmFactura.numeroFacturado}" title="#{transaccion.cmFactura.numeroFacturado}"/>
+                                </p:column>
+                                <p:column  headerText="Tipo" sortBy="#{transaccion.tipo}">
+                                    <h:outputText value="#{transaccion.getTipoStr()}" title="#{transaccion.getTipoStr()}"/>
+                                </p:column>
+                                <p:column  headerText="Estado" sortBy="#{transaccion.estado}">
+                                    <h:outputText value="#{transaccion.getEstadoStr()}" title="#{transaccion.getEstadoStr()}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Hora Crea" sortBy="#{transaccion.fechaHoraInicio}">
+                                    <h:outputText value="#{transaccion.fechaHoraInicio}" title="#{transaccion.fechaHoraInicio}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Hora Fin" sortBy="#{transaccion.fechaHoraFin}" style="text-align: center">
+                                    <h:outputText value="#{transaccion.fechaHoraFin}" title="#{transaccion.fechaHoraFin}"/>
+                                </p:column>
+                                <p:column  headerText="Respuesta Código" sortBy="#{transaccion.respuestaCodigo}" style="text-align: center">
+                                    <h:outputText value="#{transaccion.respuestaCodigo}" title="#{transaccion.respuestaCodigo}"/>
+                                </p:column>                          
+                                <p:column  headerText="Respuesta Descripción" sortBy="#{transaccion.respuestaDescripcion}">
+                                    <h:outputText value="#{transaccion.respuestaDescripcionCorto }" />
+                                    <p:commandButton  rendered="#{transaccion.respuestaDescripcionCorto.length() > 0 }" actionListener="#{cmFacturasBean.verTextoAmpliado(transaccion.respuestaDescripcion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>                          
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerTransacciones').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <p:dialog widgetVar="dialogoVerNota" header="Información Nota" appendTo="@(body)"  modal="true" width="70%">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmFacturasBean.getAuditoria(cmFacturasBean.objeto.cmFeNota.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>   
+                <h:form id="frmVerNota" style="padding: 10px;">
+                        <p:panelGrid id="panelFactura" columns="4" layout="grid"  style="padding: 5px;" >
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Número Nota"  style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass=" ui-g-3" >
+                                    <h:outputText value="#{cmFacturasBean.objeto.cmFeNota.numeroNota}"/>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Valor Nota" style="font-weight:bold" />
+                                </p:column>
+                                <p:column styleClass=" ui-g-3" >
+                                    <h:outputText value="#{cmFacturasBean.objeto.cmFeNota.valorNota}" title="#{cmFacturasBean.objeto.cmFeNota.valorNota}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                                 <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Fecha Nota"  style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass=" ui-g-3" >
+                                    <h:outputText value="#{cmFacturasBean.objeto.cmFeNota.fechaHoraEmision}"/>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Tipo Nota" style="font-weight:bold" />
+                                </p:column>
+                                <p:column styleClass=" ui-g-3" >
+                                    <h:outputText value="#{cmFacturasBean.objeto.cmFeNota.tipoStr}"/>
+                                </p:column>
+                            </p:row>
+                            
+                             <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Cude"  style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass=" ui-g-9" >
+                                    <h:outputText value="#{cmFacturasBean.objeto.cmFeNota.cude}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-3">
+                                    <p:outputLabel value="Número Factura"  style="font-weight:bold"/>
+                                </p:column>
+                                <p:column styleClass=" ui-g-3" style="color:#045491;font-weight:bold">
+                                    <h:outputText value="#{cmFacturasBean.objeto.numeroFacturado}"/>
+                                </p:column>
+                            </p:row>
+
+                        </p:panelGrid>         
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerNota').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

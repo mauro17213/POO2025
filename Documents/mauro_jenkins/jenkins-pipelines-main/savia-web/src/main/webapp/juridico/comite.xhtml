@@ -1,0 +1,1072 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="./../home.xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/cntjuridica.css"/>
+        <h:outputScript name="js/calendar-localization.js"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <h:outputScript name="js/Cntjuridico.js" />
+        <center>
+            <h:form id="frmGestion">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cntjComiteBean.modulo.descripcion}">#{cntjComiteBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cntjComiteBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{cntjComiteBean.listar}" icon="pi pi-sync" class="boton-normal btn1" />
+                        <p:commandButton rendered="#{cntjComiteBean.accionCrear}" title="Crear" ajax="true" actionListener="#{cntjComiteBean.crear()}" icon="pi pi-file-o" class="boton-normal btn1" />
+                    </f:facet>
+                </p:toolbar>
+
+                <p:dataTable var="obj" class="listaDatos"  paginator="true" rows="#{cntjComiteBean.tamanoPagina}" value="#{cntjComiteBean.lazyComite}"
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="false"
+                             scrollWidth="140%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="Opciones" style="text-align: center;">
+                        <p:commandButton rendered="#{cntjComiteBean.accionVer}" title="Ver" actionListener="#{cntjComiteBean.ver(obj.id)}" icon="pi pi-search" class="btn-icono" />
+                        <p:commandButton rendered="#{cntjComiteBean.accionEditar and cntjComiteBean.verAccionEditarcomite(obj.estado)}" title="Editar" actionListener="#{cntjComiteBean.editar(obj.id)}" icon="pi pi-file-edit" class="btn-icono" />                        
+                        <p:commandButton rendered="#{cntjComiteBean.accionAdicional2 and (cntjComiteBean.verAccionLineas(obj.estado) or cntjComiteBean.isEstadoComiteFinalizado(obj.estado) )}" title="Gestionar Lineas" actionListener="#{cntjComiteBean.lineas(obj)}" icon="pi pi-folder"  class="btn-icono" />                        
+                    </p:column>
+
+                    <p:column headerText="No. Acta Comité" filterBy="#{obj.id}" >
+                        <f:facet name="filter">
+                            <p:inputText label="No. Acta Comité" maxlength="128" class="txtFiltro" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha Programación"  >
+                        <h:outputText value="#{obj.fechaProgramacion}" title="#{obj.fechaProgramacion}">
+                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Inicio Comite"  >
+                        <h:outputText value="#{obj.fechaInicio}" title="#{obj.fechaInicio}">
+                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Fin Comite"  >
+                        <h:outputText value="#{obj.fechaFin}" title="#{obj.fechaFin}" >
+                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" class="selectFiltro" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{cntjComiteBean.listaEstadosComite}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{cntjComiteBean.getEstadoComiteStr(obj.estado)}" title="#{cntjComiteBean.getEstadoComiteStr(obj.estado)}"/>
+                    </p:column>
+
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer"  appendTo="@(body)" modal="true" styleClass="medioscreen-dialog" dynamic="true" >
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria" >
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{cntjComiteBean.getAuditoria(cntjComiteBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información del comité" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelAfiliado" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Fecha de Programación" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objeto.fechaProgramacion}" />
+
+                                    <h:outputText value="Estado" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getEstadoComiteStr(cntjComiteBean.objeto.estado)}" />
+
+                                </p:panelGrid>
+
+                            </p:panel>
+
+                            <p:panel id="pnlAsisComite" header="Asistentes al comité" style="margin-bottom:10px;" toggleable="true">                                
+                                <p:dataTable id="tablaAsistentesCt" class="listaDatos" widgetVar="tblWidget" var="comite" value="#{cntjComiteBean.listaComiteAsistente}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Tipo Documento" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeTipoDocumentoCodigo}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Número Documento" filterBy="#{comite.usuarioId.documento}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Número Documento" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.documento}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Nombre" filterBy="#{comite.usuarioId.nombre}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Nombre" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.nombre}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Cargo" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeCargoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Área" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeAreaValor}"/>
+                                    </p:column>
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid id="panelCrear" class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear"  appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" focus="frmCrear:tablaAsistentesCt" >
+                <div class="bodyDialog" >
+                    <h:form id="frmCrear" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información del comité" style="margin-bottom:10px; margin-top: 0.6rem;" toggleable="true">
+
+                                <p:panelGrid id="panelAfiliado" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Fecha de Programación" class="header-back" />
+                                    <p:calendar id="cfechaprogramacion" autocomplete="off" navigator="true" pattern="yyyy-MM-dd" size="30" required="true" requiredMessage="La fecha de programación es obligatoria."
+                                                maxlength="10" style="width: 12rem !important;" readonlyInput="true"  locale="es"  value="#{cntjComiteBean.objeto.fechaProgramacion}" mindate="#{cntjComiteBean.fechaHoy}" />
+
+                                </p:panelGrid>
+
+                            </p:panel>
+
+                            <p:panel id="pnlAsisComite" header="Asistentes al comité" style="margin-bottom:10px;" toggleable="true">
+                                <div align="right" style="padding: 0.2rem;"> 
+                                    <p:commandButton rendered="#{gruposBean.accionAdicional1}" title="Agregar asistente a comité" immediate="true" actionListener="#{cntjComiteBean.listarUsuarios(0)}" icon="pi pi-user-plus" class="btn-icono"/>
+                                </div>
+                                <p:dataTable id="tablaAsistentesCt" class="listaDatos" widgetVar="tblWidget" var="comite" value="#{cntjComiteBean.listaComiteAsistente}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones">
+                                        <p:commandButton title="Eliminar asistente" actionListener="#{cntjComiteBean.eliminarLocal(comite.usuarioId.id)}" process="@this" update="frmCrear:tablaAsistentesCt" icon="pi pi-trash"  class="btn-icono" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el registro?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+
+                                    <p:column headerText="Tipo Documento" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeTipoDocumentoCodigo}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Número Documento" filterBy="#{comite.usuarioId.documento}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Número Documento" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.documento}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Nombre" filterBy="#{comite.usuarioId.nombre}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Nombre" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.nombre}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Cargo" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeCargoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Área" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeAreaValor}"/>
+                                    </p:column>
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid id="panelCrear" class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Guardar"  class="boton btn-azul" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" actionListener="#{cntjComiteBean.guardar()}" update="@form" />
+                                        <p:commandButton value="Cancelar"  class="boton btn-oscuro" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>            
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar"  appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true"  focus="frmEditar:tablaAsistentesCt">
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria">
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{cntjComiteBean.getAuditoria(cntjComiteBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información del comité" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelAfiliado" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3, ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Fecha de Programación" class="header-back" />
+                                    <p:calendar id="cfechaprogramacion" autocomplete="off" navigator="true" pattern="yyyy-MM-dd" size="30" required="true" requiredMessage="La fecha de programación es obligatoria."
+                                                maxlength="10" style="width: 12rem !important;" readonlyInput="true"  locale="es"  value="#{cntjComiteBean.objeto.fechaProgramacion}" mindate="#{cntjComiteBean.fechaHoy}"  />
+
+                                    <h:outputText value="Estado" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getEstadoComiteStr(cntjComiteBean.objeto.estado)}" />
+
+                                </p:panelGrid>
+
+                            </p:panel>
+
+                            <p:panel id="pnlAsisComite" header="Asistentes al comité" style="margin-bottom:10px;" toggleable="true">
+                                <div align="right" style="padding: 0.2rem;"> 
+                                    <p:commandButton rendered="#{gruposBean.accionAdicional1 and cntjComiteBean.verAccionModificarComite(cntjComiteBean.objeto.estado)}" title="Agregar asistente a comité" immediate="true" actionListener="#{cntjComiteBean.listarUsuarios(0)}" icon="pi pi-user-plus" class="btn-icono"/>
+                                </div>
+                                <p:dataTable id="tablaAsistentesCt" class="listaDatos" widgetVar="tblWidget" var="comite" value="#{cntjComiteBean.listaComiteAsistente}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones">
+                                        <p:commandButton title="Eliminar asistente" actionListener="#{cntjComiteBean.eliminar(comite)}" process="@this" update="frmEditar:tablaAsistentesCt" icon="pi pi-trash"  class="btn-icono" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el registro?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+
+                                    <p:column headerText="Tipo Documento" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeTipoDocumentoCodigo}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Número Documento" filterBy="#{comite.usuarioId.documento}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Número Documento" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.documento}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Nombre" filterBy="#{comite.usuarioId.nombre}" filterMatchMode="contains" >     
+                                        <f:facet name="filter">
+                                            <p:inputText label="Nombre" maxlength="128" onkeypress="if (event.keyCode === 13) {
+                                                        onchange();
+                                                        return false;
+                                                    }" class="txtFiltro" onchange="PF('tblWidget').filter()"/>
+                                        </f:facet>
+                                        <h:outputText value="#{comite.usuarioId.nombre}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Cargo" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeCargoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Área" >                                        
+                                        <h:outputText value="#{comite.usuarioId.maeAreaValor}"/>
+                                    </p:column>
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid id="panelCrear" class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton rendered="#{cntjComiteBean.verAccionModificarComite(cntjComiteBean.objeto.estado)}" class="boton btn-azul" value="Modificar"  actionListener="#{cntjComiteBean.modificar()}" validateClient="true" process="@form" update="@form"/>                                      
+                                        <p:commandButton rendered="#{cntjComiteBean.objeto.estado == 0 or cntjComiteBean.objeto.estado == 2}" class="boton btn-azul" value="Abrir Recepción de Líneas" actionListener="#{cntjComiteBean.abrirComite(cntjComiteBean.objeto)}" process="@this" update="@form" style="margin-left: 5px;" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea abrir el comité?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                        <p:commandButton rendered="#{cntjComiteBean.objeto.estado == 1}" class="boton btn-azul"  value="Cerrar Recepción de Líneas" actionListener="#{cntjComiteBean.cerrarComite(cntjComiteBean.objeto.id)}" process="@this" update="@form" style="margin-left: 5px;" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea cerrar el comité?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                        <p:commandButton rendered="#{cntjComiteBean.objeto.estado == cntjComiteBean.estadoComiteEjecucion}" class="boton btn-azul"  value="Suspender Comité" actionListener="#{cntjComiteBean.suspenderComite(cntjComiteBean.objeto)}" process="@this" update="@form" style="margin-left: 5px;" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea suspender el comité?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                        <p:commandButton rendered="#{cntjComiteBean.objeto.estado == cntjComiteBean.estadoComiteEnReceso}" class="boton btn-azul"  value="Reanudar Comité" actionListener="#{cntjComiteBean.reanudarComite(cntjComiteBean.objeto)}" process="@this" update="@form" style="margin-left: 5px;" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea reanudar el comité?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                        <p:commandButton rendered="#{cntjComiteBean.objeto.estado == cntjComiteBean.estadoComiteEjecucion}" class="boton btn-azul"  value="Finalizar Comité" actionListener="#{cntjComiteBean.finalizarComite(cntjComiteBean.objeto)}" process="@this" update="@form" style="margin-left: 5px;" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea finalizar el comité?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro"  type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>
+
+            <!-- Lineas -->
+            <p:dialog header="Lineas" widgetVar="dialogoLinea"  appendTo="@(body)" position="center" modal="true" styleClass="medioscreen-dialog" >
+                <div class="bodyDialog" >
+                    <h:form id="frmOptCrearLinea" class="frmAuditoria">
+                        <p:commandButton rendered="#{gruposBean.accionAdicional1 and cntjComiteBean.verAccionAgregarLinea(cntjComiteBean.objeto.estado)}" title="Agregar linea" immediate="true" actionListener="#{cntjComiteBean.crearLinea()}" icon="pi pi-plus-circle" class="btn-icono"/>
+                    </h:form>
+                    <h:form id="frmLineas">
+                        <div>
+                        <p:panel id="pnlLineas"  style="margin-bottom:10px; margin-top: 0.6rem;" toggleable="true">
+                            
+                            <p:dataTable id="tablaLineas" class="listaDatos" widgetVar="tblWgLinea" var="linea" value="#{cntjComiteBean.lazyLineas}"
+                                         rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         style="font-size:11px;"
+                                         emptyMessage= "No se encontraron registros." >
+
+                                <p:column headerText="Opciones">
+                                    <p:commandButton  title="Ver" actionListener="#{cntjComiteBean.verLinea(linea)}" icon="pi pi-search" class="btn-icono" />
+                                    <p:commandButton rendered="#{cntjComiteBean.verAccionAgregarLinea(cntjComiteBean.objeto.estado)}"  title="Editar" actionListener="#{cntjComiteBean.editarLinea(linea.id)}" icon="pi pi-file-edit" class="btn-icono" />    
+                                    <p:commandButton rendered="#{cntjComiteBean.verAccionEvaluarLinea(linea)}"  title="Evaluar línea" actionListener="#{cntjComiteBean.evaluacionLinea(linea)}" icon="pi pi-check-circle" class="btn-icono" />    
+                                    <p:commandButton rendered="#{cntjComiteBean.accionAdicional4}" title="Documentos" actionListener="#{cntjComiteBean.verdocumentos(linea.id)}" icon="pi pi-file-pdf" class="btn-icono"/>   
+                                </p:column>
+
+                                <p:column headerText="Tipo Linea" filterBy="#{linea.tipo}" >                                        
+                                    <h:outputText value="#{cntjComiteBean.getTipoLineaStr(linea.tipo)}" title="#{cntjComiteBean.getTipoLineaStr(linea.tipo)}"/>
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tblWgLinea').filter()" style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{cntjComiteBean.listaTipoLinea}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                </p:column>
+
+                                <p:column headerText="Responsable" filterBy="#{linea.usuariosId.nombre}"  >      
+                                    <f:facet name="filter">
+                                        <p:inputText label="Responsable" maxlength="128" style="width: 95%;" 
+                                                     onkeypress="if (event.keyCode === 13) { onchange(); return false; }" 
+                                                     onchange="PF('tblWgLinea').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{linea.usuariosId.nombre}" title="#{linea.usuariosId.nombre}"/>
+                                </p:column>
+
+                                <p:column headerText="Area" filterBy="#{linea.area}" >   
+                                    <f:facet name="filter">
+                                        <p:inputText label="Area" maxlength="128" style="width: 95%;" 
+                                                     onkeypress="if (event.keyCode === 13) { onchange(); return false; }"  
+                                                     onchange="PF('tblWgLinea').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{linea.area}" title="#{linea.area}"/>
+                                </p:column>
+
+                                <p:column headerText="Estado" filterBy="#{linea.estado}" >        
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tblWgLinea').filter()" style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{cntjComiteBean.listaEstadoLinea}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{cntjComiteBean.getEstadoLineaStr(linea.estado)}" title="#{cntjComiteBean.getEstadoLineaStr(linea.estado)}" />
+                                </p:column>
+
+                                <p:column headerText="Fecha Creación" >                                        
+                                    <h:outputText value="#{linea.fechaHoraCrea}" title="#{linea.fechaHoraCrea}">
+                                        <f:convertDateTime pattern="yyyy-MM-dd" />
+                                    </h:outputText>
+                                </p:column>
+
+
+                            </p:dataTable>
+
+                        </p:panel>
+                        </div>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoLinea').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>                        
+                    </h:form>
+                </div>
+            </p:dialog>
+
+            <!-- Ver linea -->
+            <p:dialog header="Ver linea" widgetVar="dialogoVerLinea"  appendTo="@(body)" position="center" width="96%" modal="true" styleClass="medioscreen-dialog" >
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria">
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{cntjComiteBean.getAuditoria(cntjComiteBean.objetoLinea.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVerLinea" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información de la linea" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelLinea" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Tipo Linea" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getTipoLineaStr(cntjComiteBean.objetoLinea.tipo)}" />                                     
+
+                                    <p:outputLabel value="Estado" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getEstadoLineaStr(cntjComiteBean.objetoLinea.estado)}" />                                    
+
+                                    <p:outputLabel value="Responsable" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objetoLinea.usuariosId.nombre}" />  
+
+                                    <h:outputText value="Expediente" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objetoLinea.expedienteId.numeroExpediente}" />
+
+                                </p:panelGrid>
+
+                                <p:panelGrid id="panelLinea2" columns="2"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <p:outputLabel value="Descripción" class="header-back" />
+                                    <p:column style="margin-right: 4px;">
+                                        <h:outputText value="#{cntjComiteBean.objetoLinea.descripcion}"  />  
+                                    </p:column>
+
+                                    <p:outputLabel value="Observación" class="header-back" />
+                                    <p:column style="margin-right: 4px;">
+                                        <h:outputText value="#{cntjComiteBean.objetoLinea.observacion}" style="margin-right: 4px;" />
+                                    </p:column>
+
+                                </p:panelGrid>
+
+
+                            </p:panel>
+
+                            <p:panel id="pnlAdjLinea" header="Adjuntos" style="margin-bottom:10px;" toggleable="true">
+                                <div align="right" style="padding: 0.4rem;"> 
+                                </div>
+                                <p:dataTable id="tablaAdjuntoLineas" class="listaDatos" widgetVar="tblWidget" var="adjunto"  value="#{cntjComiteBean.listaAdjuntosLinea}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones" >   
+                                        <p:commandButton id="btndesc" icon="pi pi-cloud-download" class="btn-icono"     
+                                                         rendered="#{cntjComiteBean.accionAdicional3 and  adjunto.existe == true }"
+                                                         title="Descargar adjunto" 
+                                                         actionListener="#{cntjComiteBean.descargarAdjuntos(adjunto)}" 
+                                                         ajax="false" 
+                                                         immediate="true"
+                                                         process="@this"/>
+                                    </p:column>
+
+                                    <p:column headerText="Adjunto" >                                        
+                                        <h:outputText value="#{adjunto.maeTipoArchivoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Existe" >                                        
+                                        <h:outputText value="#{adjunto.existe}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Fecha Creación" >                                        
+                                        <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                                        </h:outputText>
+                                    </p:column>
+
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoVerLinea').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:dialog>   
+
+            <!-- Crear linea -->
+            <p:dialog header="Crear linea" widgetVar="dialogoCrearLinea"  appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" >
+                <div class="bodyDialog" >
+                    <h:form id="frmCrearLinea" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información de la linea" style="margin-bottom:10px; margin-top: 0.6rem;" toggleable="true">
+
+                                <p:panelGrid id="panelLinea" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+
+                                    <h:outputText value="Tipo Linea" style="font-weight:bold" class="header-back" />
+                                    <p:selectOneMenu id="ctipoLinea" value="#{cntjComiteBean.objetoLinea.tipo}" required="true" requiredMessage="El tipo de documento es obligatorio." >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cntjComiteBean.listaTipoLinea}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}" />
+                                    </p:selectOneMenu>
+
+                                    <p:outputLabel value="Estado" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getEstadoLineaStr(cntjComiteBean.objetoLinea.estado)}" /> 
+
+                                    <p:outputLabel value="Responsable" class="header-back" />
+                                    <p:column>
+                                        <p:inputText id="cResponsable" value="#{cntjComiteBean.objetoLinea.usuariosId.nombre}" readonly="true" required="true" requiredMessage="Debe seleccionar un responsable." />
+                                        <p:commandButton process="@this"  actionListener="#{cntjComiteBean.listarUsuarios(1)}" icon="pi pi-user" class="btn-icono"
+                                                         title="Seleccionar responsable" style="width: 2.3rem; height: 1.6rem;" update="cResponsable" />
+                                    </p:column>
+
+                                    <h:outputText value="Expediente" style="font-weight:bold" class="header-back" />
+                                    <p:selectOneMenu id="cproceso" value="#{cntjComiteBean.objetoLinea.expedienteId.id}" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cntjComiteBean.listaExpedienteComite}" var="expediente" itemValue="#{expediente.id}" itemLabel="#{expediente.numeroExpediente}" itemDescription="#{tipo.numeroExpediente}" />
+                                    </p:selectOneMenu>
+
+                                </p:panelGrid>
+
+                                <p:panelGrid id="panelLinea2" columns="2"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <p:outputLabel value="Descripción" class="header-back" />
+                                    <p:column style="margin-right: 4px;">
+                                        <p:inputTextarea id="cobdescripcion" value="#{cntjComiteBean.objetoLinea.descripcion}" required="true" requiredMessage="Debe ingresar una descripción."
+                                                         rows="2" cols="140" maxlength="1024"  />
+                                    </p:column>
+
+                                </p:panelGrid>
+
+
+                            </p:panel>
+
+                            <p:panel id="pnlAdjLinea" header="Adjuntos" toggleable="true">
+                                <div align="right" style="padding-bottom: 0.1rem;"> 
+                                    <p:commandButton rendered="#{cntjComiteBean.accionAdicional3}"  title="Agregar adjunto" immediate="true" actionListener="#{cntjComiteBean.crearAdjunto()}" icon="pi pi-plus-circle" class="btn-icono" />
+                                </div>
+                                <p:dataTable id="tablaAdjuntoLineas" class="listaDatos" widgetVar="tblWidget" var="adjunto" value="#{cntjComiteBean.listaAdjuntosLinea}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones">
+                                        <p:commandButton title="Eliminar adjunto" actionListener="#{cntjComiteBean.eliminarAdjunto(adjunto)}" process="@this" update="frmCrearLinea:tablaAdjuntoLineas" icon="pi pi-trash"  class="btn-icono" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el registro?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+
+                                    <p:column headerText="Adjunto" >                                        
+                                        <h:outputText value="#{adjunto.maeTipoArchivoValor}"/>
+                                    </p:column>
+                                    
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Guardar" class="boton btn-azul" actionListener="#{cntjComiteBean.guardarLinea()}" validateClient="true" process="@form" update="@form"/>   
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro" type="button" onclick="PF('dialogoCrearLinea').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:dialog>   
+
+            <!-- Editar linea -->
+            <p:dialog header="Editar linea" widgetVar="dialogoEditarLinea" appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog"  >
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria">
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{cntjComiteBean.getAuditoria(cntjComiteBean.objetoLinea.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    
+                    <h:form id="frmEditarLinea" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlInfo" header="Información de la linea" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelLinea" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Tipo Linea" style="font-weight:bold" class="header-back" />
+                                    <p:selectOneMenu id="ctipoLinea" value="#{cntjComiteBean.objetoLinea.tipo}" required="true" requiredMessage="El tipo de documento es obligatorio." >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cntjComiteBean.listaTipoLinea}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}" />
+                                    </p:selectOneMenu>
+
+                                    <p:outputLabel value="Estado" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getEstadoLineaStr(cntjComiteBean.objetoLinea.estado)}" /> 
+
+                                    <p:outputLabel value="Responsable" class="header-back" />
+                                    <p:column>
+                                        <p:inputText id="cResponsable" value="#{cntjComiteBean.objetoLinea.usuariosId.nombre}" readonly="true" required="true" requiredMessage="Debe seleccionar un responsable." />
+                                        <p:commandButton process="@this"  actionListener="#{cntjComiteBean.listarUsuarios(1)}" icon="pi pi-user" class="btn-icono"
+                                                         title="Seleccionar responsable" style="width: 2.3rem; height: 1.6rem;" update="cResponsable" />
+                                    </p:column>
+
+                                    <h:outputText value="Expediente" style="font-weight:bold" class="header-back" />
+                                    <p:selectOneMenu rendered="#{cntjComiteBean.objetoLinea.expedienteId.id == null}" id="cproceso" value="#{cntjComiteBean.objetoLinea.expedienteId.id}"  >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cntjComiteBean.listaExpedienteComite}" var="expediente" itemValue="#{expediente.id}" itemLabel="#{expediente.numeroExpediente}" itemDescription="#{tipo.numeroExpediente}" />
+                                    </p:selectOneMenu>
+                                    <h:outputText rendered="#{cntjComiteBean.objetoLinea.expedienteId.id != null}" value="#{cntjComiteBean.objetoLinea.expedienteId.numeroExpediente}" />
+
+                                    <p:outputLabel value="Descripción" class="header-back" />
+                                    <p:column class="ui-grid-col-9" style="margin-right: 4px;" >
+                                        <p:inputTextarea id="cdescripcion" value="#{cntjComiteBean.objetoLinea.descripcion}" required="true" requiredMessage="Debe ingresar una descripción."
+                                                         rows="2" cols="140" maxlength="2048"  />
+                                    </p:column>
+
+
+
+                                </p:panelGrid>
+
+
+                            </p:panel>
+
+                            <p:panel id="pnlAdjLinea" header="Adjuntos" toggleable="true">
+                                <div align="right" style="padding-bottom: 0.1rem;"> 
+                                    <p:commandButton rendered="#{cntjComiteBean.accionAdicional3}"  title="Agregar adjunto" immediate="true" actionListener="#{cntjComiteBean.crearAdjunto()}" icon="pi pi-plus-circle" class="btn-icono" />
+                                </div>
+                                <p:dataTable id="tablaAdjuntoLineas" class="listaDatos" widgetVar="tblWidget" var="adjuntoEditLinea" value="#{cntjComiteBean.listaAdjuntosLinea}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones">   
+                                                                                
+                                        <p:commandButton id="btnDesc" icon="pi pi-cloud-download" class="btn-icono"
+                                                         rendered="#{cntjComiteBean.accionAdicional3 and adjuntoEditLinea.existe == true}"
+                                                         title="Descargar adjunto" 
+                                                         actionListener="#{cntjComiteBean.descargarAdjuntos(adjuntoEditLinea)}" 
+                                                         ajax="false" 
+                                                         immediate="true"
+                                                         process="@this"/>
+
+                                        <p:commandButton title="Eliminar adjunto" actionListener="#{cntjComiteBean.eliminarAdjunto(adjuntoEditLinea)}" process="@this" update="frmEditarLinea:tablaAdjuntoLineas" icon="pi pi-trash"  class="btn1" >
+                                            <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el registro?" icon="ui-icon-alert" />
+                                        </p:commandButton>
+                                    </p:column>
+
+                                    <p:column headerText="Adjunto" >                                        
+                                        <h:outputText id="it#{adjuntoEditLinea.id}" value="#{adjuntoEditLinea.maeTipoArchivoValor}"/>
+                                    </p:column>
+
+                                    
+                                    <p:column headerText="Fecha Creación" >                                        
+                                        <h:outputText value="#{adjuntoEditLinea.fechaHoraCrea}">
+                                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                                        </h:outputText>
+                                    </p:column>
+
+                                </p:dataTable>
+
+                            </p:panel>
+                        </div>
+
+                        <p:panelGrid id="panelCrear" class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Modificar" class="boton btn-azul" type="button" onclick="modificarLineaRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarLineaRemote" actionListener="#{cntjComiteBean.modificarLinea()}" update="@form" />
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro" type="button" onclick="PF('dialogoEditarLinea').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>  
+            
+            <!-- Listar documentos -->
+            <p:dialog header="Documentos" widgetVar="dialogoDocumentos"  appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog"   >
+                <div class="bodyDialog" >
+                    <h:form id="frmDocumentos" class="formDialogo">
+
+                        <p:dataTable id="tablaRegistros" var="doc" class="listaDatos" value="#{cntjComiteBean.lazyDocumentos}"  paginator="true" 
+                                     rows="#{cntjComiteBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100"  lazy="true"
+                                     widgetVar="tablaWidget"
+                                     style="font-size:11px; margin-top: 0.6rem;"
+                                     scrollable="false"
+                                     scrollWidth="140%"
+                                     rowKey="#{obj.id}" reflow="true">
+
+                            <p:column headerText="Opciones" style="text-align: center;">
+                                <p:commandButton id="btndesc" icon="pi pi-cloud-download" class="btn-icono"    
+                                                 rendered="#{doc.documentoExiste == true}"
+                                                 title="Descargar documento" 
+                                                 actionListener="#{cntjComiteBean.descargarDocumento(doc)}" 
+                                                 ajax="false" 
+                                                 immediate="true"
+                                                 process="@this"/>
+                                <p:commandButton title="Ver Documento" actionListener="#{cntjComiteBean.visualizardocumentos(doc.id)}"   icon="pi pi-search" class="btn-icono"/>
+                            </p:column>
+
+                            <p:column headerText="Documento" filterBy="#{doc.nombre}"  >
+                                <f:facet name="filter">
+                                    <p:inputText label="Responsable" maxlength="128" style="width: 95%;" 
+                                                 onkeypress="if (event.keyCode === 13) { onchange(); return false; }" 
+                                                 onchange="PF('tablaWidget').filter()"/>
+                                </f:facet>
+                                <h:outputText value="#{doc.nombre}" title="#{doc.nombre}"/>
+                            </p:column>
+
+                            <p:column headerText="Tipo"  >
+                                <h:outputText value="#{cntjComiteBean.getTipoDocumento(doc.tipo)}" title="#{cntjComiteBean.getTipoDocumento(doc.tipo)}" />
+                            </p:column>
+
+                            <p:column headerText="Fecha Generación" >
+                                <h:outputText value="#{doc.fechaHoraCrea}" title="#{doc.fechaHoraCrea}">
+                                    <f:convertDateTime pattern="yyyy-MM-dd" />
+                                </h:outputText>
+                            </p:column>
+
+                        </p:dataTable>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro" type="button" onclick="PF('dialogoDocumentos').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:dialog> 
+
+            <!-- Evaluar linea -->
+            <p:dialog header="Evaluar linea" widgetVar="dialogoEvaluarLinea"  appendTo="@(body)" position="center" resizable="false" modal="true" styleClass="medioscreen-dialog" dynamic="true"  >
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria" >
+                        <p:commandButton id="auditoria" class="btnAuditoria btn-icono" action="#{cntjComiteBean.getAuditoria(cntjComiteBean.objetoLinea.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    
+                    <h:form id="frmEvaluarLinea" class="formDialogo">
+                        <div>
+                            <p:panel id="pnlEvaInfo" header="Información de la linea" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelLinea" columns="4"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Tipo Linea" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.getTipoLineaStr(cntjComiteBean.objetoLinea.tipo)}" />                                     
+
+                                    <p:outputLabel value="Responsable" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objetoLinea.usuariosId.nombre}" />                                    
+
+                                    <h:outputText value="Expediente" style="font-weight:bold" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objetoLinea.expedienteId.numeroExpediente}" />                                  
+
+                                    <p:outputLabel value="Observación" class="header-back" />
+                                    <h:outputText value="#{cntjComiteBean.objetoLinea.observacion}" />
+
+                                </p:panelGrid>
+
+                            </p:panel>
+
+                            <p:panel id="pnlEvaAdjLinea" header="Adjuntos" style="margin-bottom:10px;" toggleable="true">
+                                <div align="right" style="padding: 0.4rem;"> 
+                                </div>
+                                <p:dataTable id="tablaAdjuntoLineas" class="listaDatos" widgetVar="tblWidget" var="adjunto"  value="#{cntjComiteBean.listaAdjuntosLinea}"
+                                             rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="false" reflow="true"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" 
+                                             emptyMessage= "No se encontraron registros" >
+
+                                    <p:column headerText="Opciones" >                                        
+                                        <p:commandButton id="evadjulinea" icon="pi pi-cloud-download" class="btn-icono"
+                                                         rendered="#{cntjComiteBean.accionAdicional3 and adjunto.existe == true}"
+                                                         title="Descargar adjunto" 
+                                                         actionListener="#{cntjComiteBean.descargarAdjuntos(adjunto)}" 
+                                                         ajax="false" 
+                                                         immediate="true"
+                                                         process="@this"/>
+                                    </p:column>
+
+                                    <p:column headerText="Adjunto" >                                        
+                                        <h:outputText value="#{adjunto.maeTipoArchivoValor}"/>
+                                    </p:column>
+
+                                    <p:column headerText="Fecha Creación" >                                        
+                                        <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                            <f:convertDateTime pattern="yyyy-MM-dd" />
+                                        </h:outputText>
+                                    </p:column>
+
+                                </p:dataTable>
+
+                            </p:panel>
+
+                            <p:panel id="pnlEva" header="Evaluación de la linea" style="margin-bottom:10px;" toggleable="true">
+
+                                <p:panelGrid id="panelEvaLinea" columns="2"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                    <h:outputText value="Estado" style="font-weight:bold" class="header-back" />
+                                    <p:selectOneMenu id="evtipoLinea" value="#{cntjComiteBean.objetoLinea.estado}" required="true" requiredMessage="El estado de la linea es obligatorio." style="width: 20rem !important;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{cntjComiteBean.listaEstadoLinea}" var="estado" itemValue="#{estado.id}" itemLabel="#{estado.nombre}" itemDescription="#{estado.descripcion}" />
+                                    </p:selectOneMenu>
+
+                                    <p:outputLabel value="Observación" class="header-back" />
+                                    <p:inputTextarea id="evobservacion" value="#{cntjComiteBean.objetoLinea.observacion}" 
+                                                     rows="2" cols="140" maxlength="2048"  />
+
+                                </p:panelGrid>
+
+
+                            </p:panel>
+
+                        </div>
+
+                        <p:panelGrid id="panelCrear" class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">    
+                                        <p:commandButton value="Guardar" class="boton btn-azul" type="button" onclick="evaluarLineaRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="evaluarLineaRemote" actionListener="#{cntjComiteBean.evaluarLinea()}" update="@form" />
+                                        <p:commandButton value="Cancelar"  class="boton btn-oscuro" type="button" onclick="PF('dialogoEvaluarLinea').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div>
+            </p:dialog>  
+
+            <!-- Agregar adjuntos -->
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" modal="true" width="50%" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrearAdjunto" >  
+                                <p:panelGrid id="panelCrearAdjunto" columns="2" 
+                                     columnClasses="ui-grid-col-4, ui-grid-col-8"
+                                     layout="grid" 
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <h:outputText value="Tipo Archivo"  class="header-back" />
+                            <p:selectOneMenu id="adTipo" value="#{cntjComiteBean.lineaAdjunto.maeTipoArchivoId}" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{cntjComiteBean.listaTipoArchivo}" var="tipo" itemLabel="#{tipo.nombre}" itemValue="#{tipo.id}" />
+                                <p:ajax event="change" update="adTipo"/>
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4">
+                                        <p:fileUpload id="cargarDocumento" 
+                                                      label="Agregar Documento" 
+                                                      uploadLabel="Subir"
+                                                      cancelLabel="Cancelar"
+                                                      fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                                      invalidFileMessage="Tipo inválido de archivo"
+                                                      invalidSizeMessage="Tamaño del archivo no permitivo, tamaño máximo permitido es : 10 mb."                                                      
+                                                      listener="#{cntjComiteBean.cargarAdjunto}" 
+                                                      mode="advanced" 
+                                                      dragDropSupport="false"
+                                                      required="true" 
+                                                      requiredMessage="Se debe agregar un Documento." 
+                                                      fileLimit="1" 
+                                                      allowTypes="/(\.|\/)(xls|xlsx|pdf)$/i"
+                                                      multiple="false"
+                                                      sizeLimit="10000000"
+                                                      />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid> 
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo listar usuarios -->
+            <p:dialog header="Consultar Usuarios" widgetVar="dialogoUsuariosLista" appendTo="@(body)" modal="true" styleClass="medioscreen-dialog" dynamic="true">
+                <div class="bodyDialog" >
+                    <h:form class="frmAuditoria">
+                        <p:commandButton title="Refrescar" actionListener="#{cntjComiteBean.refrescarUsuarios()}"  icon="pi pi-sync" class="btn-icono" style="margin-right: 0.4rem;"/>
+                    </h:form>
+                    
+                    <h:form id="frmUsuariosLista">                        
+                        <p:dataTable id="tablaRegistrosUsuarios" class="listaDatos" widgetVar="tablaWidgetUsuarios" var="obj" value="#{cntjComiteBean.lazyUsuarios}" 
+                                     rowKey="#{obj.id}" rows="#{cntjComiteBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" 
+                                     emptyMessage= "No se encontraron registros" selectionMode="single" selection="#{cntjComiteBean.selectedRowUsuario}" >
+                            <p:ajax event="rowSelect" listener="#{cntjComiteBean.onRowSelectUsuario}"/>
+                            <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" class="txtFiltro" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetUsuarios').filter()"/>
+                                </f:facet>
+                                <h:outputText value="#{obj.nombre}"/>
+                            </p:column>
+
+                            <p:column headerText="Activo">
+                                <h:outputText value="#{obj.activoStr}"/>
+                            </p:column>
+
+                            <p:column headerText="Cargo">
+                                <h:outputText value="#{obj.maeCargoValor}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Salir" class="boton btn-oscuro" type="button" onclick="PF('dialogoUsuariosLista').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </div>
+            </p:dialog>
+                       
+            <!-- Dialogo visualizar documento -->
+            <p:dialog header="Visualizar Documento" widgetVar="dialogoVisualizarDoc" appendTo="@(body)" fitViewport="true" resizable="false" styleClass="fullscreen-dialog" onShow="visualizarPdfFullPagina('frmVisualizaDoc:infoPdf', 'pdfViewer');"  >
+                <div class="bodyDialog" style="height: 100%; position: relative; overflow: hidden !important;" >
+                    <h:form id="frmVisualizaDoc" style="height: 100%; overflow: auto;" >
+                        
+                        <p:panel  style="margin-bottom:10px; border: 0px;"   >
+                                <p:panelGrid columns="2"
+                                             columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                     <h:outputText value="Documento" style="font-weight:bold" class="header-back" />
+                                     <h:outputText value="#{cntjComiteBean.objDocumento.documentoNombre}"  />
+
+                                </p:panelGrid>
+
+                            </p:panel>
+                                               
+                        <h:inputHidden id="infoPdf" value="#{cntjComiteBean.contenidoPdf}" />
+                        <div id="pdfViewer" style="height: auto; display: flex;flex-direction: column;align-items: center; margin-bottom: 3rem;" ></div>
+                        
+                        <p:panelGrid class="footerdialog">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">        
+                                        <p:commandButton value="Cancelar" class="boton btn-oscuro" type="button" onclick="PF('dialogoVisualizarDoc').hide()" immediate="true" style="margin-left: 5px;"/>                                        
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </div> 
+            </p:dialog>
+            
+
+        </center>
+        
+        <script>
+            // Esperar a que el documento esté listo
+            function handleDownloadResponse(xhr, status, args) {
+                if (args.downloadError) {
+                    showErrorMessage();
+                }else{
+                    descargarVerLinea();
+                }
+            }
+        </script>
+        
+    </ui:define>
+
+</ui:composition>

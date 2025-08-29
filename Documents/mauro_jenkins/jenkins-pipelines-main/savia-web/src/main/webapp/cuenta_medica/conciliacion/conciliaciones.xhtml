@@ -1,0 +1,2061 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red  .ui-row-editor, .green .ui-row-editor{
+                display: none;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <center>
+
+            <h:form id="frmConciliaciones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmFacturaConciliacionBean.modulo.descripcion}">#{cmFacturaConciliacionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Radicación Desde"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{cmFacturaConciliacionBean.paramConsulta.parametroConsulta1}"  pattern="yyyy-MM-dd"  yearRange="c-100:c" type="localDate" navigator="true"  maxdate="#{cmFacturaConciliacionBean.fechaMaximaCalendario}">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>                        
+                        <p:outputLabel value="Radicación Hasta"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{cmFacturaConciliacionBean.paramConsulta.parametroConsulta2}"  pattern="yyyy-MM-dd"  yearRange="c-100:c"  type="localDate" navigator="true" maxdate="#{cmFacturaConciliacionBean.fechaMaximaCalendario}">
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton value="Conciliar Facturas" process="@form" action="#{cmFacturaConciliacionBean.verConciliarMasivo( )}" rendered="#{cmFacturaConciliacionBean.accionAdicional1}" icon="ui-icon-disk"/>
+                        <p:commandButton rendered="#{cmFacturaConciliacionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmFacturaConciliacionBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <h:commandLink class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only">
+                            <p:commandButton icon="ui-icon-arrowthickstop-1-s" title="Descargar"/>
+                            <p:dataExporter type="csv"
+                                            target="tablaRegistros" fileName="conexiones-conciliacion" pageOnly="true" />
+                        </h:commandLink>
+                        <p:commandButton value="Desbloquear Facturas" process="@form" action="#{cmFacturaConciliacionBean.actualizarDesbloqueoFacturasMasivo( )}" rendered="#{cmFacturaConciliacionBean.accionAdicional4}" icon=" ui-icon-unlocked"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.lazyRegistro}" 
+                             paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100,200" lazy="true"
+                             widgetVar="tablaWidgetFacturas"
+                             id="tablaRegistros" 
+                             selection="#{cmFacturaConciliacionBean.registrosFacturaSelected}"
+                             disabledSelection="#{obj.estadoFacturaDeBloqueo or obj.bloqueda}"
+                             rowStyleClass="#{cmFacturaConciliacionBean.asignarColorFila(obj)}"
+                             rowIndexVar="rowIndex"
+                             style="font-size:12px;"
+                             scrollable="true"
+                             scrollWidth="140%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column width="80"  selectionMode="multiple"  style="text-align: center;" rendered="#{cmFacturaConciliacionBean.accionAdicional1}" exportable="false"/>
+
+                    <p:ajax event="toggleSelect" listener="#{cmFacturaConciliacionBean.procesarFacturasSeleccionadas}" />
+                    <p:ajax event="rowSelectCheckbox" listener="#{cmFacturaConciliacionBean.selectCheckbox}"/>
+                    <p:ajax event="rowUnselectCheckbox" listener="#{cmFacturaConciliacionBean.unSelectCheckbox}" />
+                    <p:ajax event="rowSelect" listener="#{cmFacturaConciliacionBean.onRowSelect}"  />
+                    <p:ajax event="rowUnselect" listener="#{cmFacturaConciliacionBean.onRowUnselect}" /> 
+
+                    <p:column width="80" style="text-align: center;" exportable="false">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{cmFacturaConciliacionBean.accionVer}" title="Ver Factura" actionListener="#{cmFacturaConciliacionBean.verFactura(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{cmFacturaConciliacionBean.accionAdicional2 and !obj.estadoFacturaDeBloqueo and !obj.bloqueda }" title="Conciliar Individual" actionListener="#{cmFacturaConciliacionBean.verConciliarIndividual(obj.id)}" icon="ui-icon-disk"/>
+                    </p:column>
+
+                    <p:column headerText="Estado Factura" sortBy="#{obj.estadoFactura}">
+                        <h:outputText value="#{obj.estadoFacturaStr}" title="#{obj.estadoFacturaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo respuesta" filterBy="#{obj.tipoRespuesta}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin Responder" itemValue="0" />
+                                <f:selectItem itemLabel="Respondida" itemValue="1" />
+                                <f:selectItem itemLabel="Conciliada" itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoRespuestaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo auditoría" filterBy="#{obj.tipoAuditoria}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin Auditoría" itemValue="0" />
+                                <f:selectItem itemLabel="Técnica" itemValue="6" />
+                                <f:selectItem itemLabel="Médica" itemValue="7" />
+                                <f:selectItem itemLabel="Para Pago" itemValue="8" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoAuditoriaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Número radicado" sortBy="#{obj.numeroRadicado}" filterBy="#{obj.numeroRadicado}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Radicado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroRadicado}" title="#{obj.numeroRadicado}"/>
+                    </p:column>
+
+                    <p:column  headerText="NIT" sortBy="#{obj.nit}" filterBy="#{obj.nit}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="NIT" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                    </p:column>
+
+                    <p:column headerText="IPS" sortBy="#{obj.ips}" filterBy="#{obj.ips}" width="120">
+                        <f:facet name="filter">
+                            <p:inputText label="IPS" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                    </p:column>
+
+                    <p:column  headerText="Número facturado" sortBy="#{obj.numeroFacturado}" filterBy="#{obj.numeroFacturado}" width="80" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText label="Número Facturado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidgetFacturas').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroFacturado}" title="#{obj.numeroFacturado}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha radicación" sortBy="#{obj.fechaRadicacion}">
+                        <h:outputText value="#{obj.fechaRadicacion}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha vencimiento marcación" sortBy="#{obj.fechaVencimiento}">
+                        <h:outputText value="#{obj.fechaVencimiento}"/>
+                    </p:column>
+
+                    <p:column  headerText="Valor Factura" sortBy="#{obj.valorFactura}" width="110" style="text-align: center;">
+                        <h:outputText value="#{obj.valorFactura}" title="#{obj.valorFactura}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor inicial glosa" sortBy="#{obj.valorInicialGlosa}" width="80" style="text-align: center;">
+                        <h:outputText value="#{obj.valorInicialGlosa}" title="#{obj.valorInicialGlosa}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}" width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Multi Usuario" filterBy="#{obj.multiUsuario}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText  value="#{obj.multiUsuarioStr}" title="Doc : #{obj.documentoMonoUsuario} - #{obj.nombreMonoUsuario}"/>
+                    </p:column>
+
+                    <p:column headerText="Origen" filterBy="#{obj.origenFactura}">  
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidgetFacturas').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="IntraSavia" itemValue="1" />
+                                <f:selectItem itemLabel="SomosMas" itemValue="2" />
+                                <f:selectItem itemLabel="Conexiones" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getOrigenFacturaStr()}" title="#{obj.getOrigenFacturaStr()}"/>
+                    </p:column>
+
+                    <p:column  headerText="Documento"  rendered="#{cmFacturaConciliacionBean.habilitarBusquedaMuliUsuario}">  
+                        <h:outputText value="#{obj.documentoMonoUsuario}" title="#{obj.documentoMonoUsuario}"/>
+                    </p:column>
+
+                    <p:column  headerText="Nombre usuario"  rendered="#{cmFacturaConciliacionBean.habilitarBusquedaMuliUsuario}">
+                        <h:outputText value="#{obj.nombreMonoUsuario}" title="#{obj.nombreMonoUsuario}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+                <h:panelGroup id="pBotonConciliar" style="display:block; text-align:center; margin-top: 10px;">
+
+                </h:panelGroup>
+            </h:form>
+
+            <p:dialog header="Ver Factura" id="dialogoVer" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height:90%;">
+                <p:scrollPanel id="scrollPanelVer" mode="native" style="height:450px">
+                    <h:form id="frmVer">
+                        <p:panel id="pFactura" toggleable="true" header="Factura" style="margin-bottom:10px;">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(cmFacturaConciliacionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelFactura" columns="4"
+                                         layout="grid">                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>
+                                                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor inicial glosa" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorInicialGlosa}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                                                                       
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold"  />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha inicial bloqueo" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaMarcacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha final bloqueo"  style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaVencimiento}"/>
+                                    </p:column>
+                                </p:row>
+                                                                                        
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmFacturaConciliacionBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pDetalles" toggleable="true" header="Servicios" style="margin-bottom:10px; width: 100%">                               
+                            <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.lazyDetalles}" paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                                         widgetVar="tablaWidgetDetalles"
+                                         scrollable="true"
+                                         scrollHeight="250"
+                                         scrollWidth="130%"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}" >
+
+                                <p:column style="text-align: center;">                                 
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>    
+                                    <p:commandButton  title="Ver Auditoria Servicio" actionListener="#{cmFacturaConciliacionBean.verServicioAuditado(obj.id)}" icon="ui-icon-search"/> 
+                                </p:column>                           
+                                <p:column  headerText="Id descripción" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Estado" sortBy="#{obj.estado}">
+                                    <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Código servicio" sortBy="#{obj.maServicioCodigo}" filterBy="#{obj.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.maServicioCodigo}" title="#{obj.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{obj.maServicioValor}" filterBy="#{obj.maServicioValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombreServicioCorto}" title="#{obj.nombreServicioCorto}"/>
+                                    <p:commandButton rendered="#{obj.nombreServicioCorto.length() > 0 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(obj.maServicioValor)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>   
+                                </p:column>
+                                <p:column  headerText="Tipo documento" sortBy="#{obj.maeTipoDocumentoValor}">
+                                    <h:outputText value="#{obj.maeTipoDocumentoValor}" title="#{obj.maeTipoDocumentoValor}"/>
+                                </p:column> 
+                                <p:column  headerText="Documento afiliado" sortBy="#{obj.documento}" filterBy="#{obj.documento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{obj.nombreCompletoAfiliado}">
+                                    <h:outputText value="#{obj.nombreCompletoAfiliado}" title="#{obj.nombreCompletoAfiliado}"/>
+                                </p:column>
+
+                                <p:column  headerText="Radicado glosa" sortBy="#{obj.radicadoGlosa}" filterBy="#{obj.radicadoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Radicado glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>    
+                                    <h:outputText value="#{obj.radicadoGlosa}" title="#{obj.radicadoGlosa}"/>
+                                </p:column>
+
+                                <p:column  headerText="Motivos glosa" sortBy="#{obj.motivoGlosa}" filterBy="#{obj.motivoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Motivos glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>   
+                                    <h:outputText value="#{obj.motivoGlosaCorto}" title="#{obj.motivoGlosaCorto}"/>
+                                    <p:commandButton rendered="#{obj.motivoGlosaCorto.length() > 0 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(obj.motivoGlosa)}" icon="ui-icon-comment" immediate="true" title="Ver completo"/>   
+                                </p:column>
+                                <p:column  headerText="Valor copago" sortBy="#{obj.valorCopago}">
+                                    <h:outputText value="#{obj.valorCopago}" title="#{obj.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pendiente inicial" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}">
+                                    <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <h:outputText value="#{obj.observacionCorto}" />
+                                    <p:commandButton  rendered="#{obj.observacionCorto.length() > 0 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>
+                                <p:column  headerText="Aplica AC" width="40" sortBy="#{obj.aplicaAc}">
+                                    <h:outputText value="#{obj.aplicaAcStr}" title="#{obj.aplicaAcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica DC" width="40" sortBy="#{obj.aplicaDc}">
+                                    <h:outputText value="#{obj.aplicaDcStr}" title="#{obj.aplicaDcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica PBS" width="30" sortBy="#{obj.aplicaPbs}" >
+                                    <h:outputText value="#{obj.aplicaPbsStr}" title="#{obj.aplicaPbsStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica diagnóstico" width="40" sortBy="#{obj.aplicaDx}">
+                                    <h:outputText value="#{obj.aplicaDxStr}" title="#{obj.aplicaDxStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica autorización" width="40" sortBy="#{obj.aplicaAutorizacion}">
+                                    <h:outputText value="#{obj.aplicaAutorizacionStr}" title="#{obj.aplicaAutorizacionStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica concepto" width="40" sortBy="#{obj.aplicaConcepto}">
+                                    <h:outputText value="#{obj.aplicaConceptoStr}" title="#{obj.aplicaConceptoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica glosa" width="40" sortBy="#{obj.aplicaGlosa}">
+                                    <h:outputText value="#{obj.aplicaGlosaStr}" title="#{obj.aplicaGlosaStr}"/>
+                                </p:column>
+                                <p:column  headerText="Valor glosa" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorGlosa}" title="#{obj.valorGlosa}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Fecha prestación" sortBy="#{obj.fechaPrestacion}">
+                                    <h:outputText value="#{obj.fechaPrestacion}" title="#{obj.fechaPrestacion}"/>
+                                </p:column>
+                            </p:dataTable>                             
+                        </p:panel>
+
+                        <p:panel id="pRespuesta" toggleable="true" header="Respuesta Glosas" style="margin-bottom:10px;">                               
+                            <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.lazyGlosaRespuesta}" paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100,200" id="tablaWidgetRespuestaGlosas" lazy="true"
+                                         widgetVar="tablaWidgetRespuestaGlosas"
+                                         scrollable="true"
+                                         scrollWidth="100%"
+                                         scrollHeight="250"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}">
+                                <p:column width="50" style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>
+                                    <p:commandButton title="Ver servicios glosados" actionListener="#{cmFacturaConciliacionBean.verRespuestaDestallesGlosa(obj.id)}" icon="ui-icon-search"/>
+                                    <p:commandButton rendered="#{cmFacturaConciliacionBean.accionAdicional1 and obj.cmConciliacion != null}"  title="Generar Reporte Masivo" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-document">
+                                        <p:fileDownload value="#{cmFacturaConciliacionBean.generarReporteConciliacion(obj.cmConciliacion.id)}" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{cmFacturaConciliacionBean.accionAdicional1 and obj.tipoRespuesta == 2 and obj.cmConciliacion == null and obj.procesadaSap}"  title="Generar Reporte Indiviual" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-document">
+                                        <p:fileDownload value="#{cmFacturaConciliacionBean.generarReporteConciliacionInvidual(obj.id)}" />
+                                    </p:commandButton>
+                                </p:column>
+                                <p:column  headerText="Id respuesta" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id factura" sortBy="#{obj.cmFactura.id}">
+                                    <h:outputText value="#{obj.cmFactura.id}" title="#{obj.cmFactura.id}"/>
+                                </p:column>
+                                <p:column  headerText="Procesada total en sap">
+                                    <h:outputText value="#{obj.isProcesadaSapStr()}" title="#{obj.isProcesadaSapStr()}"/>
+                                </p:column>
+                                <p:column  headerText="Tipo respuesta" sortBy="#{obj.tipoRespuesta}">
+                                    <h:outputText value="#{obj.tipoRespuestaStr}" title="#{obj.tipoRespuestaStr}"/>
+                                </p:column>  
+                                <p:column  headerText="Representante Saviasalud Eps" sortBy="#{obj.representanteEps}">
+                                    <h:outputText value="#{obj.representanteEps}" title="#{obj.representanteEps}"/>
+                                </p:column>
+                                <p:column  headerText="Representante IPS" sortBy="#{obj.representanteIps}">
+                                    <h:outputText value="#{obj.representanteIps}" title="#{obj.representanteIps}"/>
+                                </p:column>
+                                <p:column  headerText="Id conciliación masiva" sortBy="#{obj.cmConciliacion.id}">
+                                    <h:outputText value="#{obj.cmConciliacion.id}" title="#{obj.cmConciliacion.id}"/>
+                                </p:column>
+                                <p:column  headerText="Valor cobro detalle" sortBy="#{obj.valorCobroDetalle}">
+                                    <h:outputText value="#{obj.valorCobroDetalle}" title="#{obj.valorCobroDetalle}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEps}">
+                                    <h:outputText value="#{obj.valorPagadoEps}" title="#{obj.valorPagadoEps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor aceptado IPS" sortBy="#{obj.valorAceptadoIps}">
+                                    <h:outputText value="#{obj.valorAceptadoIps}" title="#{obj.valorAceptadoIps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <h:outputText value="#{obj.observacionCorto}" />
+                                    <p:commandButton  rendered="#{obj.observacionCorto.length() > 0 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+                                <p:column  headerText="Fecha hora creación" sortBy="#{obj.fechaHoraCrea}">
+                                    <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                                </p:column>
+                            </p:dataTable>  
+                        </p:panel>
+                        
+                         <p:panel id="panelVerAdjuntosFactura" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVerAdjuntosFactura" var="adjunto" value="#{cmFacturaConciliacionBean.registrosAdjuntosFactura}" widgetVar="tablaWidgetAdjuntosFactura" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmFacturaConciliacionBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmObservacion" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{cmFacturaConciliacionBean.mensajeGeneral}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Conciliaciones Masivas" id="dialogoResponderConciliaciones" widgetVar="dialogoGestionarConciliaciones" appendTo="@(body)" modal="true"  width="95%" dynamic="true">
+                <p:ajax event="open" oncomplete="PF('tablaWidgetDetallesResponder').filter();" form="frmResponderConciliaciones"/>
+                <p:ajax event="close" oncomplete="" listener="#{cmFacturaConciliacionBean.cerrarVentanaConciliacionMasiva}" form="frmResponderConciliaciones"/>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmResponderConciliaciones">
+                        <p:panel id="pDetalles" toggleable="true" header="Facturas Seleccionadas" style="margin-bottom:10px;">                               
+                            <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.registrosFacturaSelected}" 
+                                         paginator="true"
+                                         rows="50"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowStyleClass="#{obj.valorPendienteActual le 0 ? 'red' : null}"
+                                         emptyMessage="No se encontraron registros"
+                                         rowsPerPageTemplate="50,100,200,200" 
+                                         id="tablaRegistros" lazy="false"
+                                         widgetVar="tablaWidgetDetallesResponder"
+                                         scrollable="true"
+                                         scrollWidth="99%"
+                                         scrollHeight="250"
+                                         editable="true"
+                                         rowKey="#{obj.id}">
+                                <p:ajax event="rowEdit" listener="#{cmFacturaConciliacionBean.onRowEditFactura}" />
+                                <p:column  headerText="Id facura"  sortBy="#{obj.id}" filterBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Prestador" sortBy="#{obj.cntPrestador.razonSocial}" filterBy="#{obj.cntPrestador.razonSocial}">
+                                    <h:outputText value="#{obj.cntPrestador.razonSocial}" title="#{obj.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column  headerText="Nit" sortBy="#{obj.nit}" filterBy="#{obj.nit}">
+                                    <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                                </p:column>
+
+                                <p:column  headerText="IPS" sortBy="#{obj.ips}" filterBy="#{obj.ips}" >
+                                    <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                                </p:column>
+
+                                <p:column  headerText="Pbs" style="text-align: center" >
+                                    <h:outputText value="#{obj.pbs ? 'Si':'No'}" title="#{obj.pbs ? 'Si':'No'}"/>
+                                </p:column>
+
+                                <p:column  headerText="Valor factura" sortBy="#{obj.valorFactura}">
+                                    <h:outputText value="#{obj.valorFactura}" title="#{obj.valorFactura}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column  headerText="Valor inicial glosa" sortBy="#{obj.valorInicialGlosa}">
+                                    <h:outputText value="#{obj.valorInicialGlosa}" title="#{obj.valorInicialGlosa}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}">
+                                    <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorPagadoEPS}" title="#{obj.valorPagadoEPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorPagadoEPS}" style="width:100%" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />  
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado EPS" sortBy="#{obj.porcentajePagadoEPS}">
+                                    <p:cellEditor id="nombreCell">       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajePagadoEPS}" title="#{obj.porcentajePagadoEPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajePagadoEPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }" ></p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Valor aceptado IPS" sortBy="#{obj.valorAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorAceptadoIPS}" title="#{obj.valorAceptadoIPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorAceptadoIPS}" style="width:100%" 
+                                                          onkeypress="if (event.keyCode === 13) {
+                                                                      return false;
+                                                                  }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />   
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Porcentaje aceptado IPS" sortBy="#{obj.porcentajeAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajeAceptadoIPS}" title="#{obj.porcentajeAceptadoIPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajeAceptadoIPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"  >
+                                            </p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column> 
+
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.observacionCorto}" title="#{obj.observacionCorto}"/> 
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:inputTextarea value="#{obj.observacion}"/>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column style="width:35px">
+                                    <p:rowEditor />
+                                </p:column>
+                            </p:dataTable> 
+                            <h:panelGroup id="pBotonConciliarMasivo" style="display:block; text-align:center; margin-top: 10px;">
+                                <p:remoteCommand immediate="true" name="abrirVentanaResponderMasiva" action="#{cmFacturaConciliacionBean.verReponderConciliacionMasiva( )}" />
+                                <p:commandButton value="Conciliar Facturas" type="button" immediate="true" process="@form" onclick="abrirVentanaResponderMasiva()"  rendered="#{cmFacturaConciliacionBean.registrosFacturaSelected.size() > 0}"/>
+                            </h:panelGroup>
+                        </p:panel>
+
+                        <p:panel id="panelgNota" style="width:100%;margin:10px">
+                            Nota : Las facturas en rojo no serán tenidas en cuenta en la conciliación por poseer valor pendiente actual en cero.
+                        </p:panel>
+
+                        <p:panel id="pFacturaSumatoria" toggleable="true" header="Sumatoria Valores Facturas" style="margin-bottom:10px;">                               
+                            <p:panelGrid id="panelgFacturaSumatoria" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Valor suma facturas" style="font-weight:bold" />
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma glosa inicial"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasGlosaInicialPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma pendiente actual total" style="font-weight:bold" />
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasPendienteActualPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma pagado EPS" style="font-weight:bold"/>
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasPagadoEpsPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma aceptado IPS" style="font-weight:bold" />
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasAceptadoIpsPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma pendiente actual masivo"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmFacturaConciliacionBean.cmConciliacion.valorFacturasPendienteActualMasivo}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pDatosRepresentates" toggleable="true" header="Representantes" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelRepresentantes" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Representante Savia Salud EPS *" for="representanteEPS"  style="font-weight:bold"/>
+                                <p:inputText id="representanteEPS" label="Representante Savia Salud EPS" value="#{cmFacturaConciliacionBean.cmConciliacion.representanteEps}" maxlength="128" >
+                                    <p:keyFilter regEx="/[A-ZÀ-ÿ\s\-\,]/i" />
+                                    <p:ajax update="pDatosRepresentates" />
+                                </p:inputText>
+
+                                <p:outputLabel value="Representante IPS *" for="representanteIPS"   style="font-weight:bold"/>
+                                <p:inputText id="representanteIPS" label="Representante IPS" value="#{cmFacturaConciliacionBean.cmConciliacion.representanteIps}" maxlength="128" >
+                                    <p:keyFilter regEx="/[A-ZÀ-ÿ\s\-\,]/i" />
+                                    <p:ajax update="pDatosRepresentates" />
+                                </p:inputText>
+
+                            </p:panelGrid>                          
+                        </p:panel>
+
+                        <p:panel id="pDatosRespuesta" toggleable="true" header="Calculo De Respuesta" style="margin-bottom:10px;">    
+                            <p:panelGrid id="panelFormularioCalculoRespuestas" columns="2" layout="grid" styleClass="showcase-text-align-center">                            
+
+                                <p:outputLabel value="Valor pagado EPS"  style="font-weight:bold" />
+                                <p:inputNumber tabindex="1" id="valorPagadoEps" value="#{cmFacturaConciliacionBean.cmConciliacion.valorPagadoEps}" decimalPlaces="4" >  
+                                    <p:ajax event="blur" update="porcentajeEps" listener="#{cmFacturaConciliacionBean.conversionPorcentajeConciliacionMasiva( 1 )}" /> 
+                                </p:inputNumber>    
+
+                                <p:outputLabel value="Porcentaje pagado EPS"   style="font-weight:bold"/>
+                                <p:inputNumber  id="porcentajeEps" value="#{cmFacturaConciliacionBean.cmConciliacion.porcentajePagadoEps}" maxValue="100" symbol="%" symbolPosition="s" >  
+                                    <p:ajax event="blur" update="valorPagadoEps" listener="#{cmFacturaConciliacionBean.conversionValorConciliacionMasiva( 1 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Valor aceptado IPS"   style="font-weight:bold"/>
+                                <p:inputNumber tabindex="2" id="valorAceptadoIps" value="#{cmFacturaConciliacionBean.cmConciliacion.valorAceptadoIps}" decimalPlaces="4" emptyValue="empty">  
+                                    <p:ajax event="blur" update="porcentajeIps" listener="#{cmFacturaConciliacionBean.conversionPorcentajeConciliacionMasiva( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Porcentaje aceptado IPS"   style="font-weight:bold"/>
+                                <p:inputNumber id="porcentajeIps" value="#{cmFacturaConciliacionBean.cmConciliacion.porcentajeAceptadoIps}" maxValue="100" symbol="%" symbolPosition="s">  
+                                    <p:ajax event="blur" update="valorAceptadoIps" listener="#{cmFacturaConciliacionBean.conversionValorConciliacionMasiva( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Observación" for="observacionRespuesta"   style="font-weight:bold"/>
+                                <h:inputTextarea id="observacionRespuesta" value="#{cmFacturaConciliacionBean.cmConciliacion.observacion}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+                            </p:panelGrid>    
+                            <p:panelGrid  columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <h:panelGroup style="display:block; text-align:center; margin-top: 10px;" class="ui-g-12">
+                                    <p:commandButton value="Limpiar Datos"  actionListener="#{cmFacturaConciliacionBean.refrescarPantallaResponderConciliacion( )}"  immediate="true"/>
+                                    <p:commandButton value="Aplicar Porcentajes" process="@form" actionListener="#{cmFacturaConciliacionBean.aplicarCalculoGrupoFacturas( )}" />
+                                </h:panelGroup>
+                            </p:panelGrid>        
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarConciliaciones').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Conciliación Individual" id="dialogoVerConciliacionIndividual" widgetVar="dialogoVerConciliacionIndividual" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height:90%;">
+                <p:ajax event="open" oncomplete="PF('tablaWidgetDetalles').filter();" form="frmVerConciliacionIndividual"/>
+                <p:ajax event="close" listener="#{cmFacturaConciliacionBean.cerrarVentanaConciliacionIndividual}" form="frmVerConciliacionIndividual"/>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerConciliacionIndividual">
+                        <p:panel id="pGlosasFactura" toggleable="true" header="Factura" style="margin-bottom:10px;">  
+                            <p:remoteCommand immediate="true" name="abrirVentanaAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(cmFacturaConciliacionBean.objeto.auditoriaStrHTML)}" />                            
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  type="button" class="btnAuditoria" onclick="abrirVentanaAuditoria()"  process="@form" immediate="true" icon="ui-icon-comment" title="Auditoríaa" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelFacturaGlosa" columns="4"
+                                         layout="grid" >
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado factura"   style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>
+                                                        
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor inicial glosa" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorInicialGlosa}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha inicial bloqueo" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaMarcacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha final bloqueo" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.fechaVencimiento}"/>
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmFacturaConciliacionBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>                                
+                            </p:panelGrid> 
+                        </p:panel>
+
+                        <p:panel id="pDetallesSumatoria" toggleable="true" header="Sumatoria Valores Servicios" style="margin-bottom:10px;">                               
+                            <p:panelGrid id="panelDetallesSumatoria" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor suma facturado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorFacturadoPrecalculado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor suma pendiente actual" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualPrecalculado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor suma pagado EPS" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsPrecalculado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor suma aceptado IPS" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsPrecalculado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                               
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panelGrid id="panelgNota" style="width:100%;margin:10px" columns="1">
+                                    Nota : Los servicios o detalles con valor pendiente actual igual a cero no serán mostrados ni tenidos en cuenta en la respuesta glosa.
+                        </p:panelGrid>
+
+                        <p:panel id="pDetalles" toggleable="true" header="Servicios" style="margin-bottom:10px; width: 100%">   
+                            <p:remoteCommand id="rcom" name="loadFilterTablaDetalles" process="@this" update="frmVerConciliacionIndividual:tablaDetalles"  actionListener="#{cmFacturaConciliacionBean.actualizarSumaValorePorFiltro}"/>                                
+                            <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.registrosDetalles}" 
+                                         paginator="false"                
+                                         emptyMessage="No se encontraron registros"
+                                         selection="#{cmFacturaConciliacionBean.registrosDetallesSelected}"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100,200"  lazy="false"
+                                         widgetVar="tablaWidgetDetalles"
+                                         scrollable="true"
+                                         scrollWidth="100%"
+                                         scrollHeight="250"
+                                         reflow="true"
+                                         id="tablaDetalles"
+                                         editable="true"
+                                         filteredValue="#{cmFacturaConciliacionBean.registrosDetallesFiltrados}"
+                                         rowStyleClass="#{obj.valorPendienteActual le 0 ? 'red' : null}"
+                                         rowKey="#{obj.id}" style="margin-top: 10px;">                                          
+                                <p:ajax event="filter" oncomplete="loadFilterTablaDetalles();"  />
+                                <p:ajax event="rowEdit" listener="#{cmFacturaConciliacionBean.onRowEdit}" />  
+                                <p:column style="text-align: center;" width="30">                                 
+                                    <f:facet name="header">
+                                        <h:outputText value=""/>
+                                    </f:facet>    
+                                    <p:commandButton  title="Ver Auditoria Servicio" process="@this" actionListener="#{cmFacturaConciliacionBean.verServicioAuditado(obj.id)}" icon="ui-icon-search"/> 
+                                </p:column> 
+                                <p:column  headerText="Estado" sortBy="#{obj.estado}">
+                                    <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Código servicio" sortBy="#{obj.maServicioCodigo}" filterBy="#{obj.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.maServicioCodigo}" title="#{obj.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{obj.maServicioValor}" filterBy="#{obj.maServicioValor}">
+
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>     
+                                    <h:outputText value="#{obj.nombreServicioCorto}" title="#{obj.nombreServicioCorto}"/>
+                                    <p:commandButton rendered="#{obj.nombreServicioCorto.length() > 1 }" onmouseup="PF('dlgMsg').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmFacturaConciliacionBean.actualizarPanelMostrarMensaje()}">
+                                        <f:setPropertyActionListener value="#{obj.maServicioValor}" target="#{cmFacturaConciliacionBean.mensajeGeneral}" />
+                                    </p:commandButton>                          
+                                </p:column>
+
+                                <p:column  headerText="Documento afiliado" sortBy="#{obj.documento}" filterBy="#{obj.documento}">     
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{obj.nombreCompletoAfiliado}" filterBy="#{obj.nombreCompletoAfiliado}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombreCompletoAfiliado}" title="#{obj.nombreCompletoAfiliado}"/>
+                                </p:column>
+
+                                <p:column  headerText="Radicado glosa" sortBy="#{obj.radicadoGlosa}" filterBy="#{obj.radicadoGlosa}" >  
+                                    <f:facet name="filter">
+                                        <p:inputText label="Radicado glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.radicadoGlosa}" title="#{obj.radicadoGlosa}"/>
+                                </p:column>
+
+                                <p:column  headerText="Motivos glosa" sortBy="#{obj.motivoGlosa}" filterBy="#{obj.motivoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Motivos glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.motivoGlosaCorto}" title="#{obj.motivoGlosa}"/>
+                                    <p:commandButton rendered="#{obj.motivoGlosaCorto.length() > 1 }" onmouseup="PF('dlgMsg').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmFacturaConciliacionBean.actualizarPanelMostrarMensaje()}">
+                                        <f:setPropertyActionListener value="#{obj.motivoGlosa}" target="#{cmFacturaConciliacionBean.mensajeGeneral}" />
+                                    </p:commandButton> 
+                                </p:column>
+
+                                <p:column  headerText="Valor copago" sortBy="#{obj.valorCopago}">
+                                    <h:outputText value="#{obj.valorCopago}" title="#{obj.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pendiente inicial" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}">
+                                    <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorPagadoEPS}" title="#{obj.valorPagadoEPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorPagadoEPS}" style="width:100%" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />  
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado EPS" sortBy="#{obj.porcentajePagadoEPS}">
+                                    <p:cellEditor id="nombreCell">       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajePagadoEPS}" title="#{obj.porcentajePagadoEPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajePagadoEPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }" ></p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Valor aceptado IPS" sortBy="#{obj.valorAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorAceptadoIPS}" title="#{obj.valorAceptadoIPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorAceptadoIPS}" style="width:100%" 
+                                                          onkeypress="if (event.keyCode === 13) {
+                                                                      return false;
+                                                                  }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />   
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Porcentaje aceptado IPS" sortBy="#{obj.porcentajeAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajeAceptadoIPS}" title="#{obj.porcentajeAceptadoIPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajeAceptadoIPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"  >
+                                            </p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column> 
+
+                                <p:column  headerText="Observación" sortBy="#{obj.observacionGlosa}" style="text-align: center;">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.observacionGlosaCorto}" title="#{obj.observacionGlosaCorto}"/> 
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:commandButton onmouseup="PF('dlgObservacionDetalle').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmFacturaConciliacionBean.actualizarPanelObservacion()}">
+                                                <f:setPropertyActionListener value="#{obj}" target="#{cmFacturaConciliacionBean.detalleEditadoActual}" />
+                                            </p:commandButton>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column width="30">
+                                    <p:rowEditor />
+                                </p:column>
+                            </p:dataTable>
+                            <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                <p:remoteCommand immediate="true" name="abrirVentanaResponder" action="#{cmFacturaConciliacionBean.verReponderConciliacionIndividual( )}" />
+                                <p:commandButton type="button" value="Conciliar" process="@form" onclick="abrirVentanaResponder()" immediate="true"/>
+                            </h:panelGroup>
+                        </p:panel>
+
+                        <p:panel id="pDatosRepresentates" toggleable="true" header="Representantes" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelRepresentantes" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Representante Savia Salud EPS *" for="representanteEPS" style="font-weight:bold" />
+                                <p:inputText id="representanteEPS" label="Representante Savia Salud EPS" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.representanteEps}" maxlength="128" >
+                                    <p:keyFilter regEx="/[A-ZÀ-ÿ\s\-\,]/i" />
+                                    <p:ajax update="pDatosRepresentates" />
+                                </p:inputText>
+
+                                <p:outputLabel value="Representante IPS *" for="representanteIPS" style="font-weight:bold" />
+                                <p:inputText id="representanteIPS" label="Representante IPS" maxlength="128" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.representanteIps}">
+                                    <p:keyFilter regEx="/[A-ZÀ-ÿ\s\-\,]/i" />
+                                    <p:ajax update="pDatosRepresentates" />
+                                </p:inputText>
+
+                            </p:panelGrid>                          
+                        </p:panel> 
+
+                        <p:panel id="pDatosRespuesta" toggleable="true" header="Aplicación Valor Masivo" style="margin-bottom:10px;">                          
+                            <p:panelGrid id="panelFormularioCalculoRespuestas" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >                            
+
+                                <p:outputLabel value="Sumatoria pagado EPS items seleccionados "  style="font-weight:bold"/>
+                                <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsSeleccionados}" 
+                                              title="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria aceptado IPS items seleccionados" style="font-weight:bold" />
+                                <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsSeleccionados}" 
+                                              title="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria valor pagado items seleccionados"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoItemsSeleccionados}" 
+                                              title="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoItemsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria pendientes actuales items seleccionados" style="font-weight:bold" />
+                                <h:outputText value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualItemsSeleccionados}" 
+                                              title="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualItemsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor pagado EPS"  style="font-weight:bold"/>
+                                <p:inputNumber tabindex="1" id="valorPagadoEps" minValue="0"  value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEps}" decimalPlaces="4" >  
+                                    <p:ajax event="blur" update="porcentajeEps"  listener="#{cmFacturaConciliacionBean.conversionPorcentajeConciliacionIndividual( 1 )}" /> 
+                                </p:inputNumber>    
+
+                                <p:outputLabel value="Porcentaje pagado EPS" style="font-weight:bold" />
+                                <p:inputNumber  id="porcentajeEps" minValue="0" decimalPlaces="2" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.porcentajePagadoEps}" maxValue="100" symbol="%" symbolPosition="s" >  
+                                    <p:ajax event="blur" update="valorPagadoEps" listener="#{cmFacturaConciliacionBean.conversionValorConciliacionIndividual( 1 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Valor aceptado IPS"  style="font-weight:bold"/>
+                                <p:inputNumber tabindex="2" id="valorAceptadoIps" minValue="0"  value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIps}" decimalPlaces="4" emptyValue="empty" >  
+                                    <p:ajax event="blur"  update="porcentajeIps" listener="#{cmFacturaConciliacionBean.conversionPorcentajeConciliacionIndividual( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Porcentaje aceptado IPS" style="font-weight:bold" />
+                                <p:inputNumber id="porcentajeIps" minValue="0" decimalPlaces="2" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.porcentajeAceptadoIps}" maxValue="100" symbol="%" symbolPosition="s">  
+                                    <p:ajax event="blur" update="valorAceptadoIps"  listener="#{cmFacturaConciliacionBean.conversionValorConciliacionIndividual( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Observación" for="observacionRespuesta" style="font-weight:bold" />
+                                <h:inputTextarea id="observacionRespuesta" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.observacionMasiva}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                            </p:panelGrid>
+                            <p:panelGrid  columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <h:panelGroup style="display:block; text-align:center; margin-top: 10px;" class="ui-g-12">
+                                    <p:commandButton value="Limpiar Datos"  actionListener="#{cmFacturaConciliacionBean.refrescarLimpiarFormularioCalculoMasivo( )}"  immediate="true"/>
+                                    <p:commandButton value="Aplicar Porcentajes"  actionListener="#{cmFacturaConciliacionBean.aplicarCalculoGrupoDetalles( )}" process="@form" update="@form" resetValues="true"/>
+                                </h:panelGroup>
+                            </p:panelGrid>
+                                
+                        </p:panel> 
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerConciliacionIndividual').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Detalles Glosa" id="dialogoVerGlosaRespuestaDetalles" widgetVar="dialogoVerGlosaRespuestaDetalles" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerGlosaRespuesas">
+                        <p:panel id="pVerGlosaRespuesas" toggleable="true" header="Glosa Factura" style="margin-bottom:10px;">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(cmFacturaConciliacionBean.cmGlosaRespuesta.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelVerGlosaRespuesas" columns="4"
+                                         layout="grid" >
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Id factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.cmGlosaRespuesta.cmFactura.id}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Id respuesta factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.cmGlosaRespuesta.id}"/>
+                                    </p:column>
+                                </p:row>
+                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pagado EPS" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.cmGlosaRespuesta.valorPagadoEps}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor aceptado IPS" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.cmGlosaRespuesta.valorAceptadoIps}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </p:outputLabel>
+
+                                    </p:column>
+                                </p:row>                             
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pGlosaRespuestaDetalles" toggleable="true" header="Detalles de glosa" style="margin-bottom:10px;">                               
+                            <p:dataTable var="obj" value="#{cmFacturaConciliacionBean.lazyGlosaRespuestaDetalle}" paginator="true"
+                                         rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                                         widgetVar="tablaWidgetGlosaRespuestaDetalles"
+                                         scrollable="true"
+                                         scrollHeight="400"
+                                         scrollWidth="100%"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}" >
+                                <p:column  headerText="Id" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id glosa respuesta" sortBy="#{obj.cmGlosaRespuesta.id}">
+                                    <h:outputText value="#{obj.cmGlosaRespuesta.id}" title="#{obj.cmGlosaRespuesta.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id detalle servicio" sortBy="#{obj.cmDetalle.id}">
+                                    <h:outputText value="#{obj.cmDetalle.id}" title="#{obj.cmDetalle.id}"/>
+                                </p:column>
+                                <p:column  headerText="Tipo Respuesta" sortBy="#{obj.cmGlosaRespuesta.tipoRespuestaStr}">
+                                    <h:outputText value="#{obj.cmGlosaRespuesta.tipoRespuestaStr}" title="#{obj.cmGlosaRespuesta.tipoRespuestaStr}"/>
+                                </p:column>
+                                <p:column  headerText="Documento" sortBy="#{obj.documento}">
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+
+                                <p:column  headerText="Valor cobro detalle" sortBy="#{obj.valorCobroDetalle}">
+                                    <h:outputText value="#{obj.valorCobroDetalle}" title="#{obj.valorCobroDetalle}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>     
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEps}">
+                                    <h:outputText value="#{obj.valorPagadoEps}" title="#{obj.valorPagadoEps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado EPS" sortBy="#{obj.porcentajePagadoEps}">
+                                    <h:outputText value="#{obj.porcentajePagadoEps}" title="#{obj.porcentajePagadoEps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>        
+                                <p:column  headerText="Valor pendiente" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor aceptado Ips" sortBy="#{obj.valorAceptadoIps}">
+                                    <h:outputText value="#{obj.valorAceptadoIps}" title="#{obj.valorAceptadoIps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado IPS" sortBy="#{obj.porcentajeAceptadoIps}">
+                                    <h:outputText value="#{obj.porcentajeAceptadoIps}" title="#{obj.porcentajeAceptadoIps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>  
+                                <p:column  headerText="Fecha creación" sortBy="#{obj.fechaHoraCrea}">
+                                    <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <h:outputText value="#{obj.observacionCorto}" />
+                                    <p:commandButton rendered="#{obj.observacionCorto.length() > 1 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/>                                
+                                </p:column>
+                            </p:dataTable>                             
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerGlosaRespuestaDetalles').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Registrar Conciliación Individual" widgetVar="dialogoRegistrarConciliacion" appendTo="@(body)" modal="true"  width="50%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form id="frmReponderConciliacion" style="padding: 10px;">   
+                        <p:panelGrid id="panelRegistrar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Estado" for="estadoRespuesta"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="estadoRespuesta" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.tipoEstadoRespuesta}" editable="false" style="width: 64px;" required="true" requiredMessage="Estado : Este campo es obligatorio." >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Conciliar" itemValue="2" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Observación" for="observacionRespuesta" style="font-weight:bold" />
+                            <h:inputTextarea id="observacionRespuesta" value="#{cmFacturaConciliacionBean.objeto.cmGlosaRespuestaDetalle.observacion}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">   
+                                            <p:commandButton value="Registrar Respuesta"  actionListener="#{cmFacturaConciliacionBean.responderConciliacionIndividual( )}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoRegistrarConciliacion').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Registrar Conciliación Masiva" widgetVar="dialogoRegistrarConciliacionMasiva" appendTo="@(body)" modal="true"  width="50%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form id="frmReponderConciliacionMasiva" style="padding: 10px;">   
+                        <p:panelGrid id="panelRegistrar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Estado" for="estadoRespuesta"   style="font-weight:bold"/>
+                            <p:selectOneMenu id="estadoRespuesta" value="#{cmFacturaConciliacionBean.cmConciliacion.tipoEstadoRespuesta}"   editable="false" style="width: 64px;" required="true" requiredMessage="Estado : Este campo es obligatorio." >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Conciliación" itemValue="2" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Observación" for="observacionRespuesta"  style="font-weight:bold" />
+                            <h:inputTextarea id="observacionRespuesta" value="#{cmFacturaConciliacionBean.cmConciliacion.observacion}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">   
+                                            <p:commandButton value="Registrar Respuesta"  actionListener="#{cmFacturaConciliacionBean.responderConciliacionMasiva()}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoRegistrarConciliacionMasiva').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Observación" widgetVar="dlgObservacionDetalle" minHeight="200" appendTo="@(body)" modal="true"  width="90%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmObservacionDetalle" style="padding: 10px;">          
+                        <p:inputTextarea style="width: 100%;" value="#{cmFacturaConciliacionBean.detalleEditadoActual.observacionGlosa}"/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Aceptar" actionListener="#{cmFacturaConciliacionBean.registrarObservacion( )}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgObservacionDetalle').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoVerAuditoriaServicio" header="Auditoría de servicio" appendTo="@(body)" responsive="true" modal="true" width="90%" style="max-height:90%;">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerAuditoriaServicio">
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                        <p:panel id="panelVerFacturaItem" header="Factura" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Ver Factura"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(cmFacturaConciliacionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosFactura" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado Factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+                                  
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                        
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorFactura}" title="#{cmFacturaConciliacionBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago"  style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorCopago}" title="#{cmFacturaConciliacionBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.objeto.valorBruto}" title="#{cmFacturaConciliacionBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Responsable del pago"  style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.responsablePago}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Regional"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.objeto.regional}"/>
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs"  style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmFacturaConciliacionBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelVerServicio" header="Servicio" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Servicio"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(cmFacturaConciliacionBean.detalleServicioActual.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosServicio" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo documento"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Documento"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.documento}"/>
+                                    </p:column>
+                                </p:row>
+                                                           
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre completo"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.nombreCompletoAfiliado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Consecutivo item"  style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.consecutivoItem}"/>
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Código servicio"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.maServicioCodigo}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre servicio"  style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.maServicioValor}"/>
+                                    </p:column>
+                                </p:row>
+                               
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor facturado"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.detalleServicioActual.valorFacturado}" title="#{cmFacturaConciliacionBean.detalleServicioActual.valorFacturado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pagado"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.detalleServicioActual.valorPagado}" title="#{cmFacturaConciliacionBean.detalleServicioActual.valorPagado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.detalleServicioActual.valorPendiente}" title="#{cmFacturaConciliacionBean.detalleServicioActual.valorPendiente}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmFacturaConciliacionBean.detalleServicioActual.valorPendienteActual}" title="#{cmFacturaConciliacionBean.detalleServicioActual.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmFacturaConciliacionBean.detalleServicioActual.fechaPrestacion}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelGestionGlosaItem" header="Conceptos Contables" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="concepto" value="#{cmFacturaConciliacionBean.registrosConceptoContable}" paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaConceptos" lazy="false"
+                                         widgetVar="tablaWidgetConceptos"
+                                         style="font-size:11px;"
+                                         rowKey="#{concepto.id}" >
+                                <p:column  headerText="Concepto Contable" sortBy="#{concepto.maestroConceptos.id}">
+                                    <h:outputText value="#{concepto.maestroConceptos.nombre}" title="#{concepto.maestroConceptos.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Centro Costo">
+                                    <h:outputText value="#{concepto.maestroCentroCosto.nombre}" title="#{concepto.maestroCentroCosto.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Ubicación" sortBy="#{concepto.municipioAfiliado}">
+                                    <h:outputText value="#{concepto.municipioAfiliado}" title="#{concepto.municipioAfiliado}"/>
+                                </p:column>
+                                <p:column  headerText="Porcentaje" sortBy="#{concepto.porcentaje}">
+                                    <h:outputText value="#{concepto.porcentaje}" title="#{concepto.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>   
+                                <p:column  headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(concepto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>                              
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="panelDiagnostico" header="Diagnóstico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Diagnóstico"></h:outputLabel>
+                            </f:facet>
+                            <p:panel id="pDiagnosticoCrear" header="Diagnósticos Opcionales" style="margin-bottom:10px;" collapsed="false" toggleable="true">        
+                                <p:dataTable var="diagnostico" value="#{cmFacturaConciliacionBean.registrosAuditoriaDiagnostico}" paginator="false" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                             emptyMessage="No se encontraron registros"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" id="tablaDiagnosticosCrear" lazy="false"
+                                             widgetVar="tablaWidgetListaDiagnosticos"
+                                             style="font-size:11px;"
+                                             rowKey="#{diagnostico.id}" >
+                                    <p:column headerText="Código">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoCodigo}" />
+                                    </p:column>
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoValor}" />
+                                    </p:column>
+                                    <p:column headerText="Es principal">
+                                        <h:outputText value="#{diagnostico.principalStr}" />
+                                    </p:column>
+                                    <p:column headerText="Auditoría" style="text-align: center;">
+                                        <p:commandButton class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(diagnostico.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                        </p:panel>
+
+                        <p:panel id="panelVerMotivos" header="Motivos" style="margin-bottom:10px;" collapsed="false" toggleable="true">  
+                            <p:dataTable var="motivo" value="#{cmFacturaConciliacionBean.registrosAuditoriaMotivoGlosa}" paginator="false" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaMotivos" lazy="false"
+                                         widgetVar="tablaWidgetMotivos"
+                                         style="font-size:11px;"
+                                         rowKey="#{motivo.id}" >     
+                                <p:column  headerText="Motivo glosa" sortBy="#{motivo.maestroMotivo.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivo.nombre}" title="#{motivo.maestroMotivo.nombre}"/>
+                                </p:column>
+                                
+                                <p:column  headerText="Motivo específico" sortBy="#{motivo.maestroMotivoEspecifico.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivoEspecifico.nombre}" title="#{motivo.maestroMotivoEspecifico.nombre}"/>
+                                </p:column>
+                                
+                                <p:column  headerText="Motivo aplicación" sortBy="#{motivo.maestroMotivoAplicacion.nombre}">
+                                    <h:outputText value="#{motivo.motivoAplicacionCorto}" title="#{motivo.motivoAplicacionCorto}"/>
+                                    <p:commandButton rendered="#{motivo.esMotivoAplicacionExtenso}" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(motivo.motivoAplicacionCompleto)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+
+                                <p:column  headerText="Tipología" sortBy="#{motivo.tipologia}">
+                                    <h:outputText value="#{motivo.tipologiaStr}" title="#{motivo.tipologiaStr}"/>
+                                </p:column>  
+
+                                <p:column  headerText="Porcentaje" sortBy="#{motivo.porcentaje}">
+                                    <h:outputText value="#{motivo.porcentaje}" title="#{motivo.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>  
+
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{motivo.observacionCorto}" title="#{motivo.observacionCorto}"/>
+                                    <p:commandButton rendered="#{motivo.observacionCorto.length() > 0 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(motivo.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+
+                                <p:column headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmFacturaConciliacionBean.getAuditoria(motivo.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />                               
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>                        
+
+                        <p:panel id="panelVerAutorizaciones" header="Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="autorizacion" value="#{cmFacturaConciliacionBean.registrosAuditoriaAutorizacion}" paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaAutorizaciones" lazy="false"
+                                         widgetVar="tablaWidgetAutorizacion"
+                                         style="font-size:11px;"
+                                         rowKey="#{autorizacion.id}" >
+
+                                <p:column  headerText="Código servicio" sortBy="#{autorizacion.codigoServicio}">
+                                    <h:outputText value="#{autorizacion.codigoServicio}" title="#{autorizacion.codigoServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Número autorización" sortBy="#{autorizacion.numeroAutorizacion}">
+                                    <h:outputText value="#{autorizacion.numeroAutorizacion}" title="#{autorizacion.numeroAutorizacion}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre del servicio" sortBy="#{autorizacion.nombreServicio}">
+                                    <h:outputText value="#{autorizacion.nombreServicio}" title="#{autorizacion.nombreServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Id anexo 4" sortBy="#{autorizacion.anexo4.id}">
+                                    <h:outputText value="#{autorizacion.anexo4.id}" title="#{autorizacion.anexo4.id}"/>
+                                </p:column>
+                                <p:column  headerText="Prestador" sortBy="#{autorizacion.razonSocialPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.razonSocialPrestador}" title="#{autorizacion.razonSocialPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Nit Prestador" sortBy="#{autorizacion.nitPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.nitPrestador}" title="#{autorizacion.nitPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Autorización" sortBy="#{autorizacion.fechaAutorizacion}">
+                                    <h:outputText value="#{autorizacion.fechaAutorizacion}" title="#{autorizacion.fechaAutorizacion}"/>
+                                </p:column>                                                          
+                            </p:dataTable>
+                        </p:panel>
+                        
+                         <p:panel id="panelVerContratos" header="Descuento Capita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="descuentoC" value="#{cmFacturaConciliacionBean.registrosDescuentoCapita}" paginator="true" rows="#{cmFacturaConciliacionBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaCapitaDescuento" lazy="false"
+                                         widgetVar="tablaWidgetCapitaDescuento"
+                                         style="font-size:11px;"
+                                         rowKey="#{descuentoC.id}" >
+
+                                <p:column  headerText="Número contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.contrato}" title="#{descuentoC.contrato}"/>
+                                </p:column>
+
+                                <p:column  headerText="Nit" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+
+                                <p:column  headerText="Razón social">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.razonSocial}" title="#{descuentoC.cntContrato.cntPrestador.razonSocial}"/>
+                                </p:column>
+
+                                <p:column  headerText="Representante legal">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}" title="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}"/>
+                                </p:column>
+
+                                <p:column  headerText="Número documento prestador">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column  headerText="Estado contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.maeEstadoContratoValor}" title="#{descuentoC.cntContrato.maeEstadoContratoValor}"/>
+                                </p:column>
+                                <p:column  headerText="Marcación" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.marcacionStr}" title="#{descuentoC.cntContrato.diasLimitePago}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Inicio">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaInicio}" title="#{descuentoC.cntContrato.fechaInicio}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Fin">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaFin}" title="#{descuentoC.cntContrato.fechaFin}"/>
+                                </p:column>
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{descuentoC.observacionCorto}" />
+                                    <p:commandButton rendered="#{descuentoC.observacionCorto.length() > 1 }" actionListener="#{cmFacturaConciliacionBean.mostrarMensajeGeneral(descuentoC.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        
+                        <p:panel widgetVar="panelVerAdjuntosCmDetalles" id="panelVerAdjuntosCmDetalles" header="Adjuntos Detalle" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdjuntosCmDetalles" var="adjunto" value="#{cmFacturaConciliacionBean.registrosAuditoriaAdjutoCmDetalle}" widgetVar="tablaWidgetAdjuntosCmDetalles" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmFacturaConciliacionBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+
+                            </p:dataTable>
+
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerAuditoriaServicio').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <body onunload="finalizar();"> 
+            <h:form id="exit">
+                <p:remoteCommand  id="finalizar" name="finalizar" action="#{cmFacturaConciliacionBean.clearViewScopedBeans()}"/>
+            </h:form>
+            </body>
+        </center>
+    </ui:define>
+</ui:composition>

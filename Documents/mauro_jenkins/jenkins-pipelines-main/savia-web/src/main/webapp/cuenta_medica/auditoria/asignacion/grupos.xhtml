@@ -1,0 +1,717 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+
+            </style>
+            <h:form id="frmGrupos">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmGrupoBean.modulo.descripcion}">#{cmGrupoBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{cmGrupoBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmGrupoBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{cmGrupoBean.accionCrear}" title="Crear" actionListener="#{cmGrupoBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{cmGrupoBean.lazyCmGrupo}" rowKey="#{obj.id}"
+                             rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton title="Ver" actionListener="#{cmGrupoBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{cmGrupoBean.accionEditar}" title="Editar" actionListener="#{cmGrupoBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                    </p:column>
+                    
+                    <p:column headerText="Id Grupo" sortBy="#{obj.id}"  style="text-align: center;" >
+                        <f:facet name="filter">
+                            <p:inputText label="Id" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()" required="true" requiredMessage="Nombre : Este campo es obligatorio."/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column> 
+                    
+                    <p:column headerText="Tipo Grupo" style="text-align: center;">
+                        <h:outputText value="#{obj.tipoGrupoStr}"/>
+                    </p:column> 
+                    
+                    <p:column headerText="Categoría" style="text-align: center;">
+                        <h:outputText value="#{obj.categoriaStr}"/>
+                    </p:column> 
+                    
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" >
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()" required="true" requiredMessage="Nombre : Este campo es obligatorio."/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column> 
+                    <p:column headerText="Pbs" style="text-align: center;">
+                        <h:outputText value="#{obj.pbsStr}"/>
+                    </p:column> 
+                    <p:column headerText="Cama Fija" style="text-align: center;">
+                        <h:outputText value="#{obj.camaFijaStr}"/>
+                    </p:column> 
+                    <p:column headerText="Descripción">
+                        <h:outputText value="#{obj.descripcion}"/>
+                    </p:column>
+                    <p:column headerText="Activo" sortBy="#{obj.activoStr}" filterBy="#{obj.activo}" style="text-align: center;">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Activo" itemValue="1" />
+                                <f:selectItem itemLabel="Inactivo" itemValue="0" />
+                            </p:selectOneMenu>                            
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+            <!-- Crear -->
+            <p:dialog widgetVar="dialogoCrear" header="Crear Grupo" appendTo="@(body)" width="70%" modal="true" >
+                <h:form id="frmCrear">
+                    <!--Panel informacion del grupo-->
+                    <p:panel id="pCrear" header="Crear grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelCrear" columns="6" layout="grid">
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Nombre del grupo" for="Nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column>
+                                    <p:inputText id="Nombre" label="Nombre" value="#{cmGrupoBean.objeto.nombre}" maxlength="64" style="width: 90%"/>
+                                </p:column>
+                                 <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column>
+                                    <p:selectOneMenu id="tipo" value="#{cmGrupoBean.objeto.tipoGrupo}">
+                                        <f:selectItem itemLabel="Auditoría" itemValue="false"/>
+                                        <f:selectItem itemLabel="Radicación" itemValue="true"/>
+                                        <p:ajax event="change" listener="#{cmGrupoBean.habilitarCamposSegunTipoGrupo()}" update="frmCrear" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column styleClass="ui-widget-header ui-g-2" rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                    <p:outputLabel value="Categoría" for="categoria" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                    <p:selectOneMenu id="categoria" value="#{cmGrupoBean.objeto.categoria}">
+                                        <f:selectItem itemLabel="PBS" itemValue="0" />
+                                        <f:selectItem itemLabel="NO PBS" itemValue="1" />
+                                        <f:selectItem itemLabel="PGP" itemValue="2" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            
+                            <p:row>
+                                <p:column styleClass="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column>
+                                    <p:selectOneRadio id="activo" value="#{cmGrupoBean.objeto.activo}">
+                                        <f:selectItem itemLabel="Si" itemValue="true" />
+                                        <f:selectItem itemLabel="No" itemValue="false" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column class="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-6">
+                                    <p:inputText id="descripcion" label="descripcion" value="#{cmGrupoBean.objeto.descripcion}" maxlength="64" style="width: 90%"/>
+                                </p:column>
+                            </p:row>
+                            
+                            <p:row rendered="#{!cmGrupoBean.habilitarCamposRadicacion}">                               
+                                <p:column class="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="Cama Fija" for="descripcion" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:selectBooleanCheckbox id="chkCamaFija" value="#{cmGrupoBean.objeto.camaFija}"/>
+                                </p:column>
+                                <p:column class="ui-widget-header ui-g-2">
+                                    <p:outputLabel value="PBS" for="chkPbs" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:selectBooleanCheckbox id="chkPbs" value="#{cmGrupoBean.objeto.pbs}"/>
+                                </p:column>
+                            </p:row>
+                     
+                        </p:panelGrid>
+                    </p:panel>
+                    <!--Panel usuarios del grupo-->
+                    <p:panel id="pUsuarios" header="Usuarios del grupo" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                        <div align="right">
+                            <p:commandButton title="Agregar Usuario" actionListener="#{cmGrupoBean.verAgregarUsuario()}" icon="ui-icon-person"/>   
+                        </div>                                                   
+                        <p:dataTable id="tablaUsuariosCrear" var="usuario" value="#{cmGrupoBean.listaGrupoUsuarios}" 
+                                     widgetVar="tablaUsuariosCrear"
+                                     scrollable="true" style="max-height:600px;"
+                                     emptyMessage="Aún no has agregado ningún usuario">
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <p:commandButton rendered="#{usuario.id == null}" title="Retirar usuario" action="#{cmGrupoBean.retirarUsuario(usuario.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                    <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                </p:confirmDialog>    
+                            </p:column>
+                            <p:column headerText="Usuario" style="text-align: center;">
+                                <h:outputText value="#{usuario.gnUsuario.usuario}" title="#{usuario.gnUsuario.usuario}"/>
+                            </p:column>
+                            <p:column headerText="Nombre" style="text-align: center;">
+                                <h:outputText value="#{usuario.gnUsuario.nombre}" title="#{usuario.gnUsuario.nombre}"/>
+                            </p:column>
+                            <p:column headerText="Tipo" style="text-align: center;">
+                                <h:outputText value="#{usuario.tipoStr}" title="#{usuario.tipoStr}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <!-- Prestadores del grupo -->
+                    <p:panel id="pIps" header="Prestadores del grupo" rendered="#{!cmGrupoBean.habilitarCamposRadicacion}" style="margin-bottom:10px;" collapsed="true" toggleable="true">
+                        <div align="right">
+                            <p:commandButton title="Agregar Prestador" actionListener="#{cmGrupoBean.verAgregarPrestador()}" icon="ui-icon-home"/>
+                        </div>
+                        <p:dataTable id="tablaPrestadoresCrear" var="prestador" value="#{cmGrupoBean.listaGrupoPrestadores}" 
+                                     widgetVar="tablaPrestadoresCrear" 
+                                     scrollable="true" style="max-height:600px;"
+                                     emptyMessage="Aún no has agregado ningún prestador">
+                            <p:column headerText="Acciones" style="text-align: center;">
+                                <p:commandButton rendered="#{prestador.id == null}" title="Retirar prestador" action="#{cmGrupoBean.retirarPrestador(prestador.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                    <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el prestador del grupo?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                </p:confirmDialog>    
+                            </p:column>
+                            <p:column headerText="Nit" style="text-align: center;">
+                                <h:outputText value="#{prestador.cntPrestador.numeroDocumento}" title="#{prestador.cntPrestador.numeroDocumento}"/>
+                            </p:column>
+                            <p:column headerText="Razón social" style="text-align: center;">
+                                <h:outputText value="#{prestador.cntPrestador.razonSocial}" title="#{prestador.cntPrestador.razonSocial}"/>
+                            </p:column>
+                            <p:column headerText="Activo" style="text-align: center;">
+                                <h:outputText value="#{prestador.cntPrestador.getActivoStr()}" title="#{prestador.cntPrestador.getActivoStr()}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{cmGrupoBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!--  ver grupo -->
+            <p:dialog widgetVar="dialogoVer" header="Ver Grupo" appendTo="@(body)" responsive="true" width="60%"  modal="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmGrupoBean.getAuditoria(cmGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <p:scrollPanel mode="native" style="max-height:450px;">
+                        <p:panel id="pVer" header="Ver Grupo" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Ver grupo"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelVer">
+                                <p:row>                                 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre del grupo" for="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel id="Nombre" value="#{cmGrupoBean.objeto.nombre}">
+                                        </p:outputLabel>
+                                    </p:column>     
+                                     <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo grupo" for="tipo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel id="tipo" value="#{cmGrupoBean.objeto.tipoGrupoStr}">
+                                        </p:outputLabel>
+                                    </p:column>
+                                    <p:column class="ui-g-2" rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                        <p:outputLabel value="Categoría" for="categoria" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2" rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                        <p:outputLabel id="categoria" value="#{cmGrupoBean.objeto.categoriaStr}">
+                                        </p:outputLabel>
+                                    </p:column>
+                                </p:row>
+                                <p:row>                           
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel id="activo" value="#{cmGrupoBean.objeto.activoStr}">
+                                        </p:outputLabel>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-6">
+                                        <p:outputLabel id="descripcion"  value="#{cmGrupoBean.objeto.descripcion}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row rendered="#{!cmGrupoBean.habilitarCamposRadicacion}">
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="PBS" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="#{cmGrupoBean.objeto.pbsStr}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Cama Fija" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-6">
+                                        <p:outputLabel value="#{cmGrupoBean.objeto.camaFijaStr}" />
+                                    </p:column>
+                                </p:row>
+                            
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pUsuarios" style="margin-bottom:10px;" collapsed="true" toggleable="true" header="Usuarios del grupo">
+                            <p:scrollPanel mode="native" style="height:250px">
+                                <p:dataTable id="tablaUsuarioVer" var="usuario" value="#{cmGrupoBean.lazyCmGrupoUsuarios}" 
+                                         widgetVar="tablaUsuariosVer" 
+                                         scrollable="true"   style="max-height: 500px"
+                                         emptyMessage="Aún no has agregado ningún usuario"
+                                         rowIndexVar="rowIndex"                                      
+                                         rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         reflow="true">
+                                <p:column headerText="Usuario" style="text-align: center;">
+                                    <h:outputText value="#{usuario.gnUsuario.usuario}" title="#{usuario.gnUsuario.usuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="text-align: center;" sortBy="#{usuario.gnUsuario.nombre}" filterBy="#{usuario.gnUsuario.nombre}">
+                                      <f:facet name="filter">
+                                            <p:inputText label="Usuario" maxlength="80" style="width: 95%;" onchange="PF('tablaUsuariosVer').filter()"/>
+                                      </f:facet>
+                                    <h:outputText value="#{usuario.gnUsuario.nombre}" title="#{usuario.gnUsuario.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;" filterBy="#{usuario.tipo}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu id="tipoPerfil" onchange="PF('tablaUsuariosVer').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Líder" itemValue="1"/>
+                                            <f:selectItem itemLabel="Técnico" itemValue="2" />
+                                            <f:selectItem itemLabel="Médico" itemValue="3" />
+                                            <f:selectItem itemLabel="Usuario Gestiona" itemValue="4" />
+                                            <f:selectItem itemLabel="Auxiliar Radicación" itemValue="5" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.tipoStr}" title="#{usuario.tipoStr}"/>
+                                </p:column>
+                            </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+
+                        <p:panel id="pIps" rendered="#{!cmGrupoBean.habilitarCamposRadicacion}" style="margin-bottom:10px;" collapsed="true" toggleable="true" header="Prestadores del grupo">
+                            <p:scrollPanel mode="native" style="height:250px">
+                            <p:dataTable id="tablaPrestadorVer" var="prestador" value="#{cmGrupoBean.lazyCmGrupoPrestadores}" 
+                                         widgetVar="tablaPrestadoresVer" 
+                                         scrollable="true" style="max-height: 500px"
+                                         emptyMessage="Aún no has agregado ningún prestador"
+                                         rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" 
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         reflow="true">
+                                <p:column headerText="Nit" style="text-align: center;" sortBy="#{prestador.cntPrestador.numeroDocumento}" filterBy="#{prestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Id" maxlength="128" style="width: 95%;" onchange="PF('tablaPrestadoresVer').filter()"/>
+                                    </f:facet>      
+                                    <h:outputText value="#{prestador.cntPrestador.numeroDocumento}" title="#{prestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón social" style="text-align: center;">
+                                    <h:outputText value="#{prestador.cntPrestador.razonSocial}" title="#{prestador.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <h:outputText value="#{prestador.cntPrestador.getActivoStr()}" title="#{prestador.cntPrestador.getActivoStr()}"/>
+                                </p:column>
+                            </p:dataTable>
+                            </p:scrollPanel>
+                    </p:panel>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                    </p:scrollPanel>
+                </h:form>
+            </p:dialog>
+
+            <!-- editar grupo-->
+            <p:dialog widgetVar="dialogoEditar" header="Editar Grupo" appendTo="@(body)" responsive="true" width="70%" modal="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{cmGrupoBean.getAuditoria(cmGrupoBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:scrollPanel mode="native" style="max-height:450px">
+                        <p:panel id="pEditar" style="margin-bottom:10px;" collapsed="false" toggleable="true" header="Editar grupo">
+                            <p:panelGrid id="panelCrear" columns="6" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Nombre del grupo" for="Nombre" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column>
+                                        <p:inputText id="Nombre" label="Nombre" value="#{cmGrupoBean.objeto.nombre}" maxlength="64" style="width: 90%">
+                                        </p:inputText>
+                                    </p:column>
+
+                                    <p:column styleClass="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column>
+                                        <p:selectOneMenu id="tipo" value="#{cmGrupoBean.objeto.tipoGrupo}">
+                                            <f:selectItem itemLabel="Auditoría" itemValue="false"/>
+                                            <f:selectItem itemLabel="Radicación" itemValue="true"/>
+                                            <p:ajax event="change" listener="#{cmGrupoBean.habilitarCamposSegunTipoGrupo()}" update="frmEditar" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    
+                                    <p:column styleClass="ui-widget-header ui-g-2" rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                        <p:outputLabel value="Categoría" for="categoria" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column rendered="#{cmGrupoBean.habilitarCamposRadicacion}">
+                                        <p:selectOneMenu id="categoria" value="#{cmGrupoBean.objeto.categoria}">
+                                            <f:selectItem itemLabel="PBS" itemValue="0" />
+                                            <f:selectItem itemLabel="NO PBS" itemValue="1" />
+                                            <f:selectItem itemLabel="PGP" itemValue="2" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                         
+                                </p:row>   
+                           
+                                <p:row >
+                                    <p:column styleClass="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column>
+                                        <p:selectOneRadio id="activo" value="#{cmGrupoBean.objeto.activo}">
+                                            <f:selectItem itemLabel="Si" itemValue="true" />
+                                            <f:selectItem itemLabel="No" itemValue="false" />
+                                        </p:selectOneRadio>
+                                    </p:column>
+                                    <p:column class="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-6">
+                                        <p:inputText id="descripcion" label="descripcion" value="#{cmGrupoBean.objeto.descripcion}" maxlength="64" style="width: 90%">
+                                        </p:inputText>
+                                    </p:column>
+                                </p:row>
+                                 <p:row  rendered="#{!cmGrupoBean.habilitarCamposRadicacion}">
+                                    <p:column class="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="Cama Fija" for="descripcion" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:selectBooleanCheckbox id="chkCamaFija" value="#{cmGrupoBean.objeto.camaFija}"/>
+                                    </p:column>
+                                    <p:column class="ui-widget-header ui-g-2">
+                                        <p:outputLabel value="PBS" for="chkPbs" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:selectBooleanCheckbox id="chkPbs" value="#{cmGrupoBean.objeto.pbs}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pUsuarios" style="margin-bottom:10px;" collapsed="true" toggleable="true" header="Usuarios del grupo">
+                            <div align="right">                               
+                                <p:commandButton title="Agregar Usuario" actionListener="#{cmGrupoBean.verAgregarUsuario()}" icon="ui-icon-person"/>
+                            </div>
+                            <p:dataTable id="tablaUsuarioEditar" var="usuario" value="#{cmGrupoBean.lazyCmGrupoUsuarios}" 
+                                         widgetVar="tablaUsuarioEditar" 
+                                         scrollable="true"  
+                                         emptyMessage="Aún no has agregado ningún usuario"
+                                         rowIndexVar="rowIndex"
+                                         rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" 
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         reflow="true">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{usuario.id == null}" title="Retirar usuario" action="#{cmGrupoBean.retirarUsuario(usuario.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{usuario.id != null}" title="Borrar usuario" action="#{cmGrupoBean.borraFisicoUsuarioGrupo(usuario.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el campo de entrada?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                        <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                    </p:confirmDialog>    
+                                </p:column>
+                                <p:column headerText="Usuario" style="text-align: center;">
+                                    <h:outputText value="#{usuario.gnUsuario.usuario}" title="#{usuario.gnUsuario.usuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" style="text-align: center;" sortBy="#{usuario.gnUsuario.nombre}" filterBy="#{usuario.gnUsuario.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="80" style="width: 95%;" onchange="PF('tablaUsuarioEditar').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.gnUsuario.nombre}" title="#{usuario.gnUsuario.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;" filterBy="#{usuario.tipo}">
+                                      <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaUsuarioEditar').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Líder" itemValue="1"/>
+                                            <f:selectItem itemLabel="Técnico" itemValue="2" />
+                                            <f:selectItem itemLabel="Médico" itemValue="3" />
+                                            <f:selectItem itemLabel="Usuario Gestiona" itemValue="4" />
+                                            <f:selectItem itemLabel="Auxiliar Radicación" itemValue="5" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{usuario.tipoStr}" title="#{usuario.tipoStr}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pIps" rendered="#{!cmGrupoBean.habilitarCamposRadicacion}" style="margin-bottom:10px;"  collapsed="true" toggleable="true" header="Prestadores del grupo">
+                            <div align="right">
+                                <p:commandButton title="Agregar Prestador" actionListener="#{cmGrupoBean.verAgregarPrestador()}" icon="ui-icon-home"/>
+                            </div>   
+
+                            <p:dataTable id="tablaPrestadorEditar" var="prestador" value="#{cmGrupoBean.lazyCmGrupoPrestadores}" 
+                                         widgetVar="tablaPrestadorEditar" 
+                                         scrollable="true"  
+                                         emptyMessage="Aún no has agregado ningún prestador"
+                                         rowIndexVar="rowIndex"
+                                         rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" 
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         reflow="true">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{prestador.id == null}" title="Retirar prestador" action="#{cmGrupoBean.retirarPrestador(prestador.idInsertar)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea retirar el prestador del grupo?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton rendered="#{prestador.id != null}" title="Borrar prestador" action="#{cmGrupoBean.borrarFisicoPrestadorGrupo(prestador.id)}" icon="ui-icon-close" immediate="true">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea borrar el prestador del grupo?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                        <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                                    </p:confirmDialog>    
+                                </p:column>
+                                <p:column headerText="Nit" style="text-align: center;" sortBy="#{prestador.cntPrestador.numeroDocumento}" filterBy="#{prestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Id" maxlength="128" style="width: 95%;" onchange="PF('tablaPrestadorEditar').filter()"/>
+                                    </f:facet>                                    
+                                    <h:outputText value="#{prestador.cntPrestador.numeroDocumento}" title="#{prestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón social" style="text-align: center;">
+                                    <h:outputText value="#{prestador.cntPrestador.razonSocial}" title="#{prestador.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Activo" style="text-align: center;">
+                                    <h:outputText value="#{prestador.cntPrestador.getActivoStr()}" title="#{prestador.cntPrestador.getActivoStr()}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action ="#{cmGrupoBean.modificar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                    </p:scrollPanel>
+                </h:form>
+            </p:dialog>
+
+            <!-- Dialogo listar usuarios -->
+            <p:dialog header="Consultar Usuarios" widgetVar="dialogoUsuariosLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px; padding-bottom: 0px !important;" >
+                    <h:form id="frmUsuariosLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{cmGrupoBean.accionListar}" title="Refrescar" actionListener="#{cmGrupoBean.refrescarUsuarios()}" oncomplete="PF('tablaWidgetUsuarios').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:dataTable id="tablaRegistrosUsuarios" widgetVar="tablaWidgetUsuarios" var="obj" value="#{cmGrupoBean.lazyUsuarios}" rowKey="#{obj.id}"
+                                     rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" 
+                                     emptyMessage= "No se encontraron registros" selectionMode="single">
+                            <p:ajax event="rowSelect" listener="#{cmGrupoBean.onRowSelecionUsuario}"/>
+                            <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetUsuarios').filter()"/>
+                                </f:facet>
+                                <h:outputText value="#{obj.nombre}"/>
+                            </p:column>
+
+                        </p:dataTable>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoUsuariosLista').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Agregar usuario responsable -->
+            <p:dialog header="Agregar usuario" widgetVar="dialogoCrearUsuario" appendTo="@(body)" modal="true" width="50%" style="max-height: 35%">
+                <h:form id="frmCrearUsuario">
+                    <p:panelGrid id="panelCrear" style="width: 100%">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Usuario" for="autoUsuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-9">
+                                <p:inputText id="autoUsuario" label="Usuario" value="#{cmGrupoBean.usuario.nombreUsuario}" required="true" requiredMessage="Usuario: Este campo es obligatorio." onkeypress="return false;" style="width: 80%;" />
+                            </p:column>
+                            <p:column class="ui-g-1">
+                                <p:commandButton immediate="true" action="#{cmGrupoBean.verListUsuarios()}" icon="ui-icon-copy" title="Agregar"/>                                        
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Tipo" for="tipo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-10">
+                                <p:selectOneRadio id="tipo" value="#{cmGrupoBean.usuario.tipo}" required="true" requiredMessage="Tipo : Este campo es obligatorio.">
+                                    <f:selectItem itemLabel="Líder" itemValue="1" itemDisabled="#{cmGrupoBean.habilitarCamposRadicacion}"/>
+                                    <f:selectItem itemLabel="Técnico" itemValue="2" itemDisabled="#{cmGrupoBean.habilitarCamposRadicacion}"/>
+                                    <f:selectItem itemLabel="Médico" itemValue="3" itemDisabled="#{cmGrupoBean.habilitarCamposRadicacion}" />
+                                    <f:selectItem itemLabel="Auxiliar Radicación" itemValue="5" itemDisabled="#{!cmGrupoBean.habilitarCamposRadicacion}" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Agregar" type="button" onclick="agregarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="agregarRemote" action="#{cmGrupoBean.agregarUsuario()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrearUsuario').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Agregar prestador -->
+            <p:dialog header="Agregar Prestador" widgetVar="dialogoCrearPrestador" appendTo="@(body)" modal="true" width="60%">
+                <h:form id="frmCrearPrestador">
+                    <p:panelGrid id="panelCrearPrestador">
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Prestador" for="textPrestador" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-7">
+                                <p:inputText id="textPrestador" label="Prestador" value="#{cmGrupoBean.prestador.razonSocial}" required="true" requiredMessage="Debe seleccionar un prestador." onkeypress="return false;" style="width: 80%;" />
+                            </p:column>     
+                            <p:column class="ui-g-1">
+                                <p:commandButton immediate="true" action="#{cmGrupoBean.verListPrestador()}" icon="ui-icon-copy" title="Agregar"/>                       
+                            </p:column>   
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Agregar" type="button" onclick="agregarPrestadorRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="agregarPrestadorRemote" action="#{cmGrupoBean.agregarPrestador()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrearPrestador').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Dialogo listar prestadores -->
+            <p:dialog header="Consultar Prestadores" widgetVar="dialogoPrestadoresLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px; padding-bottom: 0px !important;" >
+                    <h:form id="frmPrestadoresLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{cmGrupoBean.accionListar}" title="Refrescar" actionListener="#{cmGrupoBean.refrescarPrestadores()}" oncomplete="PF('tablaWidgetPrestadores').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelUsuariosLista" style="height:auto;" columns="1">
+                            <p:dataTable id="tablaRegistrosPrestadores" widgetVar="tablaWidgetPrestadores" var="obj" value="#{cmGrupoBean.lazyCntPrestadores}" rowKey="#{obj.id}"
+                                         rows="#{cmGrupoBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{cmGrupoBean.onRowSelecionPrestador}"/>
+                                <p:column headerText="Nombre" filterBy="#{obj.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetPrestadores').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.razonSocial}"/>
+                                </p:column>
+                                <p:column headerText="Nit" filterBy="#{obj.numeroDocumento}"  style="text-align: center;">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nit" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetPrestadores').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.numeroDocumento}"/>
+                                </p:column>  
+                            </p:dataTable>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoPrestadoresLista').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,1662 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <script type="text/javascript">
+            function mayus(e) {
+                e.value = e.value.toUpperCase();
+            }
+            ;
+        </script>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+            </style>
+            <h:form id="frmGestion">
+                <p:remoteCommand name="cerrarDialogoDiagnostico" action="#{gestionProgramaBean.cerrarDialogoDiagnostico()}"/>
+                <p:remoteCommand name="cerrarDialogoTecnologia" action="#{gestionProgramaBean.cerrarDialogoTecnologia()}"/>
+                <p:remoteCommand name="cerrarDialogoMedicamento" action="#{gestionProgramaBean.cerrarDialogoMedicamento()}"/>
+                <p:remoteCommand name="cerrarDialogoInsumo" action="#{gestionProgramaBean.cerrarDialogoInsumo()}"/>
+                <p:remoteCommand name="cerrarDialogoPaquete" action="#{gestionProgramaBean.cerrarDialogoPaquete()}"/>
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gestionProgramaBean.modulo.descripcion}">#{gestionProgramaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gestionProgramaBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{gestionProgramaBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionCrear}" title="Crear" ajax="true" actionListener="#{gestionProgramaBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>               
+
+                <p:dataTable var="obj" value="#{gestionProgramaBean.lazyProgramas}" class="listaDatos" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="250%"
+                             resizableColumns="false"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column headerText="Acciones" style="text-align: center; width: 80px;">                            
+                        <p:commandButton rendered="#{gestionProgramaBean.accionVer}" title="Ver" actionListener="#{gestionProgramaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionEditar}" title="Editar" actionListener="#{gestionProgramaBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionBorrar}" title="Borrar" action="#{gestionProgramaBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionAdicional5}" title="Gestionar Tecnologías" ajax="true"  actionListener="#{gestionProgramaBean.verTecnologias(obj)}" icon="ui-icon-calculator"/>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionAdicional7}" title="Gestionar Diagnosticos" ajax="true"  actionListener="#{gestionProgramaBean.verDiagnosticos(obj)}" icon="ui-icon-clipboard"/>
+                        <p:commandButton rendered="#{gestionProgramaBean.accionAdicional6}" title="Carga Masiva Tecnologías y Diagnosticos" ajax="true" actionListener="#{gestionProgramaBean.verCargasMasivasTecnologias(obj.id)}" icon="ui-icon-circle-arrow-n"/>
+                    </p:column>
+
+                    <p:column headerText="Id" sortBy="#{obj.id}" filterBy="#{obj.id}" style="width: 80px; text-align: center;">
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 90%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.id}" title="#{obj.id}" />
+                    </p:column>
+
+                    <p:column headerText="Agrupador" filterBy="#{obj.maeAgrupadorId}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaMaeAgrupador}" var="cate" itemLabel="#{cate.nombre}" itemValue="#{cate.id}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.agrupador}" title="#{obj.agrupador}" style="word-break: break-all;"/>
+                    </p:column>
+
+                    <p:column headerText="Código" sortBy="#{obj.codigoPrograma}" filterBy="#{obj.codigoPrograma}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.codigoPrograma}" title="#{obj.codigoPrograma}"/>
+                    </p:column>
+                    <p:column headerText="Descripción" sortBy="#{obj.descripcionPrograma}" filterBy="#{obj.descripcionPrograma}" style="width: 8rem;" >
+                        <f:facet name="filter">
+                            <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcionPrograma}" title="#{obj.descripcionPrograma}"/>
+                    </p:column>
+                    <p:column headerText="Categoria" filterBy="#{obj.maeCategoriaValor}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaProgramaCategoria}" var="cate" itemLabel="#{cate.nombre}" itemValue="#{cate.valor}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeCategoriaValor}" title="#{obj.maeCategoriaValor}"/>
+                    </p:column>
+                    <p:column headerText="Activo" filterBy="#{obj.activo}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaProgramaActivo}" var="activo" itemLabel="#{activo.nombre}" itemValue="#{activo.id}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}" title="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column headerText="Afiliados Activos" style="width: 80px;" >
+                        <h:outputText value="#{obj.cantidadAfiliados}" title="#{obj.cantidadAfiliados}"/>
+                    </p:column>
+                    <p:column headerText="Lider" sortBy="#{obj.usuariosId.nombre}" filterBy="#{obj.usuariosId.nombre}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:inputText maxlength="128" style="width: 95%;" onkeypress="
+                                    if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }" onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.usuariosId.nombre}" title="#{obj.usuariosId.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Tipo" sortBy="#{obj.tipo}" filterBy="#{obj.tipo}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaProgramaTipo}" var="tipo" itemLabel="#{tipo.nombre}" itemValue="#{tipo.valor}" />                                            
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoProgramaValor}" title="#{obj.maeTipoProgramaValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Sexo Aplica" filterBy="#{obj.sexoAplica}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaSexoAplica}" var="sexoAplica" itemValue="#{sexoAplica.id}" itemLabel="#{sexoAplica.nombre}" itemDescription="#{sexoAplica.descripcion}"/>                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{gestionProgramaBean.getSexoAplicaDescripcion(obj.sexoAplica)}" title="#{gestionProgramaBean.getSexoAplicaDescripcion(obj.sexoAplica)}"/>
+                    </p:column>
+
+                    <p:column headerText="Cantidad Registros" filterBy="#{obj.cantidadRegistro}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaCantidadRegistro}" var="cantidad" itemValue="#{cantidad.id}" itemLabel="#{cantidad.nombre}" itemDescription="#{cantidad.descripcion}"/>                                           
+                            </p:selectOneMenu>                            
+                        </f:facet>
+                        <h:outputText value="#{gestionProgramaBean.getCantidadRegistrosStr(obj.cantidadRegistro)}" title="#{gestionProgramaBean.getCantidadRegistrosStr(obj.cantidadRegistro)}"/>
+                    </p:column>
+
+                    <p:column headerText="Registro Afiliado Solicitud" filterBy="#{obj.registroAfiliadoSolicitud}" style="width: 80px;"  >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gestionProgramaBean.listaTipoRegistroAfiliado}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{gestionProgramaBean.getRegistrosAfiliados(obj.registroAfiliadoSolicitud)}" title="#{gestionProgramaBean.getRegistrosAfiliados(obj.registroAfiliadoSolicitud)}"/>
+                    </p:column>
+                    <p:column headerText="Exonerado Copago" filterBy="#{obj.exoneradoCopago}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.exoneradoCopago)}" title="#{obj.getBooleanToStr(obj.exoneradoCopago)}"/>
+                    </p:column>
+
+                    <p:column headerText="Exoneración Obligatoria" filterBy="#{obj.exonoracionObligatoria}" style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.exoneracionObligatoria)}" title="#{obj.getBooleanToStr(obj.exoneracionObligatoria)}"/>
+                    </p:column>
+
+                    <p:column headerText="Aplica Rescate" filterBy="#{obj.aplicaRescate}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.aplicaRescate)}" title="#{obj.getBooleanToStr(obj.aplicaRescate)}"/>
+                    </p:column>
+
+                    <p:column headerText="Aplica Rescate Anexo3 Ambulatorio" filterBy="#{obj.aplicaRescateAnexo3Ambulatorio}" style="width: 80px;"  >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.aplicaRescateAnexo3Ambulatorio)}" title="#{obj.getBooleanToStr(obj.aplicaRescateAnexo3Ambulatorio)}"/>
+                    </p:column>
+
+                    <p:column headerText="Aplica Rescate Anexo3 Hospitalario" filterBy="#{obj.aplicaRescateAnexo3Hospitalario}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.aplicaRescateAnexo3Hospitalario)}" title="#{obj.getBooleanToStr(obj.aplicaRescateAnexo3Hospitalario)}"/>
+                    </p:column>
+
+                    <p:column headerText="Aplica Rescate Anexo2 Urgencias" filterBy="#{obj.aplicaRescateAnexo2Urgencia}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.aplicaRescateAnexo2Urgencia)}" title="#{obj.getBooleanToStr(obj.aplicaRescateAnexo2Urgencia)}"/>
+                    </p:column>
+
+                    <p:column headerText="Aplica Recobro" filterBy="#{obj.aplicaRecobro}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.aplicaRecobro)}" title="#{obj.getBooleanToStr(obj.aplicaRecobro)}"/>
+                    </p:column>
+
+                    <p:column headerText="Direcciona" filterBy="#{obj.direcciona}"  style="width: 80px;" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 84%;" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />                                         
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getBooleanToStr(obj.direcciona)}" title="#{obj.getBooleanToStr(obj.direcciona)}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="95%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionProgramaBean.getAuditoria(gestionProgramaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVer">
+                        <p:panel id="pnlPrograma" header="Programa" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelVer" columns="4"
+                                         columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Id" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.id}" />
+
+                                <h:outputText value="Activo" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.activoStr}" />
+
+                                <h:outputText value="Código" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.codigoPrograma}" />
+
+                                <h:outputText value="Agrupador" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.maeAgrupadorValor}" title="#{gestionProgramaBean.objeto.maeAgrupadorValor}" />
+
+                                <h:outputText value="Descripción" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.descripcionPrograma}" />
+
+                                <h:outputText value="Categoria" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.maeCategoriaValor}" title="#{gestionProgramaBean.objeto.maeCategoriaValor}" />
+
+                                <h:outputText value="Tipo" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.maeTipoProgramaValor}" title="#{gestionProgramaBean.objeto.maeTipoProgramaValor}" />
+
+                                <h:outputText value="Lider de Programa" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.usuariosId.nombre}" title="#{gestionProgramaBean.objeto.usuariosId.nombre}" />
+
+                                <h:outputText value="Registro Afiliado Solicitud" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.getRegistrosAfiliados(gestionProgramaBean.objeto.registroAfiliadoSolicitud)}" title="#{gestionProgramaBean.getRegistrosAfiliados(gestionProgramaBean.objeto.registroAfiliadoSolicitud)}" />
+
+                                <h:outputText value="Registro Afiliado Hospitalización" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.getRegistrosAfiliados(gestionProgramaBean.objeto.registroAfiliadoHospitalizacion)}" title="#{gestionProgramaBean.getRegistrosAfiliados(gestionProgramaBean.objeto.registroAfiliadoHospitalizacion)}" />
+
+                                <h:outputText value="Sexo Aplica" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.getSexoAplicaDescripcion(gestionProgramaBean.objeto.sexoAplica)}" title="#{gestionProgramaBean.getSexoAplicaDescripcion(gestionProgramaBean.objeto.sexoAplica)}" />
+
+                                <h:outputText value="Cantidad Registros" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.getCantidadRegistrosStr(gestionProgramaBean.objeto.cantidadRegistro)}" title="#{gestionProgramaBean.getCantidadRegistrosStr(gestionProgramaBean.objeto.cantidadRegistro)}" />
+
+                                <h:outputText value="Aplica Rescate" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescate)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescate)}" />
+
+                                <h:outputText value="Direcciona" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.direcciona)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.direcciona)}" />
+
+                                <h:outputText value="Registro Afiliado Afiliación" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.registroAfiliadoAfiliacion)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.registroAfiliadoAfiliacion)}" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Ambulatorio" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo3Ambulatorio)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo3Ambulatorio)}" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Hospitalario" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo3Hospitalario)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo3Hospitalario)}" />
+
+                                <h:outputText value="Aplica Rescate Anexo2 Urgencias" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo2Urgencia)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRescateAnexo2Urgencia)}" />
+
+                                <h:outputText value="Aplica Recobro" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRecobro)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.aplicaRecobro)}" />
+
+                                <h:outputText value="Exonerado Copago" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.exoneradoCopago)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.exoneradoCopago)}" />
+
+                                <h:outputText value="Exoneración Obligatoria" style="font-weight:bold" class="header-back" />
+                                <h:outputText value="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.exoneracionObligatoria)}" title="#{gestionProgramaBean.objeto.getBooleanToStr(gestionProgramaBean.objeto.exoneracionObligatoria)}" />
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pnlUsuario" header="Usuarios Responsables" style="margin-bottom:10px;" class="listaDatos" toggleable="true">
+                            <p:dataTable var="objU" value="#{gestionProgramaBean.objeto.peUsuariosProgramaList}" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosU"
+                                         widgetVar="tablaWidgetU"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+                                <p:column headerText="Usuario" sortBy="#{objU.usuariosId.usuario}" filterBy="#{objU.usuariosId.usuario}" 
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetU').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objU.usuariosId.usuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" sortBy="#{objU.usuariosId.nombre}" filterBy="#{objU.usuariosId.nombre}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetU').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objU.usuariosId.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Correo Electrónico" sortBy="#{objU.usuariosId.correoElectronico}" 
+                                          filterBy="#{objU.usuariosId.correoElectronico}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Correo Electrónico" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetU').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objU.usuariosId.correoElectronico}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" sortBy="#{objU.tipoString}" filterBy="#{objU.tipoString}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tipo" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetU').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objU.maeTipoValor}"/>
+                                </p:column>
+                                <p:column headerText="Activo" sortBy="#{objU.activoString}" filterBy="#{objU.activoString}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Activo" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetU').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objU.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio" sortBy="#{objU.fechaInicio}">
+                                    <h:outputText value="#{objU.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin" sortBy="#{objU.fechaFin}">
+                                    <h:outputText value="#{objU.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>                            
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pnlIps" header="Ips" style="margin-bottom:10px;" toggleable="true">
+                            <p:dataTable var="objI" value="#{gestionProgramaBean.objeto.peIpsProgramaList}"  class="listaDatos" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosI"
+                                         widgetVar="tablaWidget"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+                                <p:column headerText="Código Sede" sortBy="#{objI.cntPrestadorSedesId.codigoHabilitacionSede}" filterBy="#{objI.cntPrestadorSedesId.codigoHabilitacionSede}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidget').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{objI.cntPrestadorSedesId.codigoHabilitacionSede}" title="#{objI.cntPrestadorSedesId.codigoHabilitacionSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Nombre" sortBy="#{objI.cntPrestadorSedesId.nombreSede}" filterBy="#{objI.cntPrestadorSedesId.nombreSede}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidget').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{objI.cntPrestadorSedesId.nombreSede}" title="#{objI.cntPrestadorSedesId.nombreSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Activo" sortBy="#{objI.activoString}" filterBy="#{objI.activoString}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Activo" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objI.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio" sortBy="#{objI.fechaInicio}">
+                                    <h:outputText value="#{objI.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin" sortBy="#{objI.fechaFin}">
+                                    <h:outputText value="#{objI.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>                            
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="95%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmCrear">                        
+                        <p:panel id="pnlPrograma" header="Programa" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelCrear" columns="4"
+                                         columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Código " style="font-weight:bold" class="header-back" />
+                                <p:inputText id="codigo" value="#{gestionProgramaBean.objeto.codigoPrograma}" maxlength="8" required="true" requiredMessage="Debe diligenciar el código programa." />
+
+                                <h:outputText value="Activo " style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objeto.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Agrupador " style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="maAgrupado" value="#{gestionProgramaBean.objeto.maeAgrupadorId}" filter="true" filterMatchMode="contains" required="false" requiredMessage="Debe seleccionar el agrupador" >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaMaeAgrupador}" var="agrupador" itemValue="#{agrupador.id}" itemLabel="#{agrupador.nombre}" itemDescription="#{agrupador.descripcion}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Descripción "  style="font-weight:bold" class="header-back" />
+                                <p:inputText id="descripcion" value="#{gestionProgramaBean.objeto.descripcionPrograma}" 
+                                             required="true" requiredMessage="Debe diligenciar la descripción del programa."
+                                             onkeyup="return mayus(this)" />
+
+                                <h:outputText value="Categoria " style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="creaCategoria" value="#{gestionProgramaBean.objeto.maeCategoriaId}" required="true" requiredMessage="Debe seleccionar la categoria del programa."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaProgramaCategoria}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Tipo "  style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="tipo" value="#{gestionProgramaBean.objeto.maeTipoProgramaId}" required="true" requiredMessage="Debe seleccionar el tipo de programa." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaProgramaTipo}" var="tipProg" itemValue="#{tipProg.id}" itemLabel="#{tipProg.nombre}" itemDescription="#{tipProg.descripcion}"/>
+                                    <p:ajax event="change" listener="#{gestionProgramaBean.actualizarValorExoneracion()}" update="blExoneradoCopago"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Lider de Programa " style="font-weight:bold" class="header-back" />
+                                <p:column>
+                                    <p:inputText id="autoUsuario" label="Lider de Programa" value="#{gestionProgramaBean.objeto.usuariosId.nombre}" required="true" requiredMessage="Debe seleccionar el lider del programa." onkeypress="return false;"  style="width: 83%;" />                                
+                                    <p:commandButton immediate="true" action="#{gestionProgramaBean.consultarUsuarios(0)}" icon="ui-icon-copy" title="Agregar Líder Programa" style="width: 3rem !important;" />
+                                </p:column>                                
+
+                                <h:outputText value="Registro Afiliado Solicitud" style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="blMarcaAuto" value="#{gestionProgramaBean.objeto.registroAfiliadoSolicitud}" required="true" requiredMessage="Debe seleccionar el tipo Registro Afiliado Solicitud."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaTipoRegistroAfiliado}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>                                                                                   
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Registro Afiliado Hospitalización" style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="blAfiliadoHospitalizacion" value="#{gestionProgramaBean.objeto.registroAfiliadoHospitalizacion}" required="true" requiredMessage="Debe seleccionar el tipo Registro Afiliado Hospitalización."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaTipoRegistroAfiliado}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>                                           
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Sexo Aplica" style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="slsexoaplica" value="#{gestionProgramaBean.objeto.sexoAplica}" required="true" requiredMessage="Debe seleccionar el sexo aplica para el programa."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaSexoAplica}" var="sexoAplica" itemValue="#{sexoAplica.id}" itemLabel="#{sexoAplica.nombre}" itemDescription="#{sexoAplica.descripcion}"/>                                           
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Cantidad Registros"  style="font-weight:bold" class="header-back" />
+                                <p:selectOneMenu id="slcantidadregistro" value="#{gestionProgramaBean.objeto.cantidadRegistro}" required="true" requiredMessage="Debe seleccionar la cantidad de registros permitidos en el programa especial."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaCantidadRegistro}" var="cantidad" itemValue="#{cantidad.id}" itemLabel="#{cantidad.nombre}" itemDescription="#{cantidad.descripcion}"/>                                           
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Aplica Rescate" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton id="blAplicaRescate" value="#{gestionProgramaBean.objeto.aplicaRescate}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Direcciona" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton id="blDirecciona" value="#{gestionProgramaBean.objeto.direcciona}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Registro Afiliado Afiliación" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.registroAfiliadoAfiliacion}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Ambulatorio" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo3Ambulatorio}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Hospitalario" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo3Hospitalario}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo2 Urgencias" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo2Urgencia}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Recobro" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRecobro}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Exonerado Copago " style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton id="blExoneradoCopago" disabled="#{gestionProgramaBean.deshabilitarExoneracion}" value="#{gestionProgramaBean.objeto.exoneradoCopago}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Exoneración Obligatoria " style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton id="blExoneracionObligatoria" disabled="#{gestionProgramaBean.deshabilitarExoneracion}" value="#{gestionProgramaBean.objeto.exoneracionObligatoria}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlUsuario" header="Usuarios Responsables" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right">
+                                <p:commandButton rendered="#{gestionProgramaBean.accionAdicional1}" title="Agregar Usuario" actionListener="#{gestionProgramaBean.crearUsuario()}" icon="pi pi-user-plus"/>
+                            </div>
+                            <br/>
+                            <p:dataTable var="objUC"  class="listaDatos"  value="#{gestionProgramaBean.objeto.peUsuariosProgramaList}" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosUC"
+                                         widgetVar="tablaWidgetUC"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+                                <p:column headerText="Usuario" sortBy="#{objUC.usuariosId.usuario}" filterBy="#{objUC.usuariosId.usuario}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="16" style="width: 95%;"  onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUC.usuariosId.usuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" sortBy="#{objUC.usuariosId.nombre}" filterBy="#{objUC.usuariosId.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="16" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetUC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUC.usuariosId.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Correo Electrónico" sortBy="#{objUC.usuariosId.correoElectronico}" filterBy="#{objUC.usuariosId.correoElectronico}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Correo" maxlength="16" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetUC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUC.usuariosId.correoElectronico}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" sortBy="#{objUC.tipo}" filterBy="#{objUC.tipo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tipo" maxlength="16" style="width: 95%;"  onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUC.tipoString}"/>
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <h:outputText value="#{objUC.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio">
+                                    <h:outputText value="#{objUC.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin">
+                                    <h:outputText value="#{objUC.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Borrar" action="#{gestionProgramaBean.quitarUsuario(objUC.usuariosId.id)}" icon="ui-icon-close" immediate="true"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="pnlIps" header="Ips" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right">
+                                <p:commandButton rendered="#{gestionProgramaBean.accionAdicional2}" title="Agregar Ips" actionListener="#{gestionProgramaBean.seleccionarIps()}" icon="ui-icon-home"/>
+                            </div>
+                            <br/>
+                            <p:dataTable var="objIC"  class="listaDatos"  value="#{gestionProgramaBean.objeto.peIpsProgramaList}" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosIC"
+                                         widgetVar="tablaWidgetIC"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+
+                                <p:column headerText="Código Sede" sortBy="#{objIC.cntPrestadorSedesId.codigoHabilitacionSede}" filterBy="#{objIC.cntPrestadorSedesId.codigoHabilitacionSede}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Prestador" maxlength="120" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetIC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIC.cntPrestadorSedesId.codigoHabilitacionSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Nombre" sortBy="#{objIC.cntPrestadorSedesId.nombreSede}" filterBy="#{objIC.cntPrestadorSedesId.nombreSede}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Prestador" maxlength="120" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetIC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIC.cntPrestadorSedesId.nombreSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Activo" sortBy="#{objIC.activoString}" filterBy="#{objIC.activoString}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Activo" maxlength="128" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetIC').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIC.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio" sortBy="#{objIC.fechaInicio}">
+                                    <h:outputText value="#{objIC.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin" sortBy="#{objIC.fechaFin}">
+                                    <h:outputText value="#{objIC.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton title="Borrar" action="#{gestionProgramaBean.quitarIps(objIC.cntPrestadorSedesId.id)}" icon="ui-icon-close" immediate="true"/>
+                                </p:column>                            
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action="#{gestionProgramaBean.guardar()}" process="@all" update="frmCrear, pnlPrograma" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrear').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="95%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gestionProgramaBean.getAuditoria(gestionProgramaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmEditarPrograma">
+                        <p:panel id="pnlPrograma" header="Programa" style="margin-bottom:10px;" toggleable="true">
+                            <p:panelGrid id="panelEditar" columns="4"
+                                         columnClasses="ui-grid-col-3,ui-grid-col-3,ui-grid-col-3,ui-grid-col-3"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                <h:outputText value="Código"   class="header-back" />
+                                <p:inputText id="codigo" value="#{gestionProgramaBean.objeto.codigoPrograma}" required="true" />
+
+                                <h:outputText value="Activo"  class="header-back" />
+                                <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objeto.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Agrupador "   class="header-back" />
+                                <p:selectOneMenu id="maAgrupadoEdt" value="#{gestionProgramaBean.objeto.maeAgrupadorId}" filter="true" filterMatchMode="contains" required="false" requiredMessage="Debe seleccionar el agrupador." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaMaeAgrupador}" var="agrupador" itemValue="#{agrupador.id}" itemLabel="#{agrupador.nombre}" itemDescription="#{agrupador.descripcion}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Descripción"   class="header-back" />
+                                <p:inputText id="descripcion" value="#{gestionProgramaBean.objeto.descripcionPrograma}" 
+                                             required="true"
+                                             onkeyup="return mayus(this)" />
+
+                                <h:outputText value="Categoria"  class="header-back" />
+                                <p:selectOneMenu id="crearCategoria" value="#{gestionProgramaBean.objeto.maeCategoriaId}" required="true" requiredMessage="Categoria: Debe seleccionar un valor." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaProgramaCategoria}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Tipo"  class="header-back" />
+                                <p:selectOneMenu id="tipo" value="#{gestionProgramaBean.objeto.maeTipoProgramaId}" required="true" requiredMessage="Debe seleccionar el tipo de programa." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaProgramaTipo}" var="tipProg" itemValue="#{tipProg.id}" itemLabel="#{tipProg.nombre}" itemDescription="#{tipProg.descripcion}"/>
+                                    <p:ajax event="change" listener="#{gestionProgramaBean.actualizarValorExoneracion()}" update="blExoneradoCopago"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Lider de Programa"  class="header-back" />
+                                <p:column>
+                                    <p:inputText id="autoUsuario" label="Lider de Programa" value="#{gestionProgramaBean.objeto.usuariosId.nombre}" required="true" requiredMessage="Debe seleccionar el lider del programa." onkeypress="return false;" />
+                                    <p:commandButton immediate="true" action="#{gestionProgramaBean.consultarUsuarios(0)}" icon="ui-icon-copy" title="Agregar Líder Programa" style="width: 3rem;"/>                                        
+                                </p:column>
+
+                                <h:outputText value="Registro Afiliado Solicitud"  class="header-back" />
+                                <p:selectOneMenu id="blMarcaAuto" value="#{gestionProgramaBean.objeto.registroAfiliadoSolicitud}"  required="true" requiredMessage="Debe seleccionar el tipo Registro Afiliado Solicitud." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaTipoRegistroAfiliado}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>                                              
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Registro Afiliado Hospitalización"   class="header-back" />
+                                <p:selectOneMenu id="blAfiliadoHospitalizacion" value="#{gestionProgramaBean.objeto.registroAfiliadoHospitalizacion}" required="true" requiredMessage="Debe seleccionar el tipo Registro Afiliado Hospitalización." >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaTipoRegistroAfiliado}" var="categoria" itemValue="#{categoria.id}" itemLabel="#{categoria.nombre}" itemDescription="#{categoria.descripcion}"/>                                            
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Sexo Aplica"  class="header-back" />
+                                <p:selectOneMenu id="slesexoaplica" value="#{gestionProgramaBean.objeto.sexoAplica}" required="true" requiredMessage="Debe seleccionar el sexo aplica para el programa."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaSexoAplica}" var="sexoAplica" itemValue="#{sexoAplica.id}" itemLabel="#{sexoAplica.nombre}" itemDescription="#{sexoAplica.descripcion}"/>                                           
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Cantidad Registros" class="header-back" />
+                                <p:selectOneMenu id="slcantidadregistro" value="#{gestionProgramaBean.objeto.cantidadRegistro}" required="true" requiredMessage="Debe seleccionar la cantidad de registros permitidos en el programa especial."  >
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{gestionProgramaBean.listaCantidadRegistro}" var="cantidad" itemValue="#{cantidad.id}" itemLabel="#{cantidad.nombre}" itemDescription="#{cantidad.descripcion}"/>                                           
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Aplica Rescate"  class="header-back" />
+                                <p:selectBooleanButton id="blAplicaRescate" value="#{gestionProgramaBean.objeto.aplicaRescate}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Direcciona"  class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.direcciona}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Registro Afiliado Afiliación"  class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.registroAfiliadoAfiliacion}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Ambulatorio"  class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo3Ambulatorio}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo3 Hospitalario"  class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo3Hospitalario}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Rescate Anexo2 Urgencias"  class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRescateAnexo2Urgencia}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                                <h:outputText value="Aplica Recobro" style="font-weight:bold" class="header-back" />
+                                <p:selectBooleanButton value="#{gestionProgramaBean.objeto.aplicaRecobro}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+                                <h:outputText value="Exonerado Copago *"  class="header-back" />
+                                <p:selectBooleanButton id="blExoneradoCopago"
+                                                       disabled="#{gestionProgramaBean.deshabilitarExoneracion}"
+                                                       value="#{gestionProgramaBean.objeto.exoneradoCopago}"
+                                                       onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"
+                                                       style="width:60px" />
+
+                                <h:outputText value="Exoneración Obligatoria *"  class="header-back" />
+                                <p:selectBooleanButton id="blExoneracionObligatoria"
+                                                       disabled="#{!gestionProgramaBean.objeto.exoneradoCopago}"
+                                                       value="#{gestionProgramaBean.objeto.exoneracionObligatoria}"
+                                                       onLabel="Si" offLabel="No"
+                                                       onIcon="ui-icon-check" offIcon="ui-icon-close"
+                                                       style="width:60px" />
+                            
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pnlUsuario" header="Usuarios Responsables" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right">
+                                <p:commandButton rendered="#{gestionProgramaBean.accionAdicional1}" title="Agregar Usuario" immediate="true" actionListener="#{gestionProgramaBean.crearUsuario()}" icon="ui-icon-plusthick"/>
+                            </div>
+                            <br/>
+                            <p:dataTable var="objUE"  class="listaDatos" value="#{gestionProgramaBean.objeto.peUsuariosProgramaList}" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosUE"
+                                         widgetVar="tablaWidgetUE"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+                                <p:column headerText="Usuario" sortBy="#{objUE.usuariosId.usuario}" filterBy="#{objUE.usuariosId.usuario}" 
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Usuario" maxlength="128" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUE').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUE.usuariosId.usuario}"/>
+                                </p:column>
+                                <p:column headerText="Nombre" sortBy="#{objUE.usuariosId.nombre}" filterBy="#{objUE.usuariosId.nombre}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUE').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUE.usuariosId.nombre}"/>
+                                </p:column>
+                                <p:column headerText="Correo Electrónico" sortBy="#{objUE.usuariosId.correoElectronico}" 
+                                          filterBy="#{objUE.usuariosId.correoElectronico}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Correo Electrónico" maxlength="128" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUE').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUE.usuariosId.correoElectronico}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" sortBy="#{objUE.tipoString}" filterBy="#{objUE.tipoString}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Tipo" maxlength="128" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUE').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUE.maeTipoValor}"/>
+                                </p:column>
+                                <p:column headerText="Activo" sortBy="#{objUE.activoString}" filterBy="#{objUE.activoString}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Activo" maxlength="128" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaWidgetUE').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objUE.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio" sortBy="#{objUE.fechaInicio}">
+                                    <h:outputText value="#{objUE.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin" sortBy="#{objUE.fechaFin}">
+                                    <h:outputText value="#{objUE.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>                                
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton action="#{gestionProgramaBean.editarUsuario(objUE)}" icon="ui-icon-pencil" title="Editar"/>
+                                    <p:commandButton rendered="#{gestionProgramaBean.accionAdicional3}" title="Borrar" action="#{gestionProgramaBean.borrarUsuario(objUE.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                            </p:confirmDialog>
+                        </p:panel>
+
+                        <p:panel id="pnlIps" header="Ips" style="margin-bottom:10px;" toggleable="true">
+                            <div align="right">
+                                <p:commandButton rendered="#{gestionProgramaBean.accionAdicional2}" title="Agregar Ips" immediate="true" actionListener="#{gestionProgramaBean.seleccionarIps()}" icon="ui-icon-home"/>
+                            </div>
+                            <br/>
+                            <p:dataTable var="objIE"  class="listaDatos" value="#{gestionProgramaBean.objeto.peIpsProgramaList}" paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistrosIE"
+                                         widgetVar="tablaEditarPrograma"
+                                         style="font-size:11px;"
+                                         scrollable="true"
+                                         rowKey="#{obj.id}" reflow="true">
+
+                                <p:column headerText="Código Sede" sortBy="#{objIE.cntPrestadorSedesId.codigoHabilitacionSede}" filterBy="#{objIE.cntPrestadorSedesId.codigoHabilitacionSede}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Prestador" maxlength="120" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaEditarPrograma').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIE.cntPrestadorSedesId.codigoHabilitacionSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Nombre" sortBy="#{objIE.cntPrestadorSedesId.nombreSede}" filterBy="#{objIE.cntPrestadorSedesId.nombreSede}"
+                                          filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Prestador" maxlength="120" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaEditarPrograma').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIE.cntPrestadorSedesId.nombreSede}"/>
+                                </p:column>
+
+                                <p:column headerText="Activo" sortBy="#{objIE.activoString}" filterBy="#{objIE.activoString}" filterMatchMode="contains" >
+                                    <f:facet name="filter">
+                                        <p:inputText label="Activo" maxlength="128" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaEditarPrograma').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objIE.activoString}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio" sortBy="#{objIE.fechaInicio}">
+                                    <h:outputText value="#{objIE.fechaInicio}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fecha Fin" sortBy="#{objIE.fechaFin}">
+                                    <h:outputText value="#{objIE.fechaFin}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton action="#{gestionProgramaBean.editarIps(objIE)}" icon="ui-icon-pencil" title="Editar" />
+                                    <p:commandButton rendered="#{gestionProgramaBean.accionAdicional4}" title="Borrar" action="#{gestionProgramaBean.borrarIps(objIE.id)}" icon="ui-icon-trash">
+                                        <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                                <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                            </p:confirmDialog>
+                        </p:panel>
+
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">                                
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true" />
+                                            <p:remoteCommand name="modificarRemote" action="#{gestionProgramaBean.modificar}" update="frmEditarPrograma, panelEditar" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditar').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Agregar usuario responsable -->
+            <p:dialog header="Agregar usuario responsable" widgetVar="dialogoCrearUsuario" appendTo="@(body)" modal="true" width="70%">
+                <h:form id="frmCrearUsuario">
+                    <p:panelGrid id="panelCrear" columns="4" layout="grid" 
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+
+                        <p:column> 
+                            <h:outputText value="Usuario responsable" style="font-weight:bold" class="header-back" />
+                        </p:column>                        
+                        <p:column>
+                            <p:inputText id="autoUsuario" label="Usuario responsable" value="#{gestionProgramaBean.objetoUsuario.usuariosId.nombre}" required="true" requiredMessage="Debe seleccionar el usuario responsable." onkeypress="return false;"  />
+                            <p:commandButton immediate="true" action="#{gestionProgramaBean.consultarUsuarios(1)}" icon="ui-icon-copy" title="Agregar Usuario Responsable" style="width: 3rem ;" />                                        
+                        </p:column>                        
+
+                        <h:outputText value="Tipo"  class="header-back" />
+                        <p:selectOneMenu id="tipo" value="#{gestionProgramaBean.objetoUsuario.tipo}" required="true">
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{gestionProgramaBean.listaUsuarioResponsableTipo}" var="responsable" itemLabel="#{responsable.nombre}" itemValue="#{responsable.valor}" />                                            
+                        </p:selectOneMenu>
+
+                        <h:outputText value="Activo" class="header-back" />
+                        <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objetoUsuario.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                        <h:outputText value="Fecha Inicio"  class="header-back" />
+                        <p:calendar id="fechaInicio"
+                                    autocomplete="off"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    maxlength="10"
+                                    value="#{gestionProgramaBean.objetoUsuario.fechaInicio}"
+                                    required="true">
+                            <p:ajax event="dateSelect" update="fechaFin" />
+                        </p:calendar>
+
+                        <h:outputText value="Fecha fin" class="header-back" />
+                        <p:calendar id="fechaFin"
+                                    autocomplete="off"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    maxlength="10"
+                                    value="#{gestionProgramaBean.objetoUsuario.fechaFin}"
+                                    mindate="#{gestionProgramaBean.objetoUsuario.fechaInicio}"
+                                    required="true"/>
+
+                    </p:panelGrid>
+
+                    <p:panelGrid style="width: 100%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Agregar" type="button" onclick="agregarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="agregarRemote" action="#{gestionProgramaBean.agregarUsuario()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrearUsuario').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+
+                </h:form>
+            </p:dialog>
+
+            <!-- Agregar Ips -->
+            <p:dialog header="Agregar Ips" widgetVar="dialogoCrearIps" appendTo="@(body)" modal="true" width="40%" >
+                <h:form id="frmCrearIps">
+                    <p:panelGrid id="panelCrear" columns="2" layout="grid" 
+                                 columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+
+                        <h:outputText value="Ips"  class="header-back" />
+                        <h:outputText id="autoIps" value="#{gestionProgramaBean.objetoIps.cntPrestadorSedesId.nombreSede}"/>
+
+                        <h:outputText value="Activo" class="header-back" />
+                        <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objetoIps.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                        <h:outputText value="Fecha Inicio" class="header-back" />
+                        <p:calendar id="fechaInicio"
+                                    autocomplete="off"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    size="30"
+                                    maxlength="10"
+                                    value="#{gestionProgramaBean.objetoIps.fechaInicio}"
+                                    required="true">
+                            <p:ajax event="dateSelect" update="fechaFin" />
+                        </p:calendar>
+
+                        <h:outputText value="Fecha fin" class="header-back" />
+                        <p:calendar id="fechaFin"
+                                    autocomplete="off"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    size="30"
+                                    maxlength="10"
+                                    value="#{gestionProgramaBean.objetoIps.fechaFin}"
+                                    mindate="#{gestionProgramaBean.objetoIps.fechaInicio}"
+                                    required="true"/>
+
+                    </p:panelGrid>
+
+                    <p:panelGrid style="width: 100%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Agregar" type="button" onclick="agregarSedeRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="agregarSedeRemote" action="#{gestionProgramaBean.agregarIps()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoCrearIps').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Editar usuario responsable -->
+            <p:dialog header="Editar usuario responsable" widgetVar="dialogoEditarUsuario" appendTo="@(body)" position="center" width="50%" modal="true">
+                <h:form id="frmEditarUsuario">
+                    <p:panelGrid id="panelEditarUsuario" columns="2" layout="grid" 
+                                 columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+
+                        <h:outputText value="Usuario responsable"  class="header-back" />
+                        <h:outputText value="#{gestionProgramaBean.objetoUsuario.usuariosId.nombre}" />
+
+                        <h:outputText value="Tipo" class="header-back" />
+                        <p:selectOneMenu id="tipo" value="#{gestionProgramaBean.objetoUsuario.tipo}" required="true">
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="Coordinador" itemValue="1" />
+                            <f:selectItem itemLabel="Analista" itemValue="2" />
+                            <f:selectItem itemLabel="Auxiliar" itemValue="3" />
+                            <f:selectItem itemLabel="Practicante" itemValue="4" />
+                        </p:selectOneMenu>
+
+                        <h:outputText value="Activo" class="header-back" />
+                        <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objetoUsuario.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                        <h:outputText value="Fecha Inicio"  class="header-back" />
+                        <p:calendar id="fechaInicio"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    value="#{gestionProgramaBean.objetoUsuario.fechaInicio}"
+                                    required="true">
+                            <p:ajax event="dateSelect" update="fechaFin" />
+                        </p:calendar>
+
+                        <h:outputText value="Fecha fin" class="header-back" />
+                        <p:calendar id="fechaFin"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    value="#{gestionProgramaBean.objetoUsuario.fechaFin}"
+                                    mindate="#{gestionProgramaBean.objetoUsuario.fechaInicio}"
+                                    required="true">
+                        </p:calendar>
+                    </p:panelGrid>
+
+                    <p:panelGrid style="width: 100%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarUsuarioRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarUsuarioRemote" action="#{gestionProgramaBean.modificarUsuario()}" update="panelEditarUsuario"/>
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditarUsuario').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <!-- Editar Ips -->
+            <p:dialog header="Editar Ips" widgetVar="dialogoEditarIps" appendTo="@(body)" position="center" width="40%" modal="true" >
+                <h:form id="frmEditarIps">
+                    <p:panelGrid id="panelCrear" columns="2" layout="grid" 
+                                 columnClasses="ui-grid-col-3,ui-grid-col-9"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+
+                        <h:outputText value="Ips"  class="header-back"/>
+                        <h:outputText value="#{gestionProgramaBean.objetoIps.cntPrestadorSedesId.nombreSede}"/>
+
+                        <h:outputText value="Activo"   class="header-back"/>
+                        <p:selectBooleanButton id="blActivo" value="#{gestionProgramaBean.objetoIps.activo}" onLabel="Si" offLabel="No"  onIcon="ui-icon-check" offIcon="ui-icon-close" style="width:60px" />
+
+                        <h:outputText value="Fecha Inicio"  class="header-back"/>
+                        <p:calendar id="fechaInicio"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    value="#{gestionProgramaBean.objetoIps.fechaInicio}"
+                                    required="true">
+                            <p:ajax event="dateSelect" update="fechaFin" />
+                        </p:calendar>
+
+                        <h:outputText value="Fecha fin"  class="header-back"/>
+                        <p:calendar id="fechaFin"
+                                    navigator="true"
+                                    pattern="yyyy-MM-dd"
+                                    value="#{gestionProgramaBean.objetoIps.fechaFin}"
+                                    mindate="#{gestionProgramaBean.objetoIps.fechaInicio}"
+                                    required="true">
+                        </p:calendar>
+
+                    </p:panelGrid>
+
+                    <p:panelGrid style="width: 100%;">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarSRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarSRemote" action="#{gestionProgramaBean.modificarIps()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditarIps').hide()" immediate="true"/>
+                                    </h:panelGroup>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+
+                </h:form>
+            </p:dialog>
+
+            <!-- Dialogo ver gestion tecnologias -->
+            <p:dialog header="Gestionar Tecnologías RIAS" class="elDialogo" widgetVar="dialogoVerTecnologias" appendTo="@(body)"  modal="true" style="max-width: 90%; height: auto;" dynamic="true">
+                <p:scrollPanel mode="native" class="scrolPanel" style="height:450px; padding-bottom: 0px !important;">
+                    <h:form id="frmListarTecnologias" >
+                        <!-- Tecnologias -->
+                        <p:toolbar>
+                            <f:facet name="left" >
+                                <span title="Tecnologías">Tecnologías</span>
+                            </f:facet>
+                            <f:facet name="right">
+                                <p:commandButton  immediate="true" icon="ui-icon-clipboard" action="#{gestionProgramaBean.consultarProcedimiento()}"  title="Agregar Procedimiento"/>
+                                <p:commandButton  immediate="true" icon="ui-icon-heart" action="#{gestionProgramaBean.consultarMedicamento()}"  title="Agregar Medicamento"/>
+                                <p:commandButton  immediate="true" icon="ui-icon-tag" action="#{gestionProgramaBean.consultarInsumo()}"  title="Agregar Insumo"/>
+                                <p:commandButton  immediate="true" icon="ui-icon-cart" action="#{gestionProgramaBean.consultarPaquete()}"  title="Agregar Paquete"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable id="tablaTecnologiasCrear" var="tecnologiasCrear" value="#{gestionProgramaBean.lazyProgramaTecnologias}" 
+                                     paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" lazy="true"
+                                     widgetVar="tablaTecnologiasCrear" 
+                                     emptyMessage="No se encontraron registros" 
+                                     style="text-align: center; font-size:11px; padding-bottom: 0px !important;" >
+                            <p:column headerText="Programa">
+                                <h:outputText value="#{gestionProgramaBean.objeto.descripcionPrograma}" />
+                            </p:column>
+                            <p:column headerText="Tipo tecnología" filterBy="#{tecnologiasCrear.tipoTecnologia}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaTecnologiasCrear').filter()" style="width: 80%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{gestionProgramaBean.listaTipoTecnologia}" var="tipotec" itemLabel="#{tipotec.nombre}" itemValue="#{tipotec.id}" />                                            
+                                    </p:selectOneMenu>
+                                </f:facet>
+
+                                <h:outputText value="#{gestionProgramaBean.obtenerTipoTencnologia(tecnologiasCrear.tipoTecnologia)}" />
+                            </p:column>   
+                            <p:column headerText="Código tecnología" filterBy="#{tecnologiasCrear.maTecnologiaCodigo}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaTecnologiasCrear').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{tecnologiasCrear.maTecnologiaCodigo}" title="#{tecnologiasCrear.maTecnologiaCodigo}"/>
+                            </p:column>
+                            <p:column headerText="Descripción">
+                                <h:outputText value="#{tecnologiasCrear.maTecnologiaValor}" />
+                            </p:column>  
+                            <p:column headerText="Marcación automática">
+                                <p:selectBooleanCheckbox id="principalDiangosticoCrear" label="Marcación automática" value="#{tecnologiasCrear.marcaAutomatico}">
+                                    <p:ajax event="change" listener="#{gestionProgramaBean.cambiarPeProgramaTecnologia(tecnologiasCrear)}" update="tablaTecnologiasCrear:principalDiangosticoCrear"/>
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column headerText="Direcciona">
+                                <p:selectBooleanCheckbox id="itemTecnoDirecciona"  label="Direcciona" value="#{tecnologiasCrear.direcciona}">
+                                    <p:ajax event="change" listener="#{gestionProgramaBean.cambiarPeProgramaTecnologia(tecnologiasCrear)}" update="tablaTecnologiasCrear:itemTecnoDirecciona"/>
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column headerText="Acciones" style="text-align: center">
+                                <p:commandButton title="Borrar" immediate="true" action="#{gestionProgramaBean.borrarTecnologia(tecnologiasCrear.id)}" icon="ui-icon-closethick">
+                                    <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar el registro?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                                <p:commandButton id="audGestion" class="btnAuditoria" action="#{gestionProgramaBean.auditoriaTecnologiaPrograma(tecnologiasCrear)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:column>
+                        </p:dataTable>
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerTecnologias').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>  
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo ver gestion diagnosticos -->
+            <p:dialog header="Gestionar Diagnosticos RIAS" class="elDialogo"  widgetVar="dialogoVerDiagnostico" appendTo="@(body)" modal="true" width="95%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmListarDiagnosticos">                        
+                        <!--Diagnostico-->
+                        <p:panel id="pDiagnosticoCrear" header="Diagnostico" style="margin-bottom:10px;" collapsed="false" toggleable="false">
+                            <div align="right"> 
+                                <p:commandButton immediate="true" action="#{gestionProgramaBean.consultarDiagnostico()}" icon="ui-icon-clipboard" title="Agregar Diagnostico"/>
+                            </div>                            
+                            <p:dataTable id="tablaDiagnosticosCrear" var="diagnosticoCrear" value="#{gestionProgramaBean.lazyProgramaDiagnostico}" 
+                                         paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" lazy="true"
+                                         widgetVar="tablaDiagnosticosCrear" resizableColumns="false" 
+                                         emptyMessage="No se encontraron registros" style="text-align: center; font-size:11px;" >
+                                <p:column headerText="Código" filterBy="#{diagnosticoCrear.maDiagnosticoCodigo}" >
+                                    <f:facet name="filter">
+                                        <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                                if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }" onchange="PF('tablaDiagnosticosCrear').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{diagnosticoCrear.maDiagnosticoCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{diagnosticoCrear.maDiagnosticoValor}" />
+                                </p:column>
+
+                                <p:column headerText="Marcación automática">
+                                    <p:selectBooleanCheckbox id="principalDiangCrear" label="Marcación automática" value="#{diagnosticoCrear.marcaAutomatico}">
+                                        <p:ajax event="change" listener="#{gestionProgramaBean.modificarPeProgramaDiagnostico(diagnosticoCrear)}" update="tablaDiagnosticosCrear:principalDiangCrear"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+
+                                <p:column headerText="Direcciona">
+                                    <p:selectBooleanCheckbox id="itenDiagDirecciona"  label="Direcciona" value="#{diagnosticoCrear.direcciona}">
+                                        <p:ajax event="change" listener="#{gestionProgramaBean.modificarPeProgramaDiagnostico(diagnosticoCrear)}" update="tablaDiagnosticosCrear:itenDiagDirecciona"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+
+                                <p:column headerText="Aplica Rescate">
+                                    <p:selectBooleanCheckbox id="itenDiagapliRescate"  label="Aplica Rescate" value="#{diagnosticoCrear.aplicaRescate}">
+                                        <p:ajax event="change" listener="#{gestionProgramaBean.modificarPeProgramaDiagnostico(diagnosticoCrear)}" update="tablaDiagnosticosCrear:itenDiagapliRescate"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Borrar" immediate="true" action="#{gestionProgramaBean.borrarDiagnostico(diagnosticoCrear.id)}" icon="ui-icon-closethick">
+                                        <p:confirm header="Confirmación" message="¿Está seguro que desea eliminar el registro?" icon="ui-icon-alert" />
+                                    </p:commandButton>
+                                    <p:commandButton id="audGestion" class="btnAuditoria" action="#{gestionProgramaBean.auditoriaDiagnosticoPrograma(diagnosticoCrear)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>   
+
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerDiagnostico').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>                   
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo ver carga masiva tecnologias -->
+            <p:dialog header="Carga Masiva Diagnósticos y Tecnologías" widgetVar="dialogoVerCargaMasiva" appendTo="@(body)"  modal="true" style="max-width: 90%; height: auto;" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmListarCargaMasiva">
+                        <p:toolbar>
+                            <f:facet name="right">
+                                <p:commandButton title="Refrescar" ajax="true" actionListener="#{gestionProgramaBean.listarCargasMasivas()}" icon="ui-icon-refresh"/>
+                                <p:commandButton title="Crear Adjunto" ajax="true" actionListener="#{gestionProgramaBean.crearAdjuntoCargaMasiva}" icon="ui-icon-circle-arrow-n"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable id="tablaCargasTecnologias" var="obj" class="listaDatos" value="#{gestionProgramaBean.lazyCargaMasiva}" 
+                                     paginator="true" rows="#{gestionProgramaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="5,10,30,50,100" lazy="true"
+                                     widgetVar="tablaCargasTecnologias"
+                                     style="font-size:11px; text-align: center"
+                                     scrollable="true"
+                                     resizableColumns="false"
+                                     rowKey="#{obj.id}" reflow="true">
+
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton icon="ui-icon-arrowstop-1-s"
+                                                 rendered="#{gestionProgramaBean.accionAdicional6 and obj.estado == 2}"
+                                                 title="Descargar archivo original" 
+                                                 action="#{gestionProgramaBean.generarArchivoCarga(obj.id)}" 
+                                                 ajax="false" 
+                                                 process="@this"/>
+
+                                <p:commandButton icon="pi pi-cloud-download"
+                                                 rendered="#{gestionProgramaBean.accionAdicional6 and ( obj.estado == 2 or obj.estado == 3 )}"
+                                                 title="Descargar resultados" 
+                                                 action="#{gestionProgramaBean.generarArchivoResultados(obj.id)}" 
+                                                 ajax="false" 
+                                                 process="@this"/>
+
+                            </p:column>
+
+                            <p:column headerText="Id Carga" sortBy="#{obj.id}" filterBy="#{obj.id}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="64" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaCargasTecnologias').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                            </p:column>
+
+                            <p:column headerText="Tipo">
+                                <f:facet name="filter">                                    
+                                    <p:selectOneMenu onchange="PF('tablaCargasTecnologias').filter()" style="width: 84%;" >
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{gestionProgramaBean.listaTipoCarga}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" itemDescription="#{tipo.descripcion}"/>                                         
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{gestionProgramaBean.getTipoCarga(obj.tipo)}" title="#{gestionProgramaBean.getTipoCarga(obj.tipo)}"/>
+                            </p:column>
+
+                            <p:column headerText="Nombre Archivo" sortBy="#{obj.archivo}" filterBy="#{obj.archivo}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Archivo" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaCargasTecnologias').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{obj.archivo}" title="#{obj.archivo}"/>
+                            </p:column>
+
+                            <p:column headerText="Estado del Proceso" sortBy="#{obj.estado}" filterBy="#{obj.estado}">
+                                <f:facet name="filter">
+                                    <p:selectOneMenu   editable="false" style="margin-right: 10px; width: 90%;" onchange="PF('tablaCargasTecnologias').filter()">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItems value="#{gestionProgramaBean.listaEstadoCarga}" var="estCarga" itemValue="#{estCarga.id}" itemLabel="#{estCarga.nombre}" itemDescription="#{estCarga.descripcion}" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{gestionProgramaBean.getEstado(obj.estado)}" title="#{gestionProgramaBean.getEstado(obj.estado)}"/>
+                            </p:column> 
+                            <!-- nuevos campos -->
+                            <p:column headerText="Registros" sortBy="#{obj.registros}">
+                                <h:outputText value="#{obj.registros}" title="#{obj.registros}"/> de 
+                                <h:outputText value="#{obj.registrosPendientes}" title="#{obj.registrosPendientes}"/>
+                            </p:column>
+                            <p:column headerText="Exitosos" sortBy="#{obj.exitosos}">
+                                <h:outputText value="#{obj.exitosos}" title="#{obj.exitosos}"/>
+                            </p:column>
+                            <p:column headerText="Fallidos" sortBy="#{obj.fallidos}">
+                                <h:outputText value="#{obj.fallidos}" title="#{obj.fallidos}"/>
+                            </p:column>
+
+                            <p:column headerText="Inicio" sortBy="#{obj.fechaHoraInicio}">
+                                <h:outputText value="#{obj.fechaHoraInicio}" title="#{obj.fechaHoraInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Fin" sortBy="#{obj.fechaHoraFin}">
+                                <h:outputText value="#{obj.fechaHoraFin}" title="#{obj.fechaHoraFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Usuario responsable" sortBy="#{obj.usuarioCrea}" filterBy="#{obj.usuarioCrea}">
+                                <f:facet name="filter">
+                                    <p:inputText label="Usuario responsable" maxlength="128" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }"  onchange="PF('tablaCargasTecnologias').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                            </p:column>
+                        </p:dataTable> 
+                    </h:form>                   
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo adjuntar carga masiva -->
+            <p:dialog header="Crear Adjunto" widgetVar="dialogoCrearAdjunto" appendTo="@(body)" position="center" width="45%" modal="true" style="max-height:40%;">
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmCrearAdjunto" >
+                        <p:panelGrid id="panelCrearAdjunto" columns="2" layout="grid" 
+                                     columnClasses="ui-grid-col-4,ui-grid-col-8"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <h:outputText value="Tipo Carga"  class="header-back" />
+                            <p:selectOneMenu id="vltipocarga" value="#{gestionProgramaBean.objetoCarga.tipo}" filter="true" 
+                                             filterMatchMode="contains"   >
+                                <f:selectItem itemLabel=" -- " itemValue="0" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Tecnologías" itemValue="1"  />
+                                <f:selectItem itemLabel="Diagnósticos" itemValue="2" />
+                                <p:ajax event="change" update="vltipocarga"/>
+                            </p:selectOneMenu>
+
+                        </p:panelGrid>
+                        <p:panelGrid style="width: 100%;">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4">
+                                        <p:fileUpload id="cargarDocumento"  label="Agregar Documento" uploadLabel="Cargar" cancelLabel="Cancelar"
+                                                      fileLimitMessage="Máximo número de archivos excedido, los permitidos son: 1" 
+                                                      invalidFileMessage="Tipo inválido de archivo"
+                                                      listener="#{gestionProgramaBean.cargarAdjunto}" mode="advanced" dragDropSupport="false"
+                                                      required="true" requiredMessage="Se debe agregar un Documento." 
+                                                      sizeLimit="10000000" fileLimit="1" allowTypes="/(\.|\/)(txt)$/" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo listar ips -->
+            <p:dialog header="Consultar Ips" widgetVar="dialogoIpsLista" appendTo="@(body)" modal="true" style="max-width: 90%; height: auto;" dynamic="true">
+                <p:scrollPanel class="pnlScrol" mode="native" style="height: 450px; margin-bottom: 0em !important;" >
+                    <h:form id="frmIpsLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{gestionProgramaBean.accionListar}" title="Refrescar" actionListener="#{gestionProgramaBean.refrescarIps()}" oncomplete="PF('tablaWidgetIps').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelIpsLista" style="height:auto;" columns="1">
+
+                            <p:dataTable id="tablaRegistrosIps" widgetVar="tablaWidgetIps" var="objPrestador" value="#{gestionProgramaBean.lazyIps}" rowKey="#{objPrestador.id}"
+                                         rows="#{gestionProgramaBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{gestionProgramaBean.onRowSelectIps}"/>
+                                <p:column headerText="Código Habilitación" filterBy="#{objPrestador.codigoHabilitacionSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Habilitación" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Documento" filterBy="#{objPrestador.cntPrestador.maeTipoDocumentoId}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{gestionProgramaBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Número Documento" filterBy="#{objPrestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Número Documento" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón Social" filterBy="#{objPrestador.cntPrestador.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Razón Social" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.razonSocial}"/>
+                                </p:column>                                    
+                                <p:column headerText="Nombre Sede" filterBy="#{objPrestador.nombreSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre Sede" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Departamento">
+                                    <h:outputText value="#{gestionProgramaBean.obtenerDepartamento(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Municipio" filterBy="#{objPrestador.ubicacion.id}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{gestionProgramaBean.listaCiudades}" var="tipoUbi" itemValue="#{tipoUbi.id}" itemLabel="#{tipoUbi.descripcion}" itemDescription="#{tipoUbi.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{gestionProgramaBean.obtenerMunicipio(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Dirección" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Dialogo listar usuarios -->
+            <p:dialog header="Consultar Usuarios" widgetVar="dialogoUsuariosLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <p:scrollPanel mode="native" style="max-height: 500px; padding-bottom: 0px !important;" >
+                    <h:form id="frmUsuariosLista">
+                        <div align="right">
+                            <p:commandButton rendered="#{gestionProgramaBean.accionListar}" title="Refrescar" actionListener="#{gestionProgramaBean.refrescarUsuarios()}" oncomplete="PF('tablaWidgetUsuarios').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelUsuariosLista" style="height:auto;" columns="1">
+
+                            <p:dataTable id="tablaRegistrosUsuarios" widgetVar="tablaWidgetUsuarios" var="obj" value="#{gestionProgramaBean.lazyUsuarios}" rowKey="#{obj.id}"
+                                         rows="#{gestionProgramaBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{gestionProgramaBean.onRowSelectUsuario}"/>
+                                <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetUsuarios').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombre}"/>
+                                </p:column>
+
+                            </p:dataTable>
+
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <ui:include src="../maestro/seleccion/sel_diagnosticos.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_medicamentos.xhtml" />
+            <ui:include src="../maestro/seleccion/sel_insumos.xhtml" /> 
+            <ui:include src="../maestro/seleccion/sel_paquetes.xhtml" /> 
+            <ui:include src="../maestro/seleccion/sel_tecnologias.xhtml" />
+
+        </center>
+    </ui:define>
+</ui:composition>

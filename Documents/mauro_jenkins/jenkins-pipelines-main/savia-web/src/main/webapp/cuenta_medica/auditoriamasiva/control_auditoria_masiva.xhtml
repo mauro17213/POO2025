@@ -1,0 +1,489 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red  .ui-row-editor, .green .ui-row-editor{
+                display: none;
+            }
+            .red_circle{color:red;}
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+        </style>
+        <center>
+
+            <h:form id="frmControlCargaMasiva">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmControlAuditoriaMasivaBean.modulo.descripcion}">#{cmControlAuditoriaMasivaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">              
+                        <p:commandButton title="Refrescar" ajax="false" actionListener="#{cmControlAuditoriaMasivaBean.refrescar()}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>        
+            </h:form>
+
+            <p:panel id="panelConsultarCargasMaivas" header="Consulta Cargas Masivas Auditoría" style="margin-bottom:10px;">
+                <h:form id="frmConsultaCargasMasivas">
+                    <p:dataTable var="obj" value="#{cmControlAuditoriaMasivaBean.lazyCmAuditoriaMasiva}" paginator="true" rows="15" 
+                                 emptyMessage="No se encontraron registros"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="15,30,50,100" id="tablaRegistros" lazy="true"
+                                 widgetVar="tablaWidget"
+                                 scrollable="true"
+                                 scrollWidth="130%"
+                                 style="font-size:11px;"
+                                 rowKey="#{obj.id}" reflow="true">
+
+                        <p:column style="text-align: center;">
+                            <f:facet name="header">
+                                <h:outputText value="Acciones"/>
+                            </f:facet> 
+                            <p:commandButton  title="Ver WsFacturas" actionListener="#{cmControlAuditoriaMasivaBean.verSincronizaciones(obj)}" icon="ui-icon-search"/>
+
+                            <p:commandButton rendered="#{cmControlAuditoriaMasivaBean.hayFacturasPendientes(obj)}"  title="Generar Reporte Errores" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-calculator">
+                                <p:fileDownload value="#{cmControlAuditoriaMasivaBean.generarReporteErrores(obj)}" />
+                            </p:commandButton>  
+
+                        </p:column>
+
+                        <p:column headerText="Id Carga Masiva" sortBy="#{obj.id}" filterBy="#{obj.id}">   
+                            <f:facet name="filter">
+                                <p:inputText label="Id Carga Masiva" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                        </p:column>
+
+                        <p:column headerText="Estado" sortBy="#{obj.estadoProceso}" filterBy="#{obj.estadoProceso}" width="80">
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="En proceso" itemValue="0" />
+                                    <f:selectItem itemLabel="Registrada Sincronizada" itemValue="1" />
+                                    <f:selectItem itemLabel="Registrada Sin Sincronización(Capita o Pgp)" itemValue="2" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{obj.estadoProcesoStr}"/>
+                            <i class="#{cmControlAuditoriaMasivaBean.asignarStyleSegunEstado(obj)}"/>
+                        </p:column>     
+
+                        <p:column headerText="Nit" sortBy="#{obj.nit}" filterBy="#{obj.nit}" width="60">   
+                            <f:facet name="filter">
+                                <p:inputText label="Nit" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                        </p:column>
+
+                        <p:column headerText="Ips" sortBy="#{obj.ips}" filterBy="#{obj.ips}" width="120">   
+                            <f:facet name="filter">
+                                <p:inputText label="Ips" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                        </p:column>
+
+                        <p:column headerText="Número CmRadicado" >
+                            <h:outputText value="#{obj.cmRadicado}" title="#{obj.cmRadicado}"/>
+                        </p:column>
+
+                        <p:column headerText="Facturas contenidas" sortBy="#{obj.cantidadFacturas}" style="text-align: center;">
+                            <h:outputText value="#{obj.cantidadFacturas}" title="#{obj.cantidadFacturas}"/>
+                        </p:column>
+
+                        <p:column headerText="Cierres Registrados Exitosamente" style="text-align: center;">
+                            <h:outputText value="#{obj.cantidadFacturasRegistradas}" title="#{obj.cantidadFacturasRegistradas}"/>
+                        </p:column>
+
+                        <p:column headerText="Estado Facturas" width="100">
+                            <h:outputText value="#{obj.descripcionFacturasSincronizadas}" title="#{obj.descripcionFacturasSincronizadas}"/>
+                        </p:column>
+
+                        <p:column headerText="Usuario Crea" sortBy="#{obj.usuarioCrea}" width="100">
+                            <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                        </p:column>
+
+                        <p:column headerText="Fecha Creación" sortBy="#{obj.fechaHoraCrea}">                        
+                            <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                        </p:column>
+
+                        <p:column headerText="Fecha Fin Procesamiento" sortBy="#{obj.horaFinalizacionRegistro}">                        
+                            <h:outputText value="#{obj.horaFinalizacionRegistro}" title="#{obj.horaFinalizacionRegistro}"/>
+                        </p:column>  
+
+                        <p:column headerText="Suma Valor Facturado" width="100"  style="text-align: center;">                        
+                            <h:outputText value="#{obj.sumaValorFacturado}" title="#{obj.sumaValorFacturado}">
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Suma Valor Copago" width="100"  style="text-align: center;">                        
+                            <h:outputText value="#{obj.sumaValorCopago}" title="#{obj.sumaValorCopago}">
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Suma Valor Bruto" width="100"  style="text-align: center;">                        
+                            <h:outputText value="#{obj.sumaValorBruto}" title="#{obj.sumaValorBruto}">
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </h:outputText>
+                        </p:column>   
+
+                        <p:column headerText="Valor Glosado" width="100"  style="text-align: center;">                        
+                            <h:outputText value="#{obj.valorGlosado}" title="#{obj.valorGlosado}">
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </h:outputText>
+                        </p:column>   
+
+                    </p:dataTable>
+                </h:form>
+            </p:panel>
+
+
+            <p:dialog header="Ver Sincronización Encabezado" id="dialogoVerSincronizacionEncabezado" widgetVar="dialogoVerSincronizacionEncabezado" appendTo="@(body)" modal="true"  width="100%" dynamic="true">
+                <p:ajax event="open" oncomplete="PF('tablaWidgetSincronizacionEncabezado').filter();" form="frmVerSincronizacionEncabezado"/>     
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerSincronizacionEncabezado">
+                        <p:panel id="pSincronizacionEncabezado" header="Encabezados" style="margin-bottom:10px;"> 
+                            <p:dataTable var="obj" value="#{cmControlAuditoriaMasivaBean.lazySincEncabezado}" 
+                                         paginator="true"
+                                         rows="50"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         emptyMessage="No se encontraron registros"
+                                         rowsPerPageTemplate="50,100,200,200" 
+                                         id="tablaRegistrosEncabezado" 
+                                         lazy="true"
+                                         widgetVar="tablaWidgetSincronizacionEncabezado"
+                                         scrollable="true"
+                                         scrollWidth="99%"
+                                         editable="true"
+                                         reflow="true"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}">
+
+                                <p:column style="text-align: center;">
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet> 
+                                    <p:commandButton title="Ver Cuentas Contables " actionListener="#{cmControlAuditoriaMasivaBean.verSincronizacionDetalles(obj.id)}" icon="ui-icon-search"/>
+                                </p:column>
+
+                                <p:column headerText="Id Radicado">   
+                                    <h:outputText value="#{obj.cmRadicadosId.id}" title="#{obj.cmRadicadosId.id}"/>
+                                </p:column>
+
+                                <p:column headerText="Id Sincronización" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+
+                                <p:column headerText="Estado" sortBy="#{obj.estado}" filterBy="#{obj.estado}">    
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetSincronizacionEncabezado').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="En proceso" itemValue="0" />
+                                            <f:selectItem itemLabel="Sin conceptos contables" itemValue="2" />
+                                            <f:selectItem itemLabel="Sin valores EPS" itemValue="3" />
+                                            <f:selectItem itemLabel="Finalizado" itemValue="1" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                                </p:column>
+
+                                <p:column headerText="Número Documento" sortBy="#{obj.numeroDocumento}">
+                                    <h:outputText value="#{obj.numeroDocumento}" title="#{obj.numeroDocumento}"/>
+                                </p:column>
+
+                                <p:column headerText="Número Radicado" sortBy="#{obj.numeroRadicado}">
+                                    <h:outputText value="#{obj.numeroRadicado}" title="#{obj.numeroRadicado}"/>
+                                </p:column>
+
+                                <p:column headerText="Régimen" sortBy="#{obj.regimen}" filterBy="#{obj.regimen}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetSincronizacionEncabezado').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="SUBSIDIADO" itemValue="SUBSIDIADO" />
+                                            <f:selectItem itemLabel="CONTRIBUTIVO" itemValue="CONTRIBUTIVO" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.regimen}" title="#{obj.regimen}"/>
+                                </p:column>
+
+                                <p:column headerText="Valor" sortBy="#{obj.valorDocumento}">
+                                    <h:outputText value="#{obj.valorDocumento}" title="#{obj.valorDocumento}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="Usuario Crea" sortBy="#{obj.usuarioCrea}">
+                                    <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                                </p:column>
+
+                            </p:dataTable>
+                            <p:panelGrid style="width:100%;margin:10px 0px">
+                                <f:facet name="footer">
+                                    <p:row>
+                                        <p:column colspan="4" style="text-align: center">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerSincronizacionEncabezado').hide()" immediate="true"/>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </p:panel>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver Cuentas Contables" id="dialogoVerCuentasContables" widgetVar="dialogoVerCuentasContables" appendTo="@(body)" modal="true"  width="100%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerCuentasContables">
+                        <p:panel id="pCuentasContables" header="Cuentas Contables" style="margin-bottom:10px;"> 
+                            <p:dataTable var="obj" value="#{cmControlAuditoriaMasivaBean.lazySincDetalle}" 
+                                         paginator="true"
+                                         rows="50"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         emptyMessage="No se encontraron registros"
+                                         rowsPerPageTemplate="50,100,200,200" 
+                                         id="tablaCuentasContables" 
+                                         lazy="true"
+                                         widgetVar="tablaWidgetCuentasContables"
+                                         scrollable="true"
+                                         scrollWidth="99%"
+                                         editable="true"
+                                         reflow="true"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}">
+
+                                <p:column headerText="Id Encabezado">            
+                                    <h:outputText value="#{obj.cmSincronizacionEncabezadosId.id}" title="#{obj.cmSincronizacionEncabezadosId.id}"/>
+                                </p:column>
+
+                                <p:column headerText="Tipo Cuenta">            
+                                    <h:outputText value="#{obj.tipologiaStr}" title="#{obj.tipologiaStr}"/>
+                                </p:column>
+
+                                <p:column headerText="Código Municipio" sortBy="#{obj.codigoMunicipio}">   
+                                    <h:outputText value="#{obj.codigoMunicipio}" title="#{obj.codigoMunicipio}"/>
+                                </p:column>
+
+                                <p:column headerText="Concepto Contable" sortBy="#{obj.conceptoContable}">
+                                    <h:outputText value="#{obj.conceptoContable}" title="#{obj.conceptoContable}"/>
+                                </p:column>
+
+                                <p:column headerText="Valor Operación" sortBy="#{obj.valorOperacion}">
+                                    <h:outputText value="#{obj.valorOperacion}" title="#{obj.valorOperacion}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column headerText="Usuario Crea" sortBy="#{obj.usuarioCrea}">
+                                    <h:outputText value="#{obj.usuarioCrea}" title="#{obj.usuarioCrea}"/>
+                                </p:column>
+
+                                <p:column headerText="Fecha Hora Crea" sortBy="#{obj.fechaHoraCrea}">
+                                    <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                                </p:column>
+
+                            </p:dataTable>
+                            <p:panelGrid style="width:100%;margin:10px 0px">
+                                <f:facet name="footer">
+                                    <p:row>
+                                        <p:column colspan="4" style="text-align: center">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerCuentasContables').hide()" immediate="true"/>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </p:panel>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <p:dialog header="Ver Ws Facturas" widgetVar="dialogoVerWsFacturas" id="dialogoVerWsFacturas" appendTo="@(body)" position="center" width="80%" modal="true" style="max-height:80%;">
+                <p:scrollPanel mode="native" style="height:400px">                     
+                    <h:form id="frmVerWsFacturas">
+                        <p:dataTable var="wsfacturas" value="#{cmControlAuditoriaMasivaBean.lazyWsCmFacturas}" 
+                                     paginator="true" rows="#{cmControlAuditoriaMasivaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetWsFactura"
+                                     id="tablaWsFacturas" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{wsfacturas.id}" reflow="true">
+
+                            <p:column width="80" style="text-align: center;" exportable="false">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>
+                                <p:commandButton title="Ver Transaccion Detalles" actionListener="#{cmControlAuditoriaMasivaBean.verWsCmFacturaDetalles(wsfacturas.id)}" icon="ui-icon-search"/>
+                            </p:column>
+                            <p:column headerText="Ws Factura Id" sortBy="#{wsfacturas.id}">
+                                <h:outputText value="#{wsfacturas.id}" title="#{wsfacturas.id}"/>
+                            </p:column>
+                            <p:column headerText="Estado Ws Factura" sortBy="#{wsfacturas.estado}" filterBy="#{wsfacturas.estado}" >
+                                <f:facet name="filter">
+                                    <p:selectOneMenu onchange="PF('tablaWidgetWsFactura').filter()" style="width: 70%;">
+                                        <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                        <f:selectItem itemLabel="En Creacion" itemValue="1" />
+                                        <f:selectItem itemLabel="Creada" itemValue="2" />
+                                        <f:selectItem itemLabel="Exitoso" itemValue="3" />
+                                        <f:selectItem itemLabel="Reintento" itemValue="4" />
+                                        <f:selectItem itemLabel="Reconstruccion" itemValue="5" />
+                                        <f:selectItem itemLabel="Sin Valores Eps" itemValue="6" />
+                                    </p:selectOneMenu>
+                                </f:facet>
+                                <h:outputText value="#{wsfacturas.estadoStr}" title="#{wsfacturas.estadoStr}"/>
+                            </p:column>
+                            <p:column headerText="Contrato" sortBy="#{wsfacturas.contrato}">
+                                <h:outputText value="#{wsfacturas.contrato}" title="#{wsfacturas.contrato}"/>
+                            </p:column>
+                            <p:column headerText="Proveedor" sortBy="#{wsfacturas.proveedorNit}">
+                                <h:outputText value="#{wsfacturas.proveedorNit}" title="#{wsfacturas.proveedorNit}"/>
+                            </p:column>
+                            <p:column headerText="Número Facturado" sortBy="#{wsfacturas.numeroDocumento}"  filterBy="#{wsfacturas.numeroDocumento}">
+                                <f:facet name="filter">
+                                    <p:inputText maxlength="32" style="width: 95%;" onkeypress="
+                                            if (event.keyCode === 13) {
+                                                onchange();
+                                                return false;
+                                            }" onchange="PF('tablaWidgetWsFactura').filter()" />
+                                </f:facet>
+                                <h:outputText value="#{wsfacturas.numeroDocumento}" title="#{wsfacturas.numeroDocumento}"/>
+                            </p:column>
+                            <p:column headerText="Régimen" sortBy="#{wsfacturas.regimen}">
+                                <h:outputText value="#{wsfacturas.regimen}" title="#{wsfacturas.regimen}"/>
+                            </p:column>  
+                            <p:column headerText="Valor Documento" sortBy="#{wsfacturas.valorDocumento}">
+                                <h:outputText value="#{wsfacturas.valorDocumento}" title="#{wsfacturas.valorDocumento}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Pagado" sortBy="#{wsfacturas.valorPagado}">
+                                <h:outputText value="#{wsfacturas.valorPagado}" title="#{wsfacturas.valorPagado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Glosado" sortBy="#{wsfacturas.valorGlosado}">
+                                <h:outputText value="#{wsfacturas.valorGlosado}" title="#{wsfacturas.valorGlosado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Valor Copago" sortBy="#{wsfacturas.valorCopago}">
+                                <h:outputText value="#{wsfacturas.valorCopago}" title="#{wsfacturas.valorCopago}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Cuota Moderadora" sortBy="#{wsfacturas.cuotaModeradora}">
+                                <h:outputText value="#{wsfacturas.cuotaModeradora}" title="#{wsfacturas.cuotaModeradora}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Usuario Crea">
+                                <h:outputText value="#{wsfacturas.usuarioCrea}" title="#{wsfacturas.usuarioCrea}"/>
+                            </p:column>
+                            <p:column headerText="Fecha Hora Crea" sortBy="#{wsfacturas.fechaHoraCrea}">
+                                <h:outputText value="#{wsfacturas.fechaHoraCrea}" title="#{wsfacturas.fechaHoraCrea}"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerWsFacturas').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Ver WsFactura Detalles" widgetVar="dialogoVerWsFacturaDetalles" id="dialogoVerWsFacturaDetalles" appendTo="@(body)" width="70%" modal="true" style="max-height:70%;">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmVerWsFacturaDetalles">
+                        <p:dataTable var="wsfacturaDetalles" value="#{cmControlAuditoriaMasivaBean.lazyWsCmFacturaDetalles}" 
+                                     paginator="true" rows="#{cmControlAuditoriaMasivaBean.tamanoPagina}" 
+                                     emptyMessage="No se encontraron registros"
+                                     currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                     rowsPerPageTemplate="30,50,100,200" lazy="true"
+                                     widgetVar="tablaWidgetWsFacturaDetalles"
+                                     id="tablaWsFacturaDetalles" 
+                                     rowIndexVar="rowIndex"
+                                     style="font-size:12px;"
+                                     rowKey="#{wsfacturas.id}" reflow="true">                          
+
+                            <p:column headerText="Tipología" sortBy="#{wsfacturaDetalles.tipologiaStr}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.tipologiaStr}" title="#{wsfacturaDetalles.tipologiaStr}"/>
+                            </p:column>
+                            <p:column headerText="Código Municipio" sortBy="#{wsfacturaDetalles.codigoMunicipio}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.codigoMunicipio}" title="#{wsfacturaDetalles.codigoMunicipio}"/>
+                            </p:column>
+                            <p:column headerText="Concepto Contable" sortBy="#{wsfacturaDetalles.conceptoContable}" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.conceptoContable}" title="#{wsfacturaDetalles.conceptoContable}"/>
+                            </p:column>
+                            <p:column headerText="Valor Operación" style="text-align: center;">
+                                <h:outputText value="#{wsfacturaDetalles.valorOperacion}" title="#{wsfacturas.valorOperacion}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Usuario Crea">
+                                <h:outputText value="#{wsfacturaDetalles.usuarioCrea}" title="#{wsfacturaDetalles.usuarioCrea}"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerWsFacturaDetalles').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>        
+        </center>
+    </ui:define>
+</ui:composition>

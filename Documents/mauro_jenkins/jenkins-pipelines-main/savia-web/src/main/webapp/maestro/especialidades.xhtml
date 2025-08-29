@@ -1,0 +1,205 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>			 
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+
+            </style>
+
+            <script type="text/javascript">
+                //<![CDATA[ 
+                function noPuntuacion(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key != 44 && key != 46 && key != 59)
+                }
+                ;
+                function soloNumeros(e) {
+                    var key = window.Event ? e.which : e.keyCode
+                    return (key >= 48 && key <= 57)
+                }
+                ;
+                //]]>
+            </script>
+            <h:form id="frmEspecialidades">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{especialidadesBean.modulo.descripcion}">#{especialidadesBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{especialidadesBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{especialidadesBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{especialidadesBean.accionCrear}" title="Crear" ajax="false" actionListener="#{especialidadesBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{especialidadesBean.lazyEspecialidades}" paginator="true" rows="#{especialidadesBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{especialidadesBean.accionVer}" title="Detalle Afiliado" actionListener="#{especialidadesBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{especialidadesBean.accionEditar}" title="Realizar Novedad" actionListener="#{especialidadesBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{especialidadesBean.accionBorrar}" title="Borrar" action="#{especialidadesBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:column headerText="Código" sortBy="#{obj.codigo}" filterBy="#{obj.codigo}">
+                        <f:facet name="filter">
+                            <p:inputText label="Código" maxlength="16" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.codigo}" title="#{obj.codigo}"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="256" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}" title="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Descripción" sortBy="#{obj.descripcion}" filterBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="1024" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcion}" title="#{obj.descripcion}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Pantalla Ver -->
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true" >
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{especialidadesBean.getAuditoria(especialidadesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelInsumos" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Código" style="font-weight:bold"/>
+                            <p:outputLabel value="#{especialidadesBean.objeto.codigo}" />
+
+                            <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            <p:outputLabel value="#{especialidadesBean.objeto.nombre}" />
+
+                            <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            <p:outputLabel value="#{especialidadesBean.objeto.descripcion}" />
+
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true" />
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Crear -->
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true" >
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form id="frmCrear">
+                        <p:panelGrid id="panelCrear" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Código" for="codigo" style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{especialidadesBean.objeto.codigo}" maxlength="16" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" label="Nombre" value="#{especialidadesBean.objeto.nombre}" maxlength="256" required="true" requiredMessage="Nombre: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                            <p:inputTextarea id="descripcion" label="Descripción" value="#{especialidadesBean.objeto.descripcion}" maxlength="1024" required="true" requiredMessage="Descripción: Este campo es obligatorio."/>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelCrear2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="guardarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{especialidadesBean.guardar()}" update="panelCrear,panelCrear2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Pantalla Editar -->
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" position="center" width="60%" modal="true" responsive="true" >
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form class="frmAuditoria" style="text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{especialidadesBean.getAuditoria(especialidadesBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmEditar">
+                        <p:panelGrid id="panelEditar" columns="2" layout="grid" styleClass="showcase-text-align-center" >
+
+                            <p:outputLabel value="Código" for="codigo"   style="font-weight:bold"/>
+                            <p:inputText id="codigo" label="Código" value="#{especialidadesBean.objeto.codigo}" maxlength="16" required="true" requiredMessage="Código: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Nombre" for="nombre"   style="font-weight:bold"/>
+                            <p:inputTextarea id="nombre" label="Nombre" value="#{especialidadesBean.objeto.nombre}" maxlength="256" required="true" requiredMessage="Nombre: Este campo es obligatorio."/>
+
+                            <p:outputLabel value="Descripción" for="descripcion"   style="font-weight:bold"/>
+                            <p:inputTextarea id="descripcion" label="Descripción" value="#{especialidadesBean.objeto.descripcion}" maxlength="1024" required="true" requiredMessage="Descripción: Este campo es obligatorio."/>
+
+                        </p:panelGrid>
+                        <p:panelGrid id="panelEditar2" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton onclick="modificarRemote()" type="button" value="Guardar" validateClient="true"/>
+                                            <p:remoteCommand name="modificarRemote" action ="#{especialidadesBean.modificar()}" update="panelEditar,panelEditar2"/>
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

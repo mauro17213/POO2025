@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/administracion.css"/>  
+        <center>
+            <h:form id="frmAlertas">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gnAlertaBean.modulo.descripcion}">#{gnAlertaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gnAlertaBean.accionListar}" title="Refrescar" class="btn-icono" ajax="false" actionListener="#{gnAlertaBean.refrescar()}" icon="pi pi-refresh"/>
+                        <p:commandButton rendered="#{gnAlertaBean.accionCrear}" title="Crear"  class="btn-icono" actionListener="#{gnAlertaBean.crear()}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gnAlertaBean.lazyAlertas}" paginator="true" rows="#{gnAlertaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gnAlertaBean.accionVer}" title="Ver" class="btn-icono"  actionListener="#{gnAlertaBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{gnAlertaBean.accionEditar}" title="Editar" class="btn-icono"  actionListener="#{gnAlertaBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{gnAlertaBean.accionBorrar}" title="Borrar" class="btn-icono" action="#{gnAlertaBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" class="btn-icono"  icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Severidad" filterBy="#{obj.severidad}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Mensaje " itemValue="1" />
+                                <f:selectItem itemLabel=" Advertencia " itemValue="2" />
+                                <f:selectItem itemLabel=" Falla " itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.severidadStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Estado" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel=" Generado " itemValue="1" />
+                                <f:selectItem itemLabel=" Leido " itemValue="2" />
+                                <f:selectItem itemLabel=" Descarta " itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha Crea" sortBy="#{obj.fechaHoraCrea}">
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Lee" sortBy="#{obj.fechaHoraLee}">
+                        <h:outputText value="#{obj.fechaHoraLee}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Fecha Descarta" sortBy="#{obj.fechaHoraDescarta}">
+                        <h:outputText value="#{obj.fechaHoraDescarta}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota" />
+                        </h:outputText>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" >
+                    <p:commandButton value="Si" type="button" class="btn-icono" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:6%"/>
+                    <p:commandButton value="No" type="button" class="btn-icono"  styleClass="ui-confirmdialog-no"  icon="pi pi-times" style="left:6%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Ver -->
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height: 90%">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gnAlertaBean.getAuditoria(gnAlertaBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVer">
+                    <!-- Informacion Grupo -->
+                    <p:panelGrid id="panelVer">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel  value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.nombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel  value="Descripción" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputTextarea label="Descripción" value="#{gnAlertaBean.objeto.descripcion}" cols="150" rows="4" maxlength="512" readonly="true" />
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel  value="Usuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.gnUsuarioId.usuarioNombre}"/>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel  value="Estado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.estadoStr}" />
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Severidad" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.severidadStr}" />
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel  value="F.H. Lee" style="font-weight:bold"/> 
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.fechaHoraLee}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="F.H. Descarte" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="#{gnAlertaBean.objeto.fechaHoraDescarta}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row style="align-items: center">
+                                <p:column >
+                                    <p:commandButton value="Salir" class="btn-icono"  type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="width: auto"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Crear -->
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:230px">
+                    <h:form id="frmCrear">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pCrear" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelCrear">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreCrear"   label="Nombre" value="#{gnAlertaBean.objeto.nombre}" maxlength="32" required="true" requiredMessage="Nombre : Este campo es obligatorio" style="width: 90%"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionCrear" label="Descripción" value="#{gnAlertaBean.objeto.descripcion}" cols="150" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" style="width: 90%"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Severidad" for="severidadCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="severidadCrear" label="Severidad" value="#{gnAlertaBean.objeto.severidad}" required="true" requiredMessage="Severidad: Este campo es obligatorio." style="width: 90%">                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Mensaje " itemValue="1" />
+                                            <f:selectItem itemLabel=" Advertencia " itemValue="2" />
+                                            <f:selectItem itemLabel=" Fallo " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Usuario" for="usuarioCrea" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="usuarioCrea" label="Estado" value="#{gnAlertaBean.objeto.gnUsuarioId.id}" required="true" requiredMessage="Usuario: Este campo es obligatorio." style="width: 90%"  filter="true" >                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{gnAlertaBean.listaUsuarios}" var="usu" itemValue="#{usu.id}" itemLabel="#{usu.usuarioNombre}" itemDescription="#{usu.usuario}" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" class="btn-icono" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{gnAlertaBean.guardar}" update="frmCrear"/>
+                                        <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Editar -->
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <h:form class="frmAuditoria" style="margin-top: -0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{gnAlertaBean.getAuditoria(gnAlertaBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height:300px">
+                    <h:form id="frmEditar">
+                        <!-- Informacion Grupo -->
+                        <p:panel id="pEditar" header="Datos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelEditar" >
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre" for="nombreEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreEditar" label="Nombre" value="#{gnAlertaBean.objeto.nombre}"   maxlength="32" required="true" requiredMessage="Nombre : Este campo es obligatorio" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" for="descripcionEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputTextarea id="descripcionEditar" label="Descripción" value="#{gnAlertaBean.objeto.descripcion}" cols="150" rows="4" maxlength="512" required="true" requiredMessage="Descripción : Este campo es obligatorio" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Usuario" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnAlertaBean.objeto.gnUsuarioId.usuarioNombre}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Estado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnAlertaBean.objeto.estadoStr}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Severidad" for="severidadEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="severidadEditar" label="Severidad" value="#{gnAlertaBean.objeto.severidad}" required="true" requiredMessage="Severidad: Este campo es obligatorio."  >                                    
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel=" Mensaje " itemValue="1" />
+                                            <f:selectItem itemLabel=" Advertencia " itemValue="2" />
+                                            <f:selectItem itemLabel=" Fallo " itemValue="3" />
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="F.H. Lee" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnAlertaBean.objeto.fechaHoraLee}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="F.H. Descarte" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{gnAlertaBean.objeto.fechaHoraDescarta}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                </p:row>
+
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesEditar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Modificar" class="btn-icono"  type="button" onclick="modificarRemoto()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemoto" action ="#{gnAlertaBean.modificar}" update="frmEditar"/>
+                                        <p:commandButton value="Cancelar" class="btn-icono"  type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

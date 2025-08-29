@@ -1,0 +1,253 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/uigeneral.css"/>  
+        <center>
+            <h:form id="frmRols">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{rolBean.modulo.descripcion}">#{rolBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{rolBean.accionListar}" title="Refrescar" class="btn-icono"  ajax="false" actionListener="#{rolBean.refrescar}" icon="pi pi-sync"/>
+                        <p:commandButton rendered="#{rolBean.accionCrear}" title="Crear" class="btn-icono"  actionListener="#{rolBean.crear}" icon="pi pi-file"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{rolBean.lazyRol}" rowKey="#{obj.id}"
+                             rows="#{rolBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="16" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Descripción" sortBy="#{obj.descripcion}" filterBy="#{obj.descripcion}">
+                        <f:facet name="filter">
+                            <p:inputText label="Descripción" maxlength="128" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.descripcion}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" filterBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="true" />
+                                <f:selectItem itemLabel="NO" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column headerText="Perfiles" filterBy="#{obj.rolesPerfilesList}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" filter="true" filterMatchMode="contains" >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{rolBean.perfilesList}" var="perf" itemValue="#{perf.id}"  itemLabel="#{perf.nombre}" itemDescription="#{perf.descripcion}"/>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:dataList value="#{obj.rolesPerfilesList}" var="rolper" type="ordered">
+                            #{rolper.perfiles.nombre}
+                        </p:dataList>
+                    </p:column>
+
+                    <p:column headerText="F.H. Crea" sortBy="#{obj.fechaHoraCrea}">                        
+                        <h:outputText value="#{obj.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{rolBean.accionVer}" title="Ver" class="btn-icono"  actionListener="#{rolBean.ver(obj.id)}" icon="pi pi-search"/>
+                        <p:commandButton rendered="#{rolBean.accionEditar}" title="Editar" class="btn-icono"  actionListener="#{rolBean.editar(obj.id)}" icon="pi pi-pencil"/>
+                        <p:commandButton rendered="#{rolBean.accionAdicional1}" title="Restaurar Contraseña" class="btn-icono"  action="#{rolBean.restaurarContrasena(obj.id)}" icon="pi pi-unlocked">
+                            <p:confirm header="Confirmación" message="Está seguro que desea restaurar la contraseña para este usuario?" class="btn-icono"  icon="pi pi-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{rolBean.accionBorrar}" title="Borrar" class="btn-icono"   action="#{rolBean.borrar(obj.id)}" icon="pi pi-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="pi pi-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" class="btn-icono"   type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" style="left:25%"/>
+                    <p:commandButton value="No" class="btn-icono"   type="button" styleClass="ui-confirmdialog-no" icon="pi pi-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true" width="60%" style="max-height: 50%;"> 
+                <p:scrollPanel mode="native" style="height: 157px;">
+                   <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                        <p:commandButton id="auditoria" class="btnAuditoria" action="#{rolBean.getAuditoria(rolBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                    </h:form>
+                    <h:form id="frmVer">
+                        <p:panelGrid id="panelVer">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{rolBean.objeto.nombre}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{rolBean.objeto.activoStr}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{rolBean.objeto.descripcion}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Perfiles" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:dataList value="#{rolBean.objeto.rolesPerfilesList}" var="perf" type="ordered">
+                                        #{perf.perfiles.nombre}
+                                    </p:dataList>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" class="btn-icono"   type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="90%">
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{rolBean.objeto.nombre}"   maxlength="16" required="true">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{rolBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold" />
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="descripcion" label="Descripción" value="#{rolBean.objeto.descripcion}"   maxlength="128" required="true" style="width: 90%"></p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Perfiles" for="perfiles" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectCheckboxMenu  id="perfiles" value="#{rolBean.selectedPerfiles}" label="Perfiles"
+                                                       filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                    <f:selectItems value="#{rolBean.perfilesList}" var="perf" itemValue="#{perf.id}"  itemLabel="#{perf.nombre}" itemDescription="#{perf.descripcion}"/>
+                                </p:selectCheckboxMenu>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" class="btn-icono"  type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{rolBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="90%">
+                <h:form class="frmAuditoria" style="margin-top: 0px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{rolBean.getAuditoria(rolBean.objeto.auditoriaStrHTML)}" icon="pi pi-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Nombre" for="nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="nombre" label="Nombre" value="#{rolBean.objeto.nombre}"   maxlength="16" required="true"></p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectOneRadio id="activo" value="#{rolBean.objeto.activo}">
+                                    <f:selectItem itemLabel="Si" itemValue="true" />
+                                    <f:selectItem itemLabel="No" itemValue="false" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Descripción" for="descripcion" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:inputText id="descripcion" label="Descripción" value="#{rolBean.objeto.descripcion}" maxlength="128" required="true" style="width: 90%">
+                                </p:inputText>
+                            </p:column>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Perfiles" for="perfiles" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-4">
+                                <p:selectCheckboxMenu   id="perfiles" value="#{rolBean.selectedPerfiles}" label="Perfiles" 
+                                                        filter="true" filterMatchMode="contains" panelStyle="width:250px" converter="javax.faces.Integer">
+                                    <f:selectItems value="#{rolBean.perfilesList}" var="perf" itemValue="#{perf.id}"  itemLabel="#{perf.nombre}" itemDescription="#{perf.descripcion}"   />
+                                </p:selectCheckboxMenu>
+                            </p:column>
+                        </p:row> 
+                    </p:panelGrid>
+
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" class="btn-icono"   type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{rolBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" class="btn-icono"   type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

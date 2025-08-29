@@ -1,0 +1,671 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red  .ui-row-editor, .green .ui-row-editor{
+                display: none;
+            }
+            .vd-hidden-column {
+                display: none;
+                width: 0;
+                height: 0;
+            }
+
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+
+        </style>
+        <center>
+
+            <h:form id="frmAuditoriaEvento">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmAuditoriaLiderFacturaBean.modulo.descripcion}">#{cmAuditoriaLiderFacturaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton value="Asignar Facturas" process="@form" action="#{cmAuditoriaLiderFacturaBean.verAsignarMasivo( )}" rendered="#{cmAuditoriaLiderFacturaBean.accionAdicional1}" icon="ui-icon-disk"/>
+
+                        <p:commandButton title="Refrescar" ajax="false" actionListener="#{cmAuditoriaLiderFacturaBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <h:commandLink class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" title="Descargar">
+                            <p:commandButton icon="ui-icon-arrowthickstop-1-s"/>
+                            <p:dataExporter type="csv"
+                                            target="frmConsultaAuditoriaEvento:tablaRegistros" fileName="conexiones-reasignacion" pageOnly="true" />
+                        </h:commandLink>
+                    </f:facet>
+                </p:toolbar>        
+            </h:form>
+
+            <p:panel id="panelConsultaConcilicionMasivaConciliacion" header="Facturas para asignar" style="margin-bottom:10px;">
+                <h:form id="frmConsultaAuditoriaEvento">
+                    <p:dataTable var="obj" value="#{cmAuditoriaLiderFacturaBean.lazyCmAuditoriaFactuar}" paginator="true" rows="#{cmAuditoriaLiderFacturaBean.tamanoPagina}" 
+                                 emptyMessage="No se encontraron registros, por favor verifique que este existan facturas a auditar o este registrado en grupos de auditoría"
+                                 currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 rowsPerPageTemplate="30,50,100" id="tablaRegistros" lazy="true"
+                                 selection="#{cmAuditoriaLiderFacturaBean.registrosFacturaSelected}"
+                                 disabledSelection="#{!cmAuditoriaLiderFacturaBean.verificarEsReasignable(obj)}"
+                                 widgetVar="tablaWidget"
+                                 scrollable="true"
+                                 scrollWidth="130%"
+                                 style="font-size:11px;"
+                                 rowKey="#{obj.id}" reflow="true">
+
+                        <p:column width="40"  selectionMode="multiple"  style="text-align: center;" rendered="#{cmAuditoriaLiderFacturaBean.accionAdicional1}" exportable="false"/>
+                        <p:ajax event="toggleSelect" listener="#{cmAuditoriaLiderFacturaBean.procesarFacturasSeleccionadas}" />
+                        <p:ajax event="rowSelectCheckbox" listener="#{cmAuditoriaLiderFacturaBean.selectCheckbox}"/>
+                        <p:ajax event="rowUnselectCheckbox" listener="#{cmAuditoriaLiderFacturaBean.unSelectCheckbox}" />
+                        <p:ajax event="rowSelect" listener="#{cmAuditoriaLiderFacturaBean.onRowSelect}"  />
+                        <p:ajax event="rowUnselect" listener="#{cmAuditoriaLiderFacturaBean.onRowUnselect}" /> 
+
+                        <p:column style="text-align: center;" exportable="false">
+                            <f:facet name="header">
+                                <h:outputText value="Acciones"/>
+                            </f:facet>    
+                            <p:commandButton title="Ver Factura" actionListener="#{cmAuditoriaLiderFacturaBean.verFactura(obj.id)}" icon="ui-icon-search"/>
+                            <p:commandButton title="Asignación Individual" actionListener="#{cmAuditoriaLiderFacturaBean.verAsignarIndividual(obj)}" rendered="#{cmAuditoriaLiderFacturaBean.accionAdicional1 and cmAuditoriaLiderFacturaBean.verificarEsReasignable(obj)}" icon="ui-icon-disk"/>
+                        </p:column>
+
+                        <p:column headerText="Grupo Id" sortBy="#{obj.cmGrupo.id}" width="50"  style="text-align: center;">
+                            <h:outputText value="#{obj.cmGrupo.id}" title="#{obj.cmGrupo.id}"/>
+                        </p:column>
+                       
+                        <p:column headerText="Nombre Grupo"  style="text-align: left;">
+                            <h:outputText value="#{obj.cmGrupo.nombre}" title="#{obj.cmGrupo.nombre}"/>
+                        </p:column>
+
+                        <p:column headerText="Tipo auditoría" sortBy="#{obj.tipoAuditoria}" filterBy="#{obj.tipoAuditoria}">   
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Sin auditoría" itemValue="0"/>
+                                    <f:selectItem itemLabel="Pertinencia técnica" itemValue="1" />
+                                    <f:selectItem itemLabel="Pertinencia médica" itemValue="2" />
+                                    <f:selectItem itemLabel="Devolucion técnica" itemValue="3" />
+                                    <f:selectItem itemLabel="Devolucion médica" itemValue="4" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{obj.tipoAuditoriaStr}" title="#{obj.tipoAuditoriaStr}"/>
+                        </p:column>
+
+                        <p:column headerText="Estado factura" sortBy="#{obj.estadoFactura}" filterBy="#{obj.estadoFactura}"
+                                  exportable="false">          
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Radicado" itemValue="0"/>
+                                    <f:selectItem itemLabel="Radicado - Espera SAP (M1)" itemValue="10"/>
+                                    <f:selectItem itemLabel="En Auditoría" itemValue="1"/>
+                                    <f:selectItem itemLabel="Devuelta" itemValue="5" />
+                                    <f:selectItem itemLabel="Devuelta - Espera SAP (DEV)" itemValue="6" />
+                                    <f:selectItem itemLabel="Auditada - Espera SAP (M2)" itemValue="7" />
+                                </p:selectOneMenu>
+                            </f:facet>     
+                            <h:outputText value="#{obj.estadoFacturaStr}" title="#{obj.estadoFacturaStr}"/>
+                            <div style="#{cmAuditoriaLiderFacturaBean.asignarIndicadorVisualEstadoFactura(obj.estadoFactura)}" ></div>
+                        </p:column>
+
+                        <p:column headerText="Estado factura" sortBy="#{obj.estadoFactura}" styleClass="vd-hidden-column">                        
+                            <h:outputText value="#{obj.estadoFacturaStr}" title="#{obj.estadoFacturaStr}"/>
+                        </p:column>
+
+                        <p:column headerText="Modalidad contrato" sortBy="#{obj.maeTipoContratoCodigo}" filterBy="#{obj.maeTipoContratoCodigo}">          
+                            <f:facet name="filter">
+                                <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItem itemLabel="Capita" itemValue="01"/>
+                                    <f:selectItem itemLabel="Covid" itemValue="05" />
+                                    <f:selectItem itemLabel="Evento" itemValue="02" />
+                                    <f:selectItem itemLabel="Pago Global Prospectivo" itemValue="03" />
+                                    <f:selectItem itemLabel="Paquetes" itemValue="04" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{obj.maeTipoContratoValor}"/>
+                        </p:column>
+
+                        <p:column headerText="Número radicado" sortBy="#{obj.numeroRadicado}" filterBy="#{obj.numeroRadicado}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:inputText label="Número radicado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.numeroRadicado}" title="#{obj.numeroRadicado}"/>
+                        </p:column>
+
+                        <p:column headerText="Nit" sortBy="#{obj.nit}" filterBy="#{obj.nit}">
+                            <f:facet name="filter">
+                                <p:inputText label="Nit" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                        </p:column>
+
+                        <p:column headerText="IPS" sortBy="#{obj.ips}" filterBy="#{obj.ips}">
+                            <f:facet name="filter">
+                                <p:inputText label="IPS" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                        </p:column>
+
+                        <p:column headerText="Número facturado" sortBy="#{obj.numeroFacturado}" filterBy="#{obj.numeroFacturado}" style="text-align: center;">
+                            <f:facet name="filter">
+                                <p:inputText label="Número facturado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.numeroFacturado}" title="#{obj.numeroFacturado}"/>
+                        </p:column>
+
+                        <p:column headerText="Fecha radicación" sortBy="#{obj.fechaRadicacion}">                        
+                            <h:outputText value="#{obj.fechaRadicacion}" title="#{obj.fechaRadicacion}"/>
+                        </p:column>
+
+                        <p:column headerText="Valor factura" sortBy="#{obj.valorFactura}" filterBy="#{obj.valorFactura}" style="width: 80px;">    
+                            <f:facet name="filter">
+                                <p:inputText label="Valor factura" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.valorFactura}" title="#{obj.valorFactura}">
+                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                            </h:outputText>
+                        </p:column> 
+
+                        <p:column headerText="Líder" sortBy="#{obj.usuarioLider}" filterBy="#{obj.usuarioLider}">    
+                            <f:facet name="filter">
+                                <p:inputText label="Líder" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.usuarioLider.nombre}" title="#{obj.usuarioLider.nombre}"/>
+                        </p:column> 
+
+
+                        <p:column headerText="Técnico" sortBy="#{obj.usuarioTecnico}" filterBy="#{obj.usuarioTecnico}">    
+                            <f:facet name="filter">
+                                <p:inputText label="Técnico" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.usuarioTecnico.nombre}" title="#{obj.usuarioTecnico.nombre}"/>
+                        </p:column> 
+
+                        <p:column headerText="Fecha Asignación Técnico" sortBy="#{obj.fechaAsignacionTecnico}">    
+                            <h:outputText value="#{obj.fechaAsignacionTecnico}" title="#{obj.fechaAsignacionTecnico}"/>
+                        </p:column> 
+
+                        <p:column headerText="Médico" sortBy="#{obj.usuarioMedico}" filterBy="#{obj.usuarioMedico}">    
+                            <f:facet name="filter">
+                                <p:inputText label="Médico" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                            onchange();
+                                            return false;
+                                        }"  onchange="PF('tablaWidget').filter()" />
+                            </f:facet>
+                            <h:outputText value="#{obj.usuarioMedico.nombre}" title="#{obj.usuarioMedico.nombre}"/>
+                        </p:column> 
+
+                        <p:column headerText="Fecha Asignación Médico" sortBy="#{obj.fechaAsignacionMedico}">    
+                            <h:outputText value="#{obj.fechaAsignacionMedico}" title="#{obj.fechaAsignacionMedico}"/>
+                        </p:column> 
+
+                    </p:dataTable>
+                </h:form>
+            </p:panel>
+
+            <p:dialog widgetVar="dialogoVer" header="Ver Factura" appendTo="@(body)" responsive="true" modal="true" width="90%" style="max-height:90%;">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVer">
+                        <p:panel id="panelVerFactura" header="Factura" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Ver Factura"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmAuditoriaLiderFacturaBean.getAuditoria(cmAuditoriaLiderFacturaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosFactura" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+                               
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>
+                                                               
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Regional" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.regional}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Responsable del pago" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.responsablePago}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmAuditoriaLiderFacturaBean.objeto.valorFactura}" title="#{cmAuditoriaLiderFacturaBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                          
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmAuditoriaLiderFacturaBean.objeto.valorCopago}" title="#{cmAuditoriaLiderFacturaBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmAuditoriaLiderFacturaBean.objeto.valorBruto}" title="#{cmAuditoriaLiderFacturaBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                                            
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmAuditoriaLiderFacturaBean.objeto.numeroContrato}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmAuditoriaLiderFacturaBean.objeto.pbs ? 'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+                               
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelVer" header="Servicios" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="obj" value="#{cmAuditoriaLiderFacturaBean.lazyCmAuditoriaDetalles}" paginator="true" rows="#{cmAuditoriaLiderFacturaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaDetalles" lazy="true"
+                                         widgetVar="tablaWidgetDetalles"
+                                         style="font-size:11px;"
+                                         rowKey="#{obj.id}" >
+                                <p:column  headerText="Id descripción" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Código servicio" sortBy="#{obj.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Códigio servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.maServicioCodigo}" title="#{obj.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{obj.maServicioValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombreServicioCorto}" title="#{obj.maServicioValor}"/>
+                                    <p:commandButton rendered="#{obj.nombreServicioCorto.length() > 0 }" actionListener="#{cmAuditoriaLiderFacturaBean.mostrarMensaje(obj.maServicioValor)}" icon="ui-icon-comment" title="#{obj.maServicioValor}"/> 
+                                </p:column>
+                                <p:column  headerText="Tipo documento" sortBy="#{obj.maeTipoDocumentoValor}">
+                                    <h:outputText value="#{obj.maeTipoDocumentoValor}" title="#{obj.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column  headerText="Documento afiliado" sortBy="#{obj.documento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{obj.nombreCompletoAfiliado}">
+                                    <h:outputText value="#{obj.nombreCompletoAfiliado}" title="#{obj.nombreCompletoAfiliado}"/>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente" sortBy="#{obj.valorPendiente}" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor copago" sortBy="#{obj.valorCopago}" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorCopago}" title="#{obj.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Cantidad" >
+                                    <h:outputText value="#{obj.cantidad}" title="#{obj.cantidad}"/>
+                                </p:column>
+                                <p:column  headerText="Valor unitario" sortBy="#{obj.valorUnitario}">
+                                    <h:outputText value="#{obj.valorUnitario}" title="#{obj.valorUnitario}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Aplica AC" >
+                                    <h:outputText value="#{obj.aplicaAcStr}" title="#{obj.aplicaAcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica DC">
+                                    <h:outputText value="#{obj.aplicaDcStr}" title="#{obj.aplicaDcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica PBS">
+                                    <h:outputText value="#{obj.aplicaPbsStr}" title="#{obj.aplicaPbsStr}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha prestación" sortBy="#{obj.fechaPrestacion}">
+                                    <h:outputText value="#{obj.fechaPrestacion}" title="#{obj.fechaPrestacion}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+
+                        <p:panel id="panelVerDevoluciones" header="Información Devolución" style="margin-bottom:10px;" 
+                                 collapsed="false" toggleable="true" rendered="#{cmAuditoriaLiderFacturaBean.objeto.devuelta}">
+                            <p:panelGrid id="panelInfoDevolucion" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Motivo devolución" style="font-weight:bold"/>
+                                <h:outputText value="#{cmAuditoriaLiderFacturaBean.objeto.cmAuditoriaDevolucion.maeMotivoDevolucionValor}"/>
+
+                                <p:outputLabel value="Modalidad contrato " style="font-weight:bold"/>
+                                <h:outputText value="#{cmAuditoriaLiderFacturaBean.objeto.cmAuditoriaDevolucion.maeContratoModalidadValor}"/>
+
+                                <p:outputLabel value="Observación" style="font-weight:bold"/>
+                                <p:inputTextarea style="width: 100%;  max-height: 60px;" value="#{cmAuditoriaLiderFacturaBean.objeto.cmAuditoriaDevolucion.observacion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="panelVerAdjuntos" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVerAdjuntos" var="adjunto" value="#{cmAuditoriaLiderFacturaBean.registrosAuditoriaAdjuto}" widgetVar="tablaWidgetAdjuntos" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmAuditoriaLiderFacturaBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmObservacion"> 
+                        <h:outputText id="mensaje" value="#{cmAuditoriaLiderFacturaBean.descripcionGenerica}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <p:dialog header="Asignación de Facturas" id="dialogoVerAsignacionIndividual" widgetVar="dialogoVerAsignacionIndividual" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+
+                <p:ajax event="close" listener="#{cmAuditoriaLiderFacturaBean.cerrarVentanaAsignacionIndividual}" form="frmVerAsignacionIndividual"/>
+                <p:scrollPanel mode="native" style="height:350px">
+
+                    <h:form id="frmVerAsignacionIndividual">
+
+                        <p:panel id="panelFacturasSeleccionadas" header="Facturas seleccionadas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="factura" value="#{cmAuditoriaLiderFacturaBean.listAsignar}" paginator="true" rows="#{cmAuditoriaFacturaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100,500,1000" id="tablaDetallesSeleccionados" lazy="false"
+                                         widgetVar="tablaWidgetListaDetallesSeleccionados"
+                                         style="font-size:11px;"
+                                         rowKey="#{factura.id}">
+                                <p:column headerText="Grupo" sortBy="#{factura.cmGrupo.id}">
+                                    <h:outputText value="#{factura.cmGrupo.id}" title="#{factura.cmGrupo.id}"/>
+                                </p:column>
+
+                                <p:column headerText="Tipo auditoría" sortBy="#{factura.tipoAuditoria}"> 
+                                    <h:outputText value="#{factura.tipoAuditoriaStr}" title="#{factura.tipoAuditoriaStr}"/>
+                                </p:column>
+
+                                <p:column headerText="Estado factura" sortBy="#{factura.estadoFactura}">                        
+                                    <h:outputText value="#{factura.estadoFacturaStr}" title="#{factura.estadoFacturaStr}"/>
+                                </p:column>
+
+                                <p:column headerText="Número radicado" sortBy="#{factura.numeroRadicado}">
+                                    <h:outputText value="#{factura.numeroRadicado}" title="#{factura.numeroRadicado}"/>
+                                </p:column>
+
+                                <p:column headerText="Nit" sortBy="#{factura.nit}">
+                                    <h:outputText value="#{factura.nit}" title="#{factura.nit}"/>
+                                </p:column>
+
+                                <p:column headerText="IPS" sortBy="#{factura.ips}">
+                                    <h:outputText value="#{factura.ips}" title="#{factura.ips}"/>
+                                </p:column>
+
+                                <p:column headerText="Número facturado" sortBy="#{factura.numeroFacturado}">
+                                    <h:outputText value="#{factura.numeroFacturado}" title="#{factura.numeroFacturado}"/>
+                                </p:column>
+
+                                <p:column headerText="Pbs" style="text-align: center">
+                                    <h:outputText value="#{factura.pbs ? 'Si':'No'}" title="#{factura.pbs ? 'Si':'No'}"/>
+                                </p:column>
+
+                                <p:column headerText="Fecha radicación" sortBy="#{factura.fechaRadicacion}">                        
+                                    <h:outputText value="#{factura.fechaRadicacion}" title="#{factura.fechaRadicacion}"/>
+                                </p:column>
+
+                                <p:column headerText="Valor factura" sortBy="#{factura.valorFactura}">    
+                                    <h:outputText value="#{factura.valorFactura}" title="#{factura.valorFactura}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>           
+                            </p:dataTable>
+
+                            <h:panelGroup id="panelSumatoria" style="display:block; text-align:right; margin-top: 10px;">
+                                <p:column>
+                                    <p:outputLabel value="Sumatoría valor facturado : " style="font-weight: bold;"/>
+                                </p:column>
+                                <p:column>
+                                    <h:outputText value="#{cmAuditoriaLiderFacturaBean.sumatoriaValorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                            </h:panelGroup>
+
+                        </p:panel>
+
+                        <p:panel id="pUsuarios" style="margin-bottom:10px;" collapsed="false" toggleable="false">
+                            <f:facet name="header">
+                                <h:outputLabel value="Seleccionar tipo y usuario"></h:outputLabel>
+                            </f:facet>
+                            <p:panelGrid id="panelAsignarUsuarios" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Tipo" for="tipoReglaEntrada"  style="font-weight:bold"/>
+                                <p:selectOneRadio id="tipoReglaEntrada" value="#{cmAuditoriaLiderFacturaBean.tipoUsuarioAsignar}">
+                                    <f:selectItem itemLabel="Líder" itemValue="1" />
+                                    <f:selectItem itemLabel="Técnico" itemValue="2" />
+                                    <f:selectItem itemLabel="Médico" itemValue="3" />
+                                    <p:ajax event="change" listener="#{cmAuditoriaLiderFacturaBean.listenerChangeTipo}" update="usuariosLista" />
+                                </p:selectOneRadio>
+
+
+                                <p:outputLabel value="Usuario" for="usuariosLista"  style="font-weight:bold"/>
+                                <p:selectOneMenu id="usuariosLista" required="true" value="#{cmAuditoriaLiderFacturaBean.gnUsuario}" style="width: 95%;" converter="usuarioConverterAuditoria" filter="true">
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                    <f:selectItems value="#{cmAuditoriaLiderFacturaBean.listaGnUsuarios}" var="usuario" itemLabel="#{usuario.nombre}" itemValue="#{usuario}"/>
+                                </p:selectOneMenu>
+
+                            </p:panelGrid>
+                            <p:panelGrid  style="width:100%;margin:10px 0px">
+                                <f:facet name="footer">
+                                    <p:row>
+                                        <p:column colspan="4" style="text-align: center">
+                                            <p:commandButton rendered="#{cmAuditoriaLiderFacturaBean.debeConfirmar}" value="Guardar" type="button" onclick="guardarRemote()" validateClient="true">
+                                                <p:confirm  header="Confirmacion" message="Una o varias facturas seleccionadas ya se encuentran asignadas, desea continuar?" icon="pi pi-exclamation-triangle" />
+                                            </p:commandButton>
+
+                                            <p:commandButton rendered="#{!cmAuditoriaLiderFacturaBean.debeConfirmar}" value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                            <p:remoteCommand name="guardarRemote" action ="#{cmAuditoriaLiderFacturaBean.asignarFacturaUsuario}" update="pUsuarios"/>
+
+                                            <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoVerAsignacionIndividual').hide()" immediate="true" style="margin-left: 5px;"/>
+                                        </p:column>
+                                    </p:row>
+                                </f:facet>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <body onunload="finalizar();"> 
+            <h:form id="exit">
+                <p:remoteCommand  id="finalizar" name="finalizar" action="#{cmAuditoriaLiderFacturaBean.clearViewScopedBeans()}"/>
+            </h:form>
+            </body>
+
+        </center>
+    </ui:define>
+</ui:composition>

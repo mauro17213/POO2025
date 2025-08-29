@@ -1,0 +1,302 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style type="text/css">
+                .ui-selectcheckboxmenu-multiple-container.ui-widget.ui-inputfield.ui-state-default.ui-corner-all {
+                    overflow: scroll;
+                    max-height: 100px;
+                    min-height: 36px;
+                }
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <h:form id="frmConexiones">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{wsConexionBean.modulo.descripcion}">#{wsConexionBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{wsConexionBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{wsConexionBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{wsConexionBean.accionCrear}" title="Crear" actionListener="#{wsConexionBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidgetP" var="obj" value="#{wsConexionBean.lazyZona}" rowKey="#{obj.id}"
+                             rows="#{wsConexionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" 
+                             emptyMessage="No se encontraron registros">
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" style="width: 95%;" onchange="PF('tablaWidgetP').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Tipo autenticación" sortBy="#{obj.tipoAutenticacion}" filterBy="#{obj.tipoAutenticacion}"> 
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidgetP').filter()"  >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin seguridad" itemValue="0" />
+                                <f:selectItem itemLabel="usr - pass" itemValue="1" />
+                                <f:selectItem itemLabel="usr - pass - token" itemValue="2" />
+                                <f:selectItem itemLabel="usr - pass - ip" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoAutenticacionStr}"/>
+                    </p:column>
+                    <p:column headerText="Usuario" sortBy="#{obj.usuario}" filterBy="#{obj.usuario}">
+                        <f:facet name="filter">
+                            <p:inputText label="Usuario" maxlength="64" style="width: 95%;" onchange="PF('tablaWidgetP').filter()"/>
+                        </f:facet>
+                        <h:outputText title="#{obj.usuario}" value="#{obj.usuario}"/>
+                    </p:column>
+                    <p:column headerText="Llave" sortBy="#{obj.llave}" filterBy="#{obj.llave}">
+                        <f:facet name="filter">
+                            <p:inputText label="Llave" style="width: 95%;" onchange="PF('tablaWidgetP').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.llave}"/>
+                    </p:column>
+                    <p:column headerText="Ip" sortBy="#{obj.ip}" filterBy="#{obj.ip}">
+                        <f:facet name="filter">
+                            <p:inputText label="Ip" style="width: 95%;" onchange="PF('tablaWidgetP').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.ip}"/>
+                    </p:column>
+                    <p:column headerText="Activo" style="width: 80px;" filterBy="#{obj.activo}" sortBy="#{obj.activo}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidgetP').filter()"  >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="1" />
+                                <f:selectItem itemLabel="NO" itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{wsConexionBean.accionAdicional1}" title="Ver token" actionListener="#{wsConexionBean.verToken(obj.id)}" icon="ui-icon-key"/>
+                        <p:commandButton rendered="#{wsConexionBean.accionVer}" title="Ver" actionListener="#{wsConexionBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{wsConexionBean.accionEditar}" title="Editar" actionListener="#{wsConexionBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{wsConexionBean.accionBorrar}" title="Borrar" action="#{wsConexionBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" position="center" width="60%" modal="true" >
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid" >
+
+                        <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                        <p:outputLabel value="#{wsConexionBean.objeto.nombre}"/>
+
+                        <p:outputLabel value="Usuario" style="font-weight:bold"/>
+                        <p:outputLabel value="#{wsConexionBean.objeto.usuario}"/>
+
+                        <p:outputLabel value="Tipo autenticación" style="font-weight:bold"/>
+                        <h:outputText value="#{wsConexionBean.objeto.tipoAutenticacionStr}"/>
+
+                        <p:outputLabel value="Llave" style="font-weight:bold"/>
+                        <h:outputText value="#{wsConexionBean.objeto.llave}"/>
+
+                        <p:outputLabel value="Ip" style="font-weight:bold"/>
+                        <h:outputText value="#{wsConexionBean.objeto.ip}"/>
+
+                        <p:outputLabel value="Activo" style="font-weight:bold"/>
+                        <p:outputLabel value="#{wsConexionBean.objeto.activo ? 'Si' : 'No'}"/>
+
+                        <p:outputLabel value="Servicios" style="font-weight:bold"/>
+                        <p:dataList value="#{wsConexionBean.objeto.listaWsServicios}" var="serv" type="ordered">
+                            #{serv.nombre}
+                        </p:dataList>
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <p:dialog header="Crear"  widgetVar="dialogoCrear" appendTo="@(body)" position="center" width="70%" modal="true" dynamic="false" >
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid" >
+
+                        <p:outputLabel value="Nombre" style="font-weight:bold" for="nombre"/>
+                        <p:inputText id="nombre" label="Nombre" value="#{wsConexionBean.objeto.nombre}" maxlength="16" style=" width: 98%;" required="true">
+                        </p:inputText>
+
+                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                        <p:selectOneRadio id="activo" value="#{wsConexionBean.objeto.activo}">
+                            <f:selectItem itemLabel="Si" itemValue="true" />
+                            <f:selectItem itemLabel="No" itemValue="false" />
+                        </p:selectOneRadio>
+
+                        <p:outputLabel value="Tipo autenticación" for="slmTiAu" style="font-weight:bold;"/>
+                        <p:selectOneMenu id="slmTiAu" required="true" value="#{wsConexionBean.objeto.tipoAutenticacion}">
+                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="Sin seguridad" itemValue="0" />
+                            <f:selectItem itemLabel="usr - pass" itemValue="1" />
+                            <f:selectItem itemLabel="usr - pass - token" itemValue="2" />
+                            <f:selectItem itemLabel="usr - pass - ip" itemValue="3" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Usuario" style="font-weight:bold" for="usuario"/>
+                        <p:inputText id="usuario" label="Usuario" style="width: 99%;" value="#{wsConexionBean.objeto.usuario}" maxlength="64" required="true">
+                        </p:inputText>
+
+                        <p:outputLabel value="Contraseña" style="font-weight:bold" for="nombre"/>
+                        <p:password id="txtpwd" style="width: 99%;" value="#{wsConexionBean.objeto.contrasena}"/>
+
+                        <p:outputLabel value="Llave" style="font-weight:bold"/>
+                        <p:inputText style="width: 99%;" maxlength="512" value="#{wsConexionBean.objeto.llave}"/>
+
+                        <p:outputLabel value="Ip" style="font-weight:bold"/>
+                        <p:inputText style="width: 99%;" maxlength="16" value="#{wsConexionBean.objeto.ip}"/>
+
+                        <p:outputLabel value="Servicios" style="font-weight:bold" for="nombre"/>
+                        <p:selectCheckboxMenu id="multiple"   scrollHeight="100" value="#{wsConexionBean.objeto.listaWsServicios}" label="Servicios" multiple="true"
+                                              filter="true" filterMatchMode="startsWith"    converter="conexionConverter">
+                            <f:selectItems value="#{wsConexionBean.listaWsServicios}" 
+                                           var="serv" 
+                                           itemValue="#{serv}" 
+                                           itemLabel="#{serv.nombre}" 
+                                           itemDescription="#{serv.descripcion}"/>
+                        </p:selectCheckboxMenu>
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{wsConexionBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" position="center" width="60%" modal="true" dynamic="true" >
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid" >
+
+                        <p:outputLabel value="Usuario" style="font-weight:bold" for="usuario"/>
+                        <p:inputText id="usuario" label="Usuario" value="#{wsConexionBean.objeto.usuario}" maxlength="64" style="width: 240px;" required="true">
+                        </p:inputText>
+
+                        <p:outputLabel value="Activo" for="activo" style="font-weight:bold"/>
+                        <p:selectOneRadio id="activo" value="#{wsConexionBean.objeto.activo}">
+                            <f:selectItem itemLabel="Si" itemValue="true" />
+                            <f:selectItem itemLabel="No" itemValue="false" />
+                        </p:selectOneRadio>
+
+                        <p:outputLabel value="Nombre" style="font-weight:bold;" for="nombre"/>
+                        <p:inputText id="nombre" label="Nombre" value="#{wsConexionBean.objeto.nombre}" maxlength="16" style=" width: 98%;" required="true">
+                        </p:inputText>
+
+                        <p:outputLabel value="Tipo autenticación" for="slmTiAu" style="font-weight:bold"/>
+                        <p:selectOneMenu id="slmTiAu" required="true" value="#{wsConexionBean.objeto.tipoAutenticacion}">
+                            <f:selectItem itemLabel="Sin seguridad" itemValue="0" />
+                            <f:selectItem itemLabel="usr - pass" itemValue="1" />
+                            <f:selectItem itemLabel="usr - pass - token" itemValue="2" />
+                            <f:selectItem itemLabel="usr - pass - ip" itemValue="3" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Contraseña" style="font-weight:bold" for="nombre"/>
+                        <p:password id="txtpwd" value="#{wsConexionBean.objeto.contrasenaNueva}"/>
+
+                        <p:outputLabel value="Llave" style="font-weight:bold"/>
+                        <p:inputText style="width: 99%;" maxlength="512" value="#{wsConexionBean.objeto.llave}"/>
+
+                        <p:outputLabel value="Ip" style="font-weight:bold"/>
+                        <p:inputText style="width: 99%;" maxlength="16" value="#{wsConexionBean.objeto.ip}"/>
+
+                        <p:outputLabel value="Creación" style="font-weight:bold"/>
+                        <p:outputLabel value="#{wsConexionBean.objeto.fechaHoraCrea}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                        </p:outputLabel>
+
+                        <p:outputLabel value="Servicios" style="font-weight:bold" for="nombre"/>
+                        <p:selectCheckboxMenu id="multiple" style="width: 90%;" value="#{wsConexionBean.objeto.listaWsServicios}" label="Servicios" multiple="true"
+                                              filter="true" filterMatchMode="startsWith" panelStyle="width:250px" converter="conexionConverter">
+                            <f:selectItems value="#{wsConexionBean.listaWsServicios}" 
+                                           var="serv" 
+                                           itemValue="#{serv}" 
+                                           itemLabel="#{serv.nombre}" 
+                                           itemDescription="#{serv.descripcion}"/>
+                        </p:selectCheckboxMenu>
+                    </p:panelGrid>
+                    <p:panelGrid  style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{wsConexionBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <p:dialog header="Ver Token" widgetVar="dialogoVerToken" appendTo="@(body)" modal="true" width="80%">
+                <h:form id="frmVerToken">
+                    <p:dataTable id="tablaRegistros" style="height: 70%; overflow: scroll;" scrollRows="15" widgetVar="tablaWidget" var="obj" value="#{wsConexionBean.listWsTokens}" rowKey="#{obj.id}"
+                                 rows="#{wsConexionBean.cantidadToken}"
+                                 emptyMessage="No se encontraron registros">
+                        <p:column headerText="Token">
+                            <h:outputText value="#{obj.tokenCorto}" title="#{obj.token}"/>
+                        </p:column>
+                        <p:column headerText="Fecha Hora Inicio">
+                            <h:outputText value="#{obj.fechaHoraInicio}"/>
+                        </p:column>
+                        <p:column headerText="Tiempo">
+                            <h:outputText value="#{obj.tiempo}"/>
+                        </p:column>
+                        <p:column headerText="Fecha Hora Fin">
+                            <h:outputText value="#{obj.fechaHoraFin}"/>
+                        </p:column>
+                        <p:column headerText="Ip solicita">
+                            <h:outputText value="#{obj.ipSolicita}"/>
+                        </p:column>
+                        <p:column headerText="Transacciones">
+                            <h:outputText value="#{obj.transacciones}"/>
+                        </p:column>
+                    </p:dataTable>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

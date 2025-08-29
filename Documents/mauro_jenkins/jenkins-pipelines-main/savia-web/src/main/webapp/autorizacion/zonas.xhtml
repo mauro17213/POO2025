@@ -1,0 +1,338 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .red  .ui-row-editor, .green .ui-row-editor{
+                display: none;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <center>
+            <!--Ventana inicial-->
+            <h:form id="frmZonas">
+                <p:toolbar>
+                    <f:facet name="left">
+                        <span title="#{auZonaBean.modulo.descripcion}">#{auZonaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">                        
+                        <p:commandButton rendered="#{auZonaBean.accionListar}" title="Refrescar" ajax="true" actionListener="#{auZonaBean.refrescar()}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{auZonaBean.accionCrear}" title="Crear" ajax="true" actionListener="#{auZonaBean.crear()}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{auZonaBean.lazyZonas}" paginator="true" rows="#{auZonaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:11px;"                             
+                             rowKey="#{obj.id}" reflow="true">
+                    <p:column style="text-align: center;" >
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{auZonaBean.accionVer}" title="Ver" actionListener="#{auZonaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{auZonaBean.accionEditar}" title="Editar" actionListener="#{auZonaBean.editar(obj.id)}" icon="ui-icon-pencil"/>                        
+                    </p:column>
+
+                    <p:column headerText="Nombre Zona" style="text-align: center;" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre Zona" maxlength="32" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>                   
+
+                    <p:column headerText="Municipio Ips" style="text-align: center;" filterBy="#{obj.ubicacionId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" filter="true">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{auZonaBean.listaMunicipios}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.ubicacionValor}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+            <!--Crear-->
+            <p:dialog header="Crear Zona" widgetVar="dialogoZonaCrear" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native" style="max-height: 500px">
+                    <h:form id="frmZonaCrear">
+                        <!--Zona-->
+                        <p:panel id="pZonaCrear" header="Información Zona" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelZonaCrear" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Ubicacion Origen" for="ubicacionOrigenCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:selectOneMenu id="ubicacionOrigenCrear" style="width: 40%" filter="true" value="#{auZonaBean.objeto.ubicacionId}">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auZonaBean.listaMunicipiosCobertura}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                                            <p:ajax event="itemSelect" listener="#{auZonaBean.agregarValorUbicacion()}"/>
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                         <p:outputLabel value="Nombre Zona" for="nombreZonaCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:inputText id="nombreZonaCrear" style="width: 30%" value="#{auZonaBean.objeto.nombre}" required="true" requiredMessage="Nombre: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Activo" for="activoCrear" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:selectBooleanButton id="activoCrear" style="width: 58px" value="#{auZonaBean.objeto.activo}" offLabel="No" onLabel="Sí" offIcon="ui-icon-closethick" onIcon="ui-icon-check"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <!-- Agregar Destino -->
+                        <p:panel id="pDestinoCrear" header="Agregar Destino" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelDestinoCrear" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-3">
+                                        <p:outputLabel value="Ubicacion Destino" for="ubicacionDestinoCrear" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column class="ui-g-9">
+                                        <p:selectOneMenu id="ubicacionDestinoCrear" filter="true" value="#{auZonaBean.objetoDestino.ubicacionId}">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auZonaBean.listaMunicipios}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                                            <p:ajax event="itemSelect" listener="#{auZonaBean.agregarValorUbicacionDestino()}"/>
+                                        </p:selectOneMenu>
+
+                                        <p:commandButton title="Agregar Destino" actionListener="#{auZonaBean.agregarDestino()}" icon="ui-icon-circle-check"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--ListaDestino-->
+                        <p:panel id="pListaDestinoCrear" header="Destinos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaDestinoCrear" var="destinoCrear" value="#{auZonaBean.objeto.auAnexo4DestinoList}" widgetVar="tablaDestinoCrear" rowKey="#{destinoCrear.id}" resizableColumns="true" emptyMessage="No se encontraron destinos" reflow="true">
+                                <p:column headerText="Orden">
+                                    <h:outputText value="#{destinoCrear.orden}" />
+                                </p:column>
+                                <p:column headerText="Ubicacion">
+                                    <h:outputText value="#{destinoCrear.ubicacionValor}" />
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <h:outputText value="#{auZonaBean.obtenerBoolean(destinoCrear.activo)}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton rendered="#{destinoCrear.orden > 1}" title="Subir Orden" actionListener="#{auZonaBean.subirOrden(destinoCrear)}" icon="ui-icon-circle-arrow-n"/>
+                                    <p:commandButton rendered="#{destinoCrear.orden != auZonaBean.objeto.ordenMaximo}" title="Bajar Orden" actionListener="#{auZonaBean.bajarOrden(destinoCrear)}" icon="ui-icon-circle-arrow-s"/>
+                                    <p:commandButton title="Eliminar" actionListener="#{auZonaBean.eliminarDestino(destinoCrear)}" icon="ui-icon-circle-close"/>
+                                </p:column>
+                            </p:dataTable>        
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesCrear" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="guardarRemote" action ="#{auZonaBean.guardar}" update="frmZonaCrear" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoZonaCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--Ver-->
+            <p:dialog header="Ver Zona" widgetVar="dialogoZonaVer" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{auZonaBean.getAuditoria(auZonaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native" style="max-height: 500px">
+                    <h:form id="frmZonaVer">
+                        <!--Zona-->
+                        <p:panel id="pZonaVer" header="Información Zona" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelZonaVer" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Ubicacion Origen" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:outputLabel value="#{auZonaBean.objeto.ubicacionValor}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Nombre Zona" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:outputLabel value="#{auZonaBean.objeto.nombre}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Activo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:outputLabel value="#{auZonaBean.obtenerBoolean(auZonaBean.objeto.activo)}" />
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <!--ListaDestino-->
+                        <p:panel id="pListaDestinoVer" header="Destinos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaDestinoVer" var="destinoVer" value="#{auZonaBean.objeto.auAnexo4DestinoList}" widgetVar="tablaDestinoVer" rowKey="#{destinoVer.id}" resizableColumns="true" emptyMessage="No se encontraron destinos" reflow="true">
+                                <p:column headerText="Orden">
+                                    <h:outputText value="#{destinoVer.orden}" />
+                                </p:column>
+                                <p:column headerText="Ubicacion">
+                                    <h:outputText value="#{destinoVer.ubicacionValor}" />
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <h:outputText value="#{auZonaBean.obtenerBoolean(destinoVer.activo)}" />
+                                </p:column>
+                            </p:dataTable>        
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelVer" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoZonaVer').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--Editar-->
+            <p:dialog header="Editar Zona" widgetVar="dialogoZonaEditar" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{auZonaBean.getAuditoria(auZonaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <p:scrollPanel mode="native">
+                    <h:form id="frmZonaEditar" style="max-height: 500px">
+                        <!--Afiliado-->
+                        <p:panel id="pZonaEditar" header="Información Zona" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelZonaEditar" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >
+
+                                
+                                
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Ubicacion Origen" for="ubicacionOrigenEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:selectOneMenu id="ubicacionOrigenEditar" style="width: 40%" filter="true" value="#{auZonaBean.objeto.ubicacionId}">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auZonaBean.listaMunicipiosCobertura}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                                            <p:ajax event="itemSelect" listener="#{auZonaBean.agregarValorUbicacion()}"/>
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Nombre Zona" for="nombreZonaEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:inputText id="nombreZonaEditar" style="width: 30%" value="#{auZonaBean.objeto.nombre}" required="true" requiredMessage="Nombre: Este campo es obligatorio"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="Activo" for="activoEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-8">
+                                        <p:selectBooleanButton id="activoEditar" style="width: 58px" value="#{auZonaBean.objeto.activo}" offLabel="No" onLabel="Sí" offIcon="ui-icon-closethick" onIcon="ui-icon-check"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>                            
+                        </p:panel>
+                        <!-- Agregar Destino -->
+                        <p:panel id="pDestinoEditar" header="Agregar Destino" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelDestinoEditar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                                <p:row>
+                                    <p:column class="ui-g-3">
+                                        <p:outputLabel value="Ubicacion Destino" for="ubicacionDestinoEditar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-9">
+                                        <p:selectOneMenu id="ubicacionDestinoEditar" filter="true" value="#{auZonaBean.objetoDestino.ubicacionId}">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auZonaBean.listaMunicipios}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                                            <p:ajax event="itemSelect" listener="#{auZonaBean.agregarValorUbicacionDestino()}"/>
+                                        </p:selectOneMenu>
+
+                                        <p:commandButton title="Agregar Destino" actionListener="#{auZonaBean.agregarDestino()}" icon="ui-icon-circle-check"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--ListaDestino-->
+                        <p:panel id="pListaDestinoEditar" header="Destinos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaDestinoEditar" var="destinoEditar" value="#{auZonaBean.objeto.auAnexo4DestinoList}" widgetVar="tablaDestinoEditar" rowKey="#{destinoEditar.id}" resizableColumns="true" emptyMessage="No se encontraron destinos" reflow="true">
+                                <p:column headerText="Orden">
+                                    <h:outputText value="#{destinoEditar.orden}" />
+                                </p:column>
+                                <p:column headerText="Ubicacion">
+                                    <h:outputText value="#{destinoEditar.ubicacionValor}" />
+                                </p:column>
+                                <p:column headerText="Activo">
+                                    <h:outputText value="#{auZonaBean.obtenerBoolean(destinoEditar.activo)}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton rendered="#{destinoEditar.orden > 1}" title="Subir Orden" actionListener="#{auZonaBean.subirOrden(destinoEditar)}" icon="ui-icon-circle-arrow-n"/>
+                                    <p:commandButton rendered="#{destinoEditar.orden != auZonaBean.objeto.ordenMaximo}" title="Bajar Orden" actionListener="#{auZonaBean.bajarOrden(destinoEditar)}" icon="ui-icon-circle-arrow-s"/>
+                                    <p:commandButton title="Eliminar" actionListener="#{auZonaBean.eliminarDestino(destinoEditar)}" icon="ui-icon-circle-close"/>
+                                </p:column>
+                            </p:dataTable>        
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelEditar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarRemote" action ="#{auZonaBean.modificar}" update="frmZonaEditar" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoZonaEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+        </center>        
+        <h:form id="exit">
+            <p:remoteCommand id="limpiarRender" name="limpiarRender" action="#{auZonaBean.salir()}"/>
+        </h:form>
+    </ui:define>
+</ui:composition>

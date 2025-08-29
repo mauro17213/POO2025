@@ -1,0 +1,442 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputScript name="js/calendar-localization.js"/>
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <h:outputStylesheet name="css/gp.css"/>
+        <h:outputStylesheet name="css/gestionAtencion.css"/>
+        <center>
+            <!-- Listar -->
+            <h:form id="frmSedes">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gatReporteBean.modulo.descripcion}">#{gatReporteBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gatReporteBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{gatReporteBean.refrescar()}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gatReporteBean.lazySedes}" paginator="true" rows="#{gatReporteBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             rowKey="#{obj.id}" reflow="true" draggableRows="false">
+
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Reportes"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{gatReporteBean.accionAdicional1}" title="Taquillas - Estado Actual" actionListener="#{gatReporteBean.taquillasActualListar(obj.id)}" icon="ui-icon-person" />
+                        <p:commandButton rendered="#{gatReporteBean.accionAdicional2}" title="Turnos - Histórico" actionListener="#{gatReporteBean.turnosListar(obj.id)}" icon="ui-icon-document-b" />
+                        <p:commandButton rendered="#{gatReporteBean.accionAdicional3}" title="Servicio - Estado Actual" actionListener="#{gatReporteBean.serviciosActualListar(obj.id)}" icon="ui-icon-comment" />
+                        <p:commandButton rendered="#{gatReporteBean.accionAdicional4}" title="Sede - Estado Actual" actionListener="#{gatReporteBean.sedeActualListar(obj.id)}" icon="ui-icon-note" />
+                        <p:commandButton rendered="#{gatReporteBean.accionAdicional5}" title="Historico - Histótico" actionListener="#{gatReporteBean.fechasListar(obj.id)}" icon="ui-icon-print" />
+                    </p:column>
+
+                    <p:column headerText="Nombre" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Ubicación" filterBy="#{obj.gnUbicacionId.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Ubicación" maxlength="64" style="width: 80%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.gnUbicacionId.nombre}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo" filterBy="#{obj.maeTipoId}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gatReporteBean.listaTiposSede}" var="tipo" itemValue="#{tipo.id}" itemLabel="#{tipo.nombre}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.maeTipoValor}"/>
+                    </p:column>
+
+                    <p:column headerText="Activo" >                      
+                        <h:outputText value="#{obj.activoStr}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            
+            <!-- Taquillas - Estado actual -->
+            <p:dialog header="Taquillas - Estado Actual" widgetVar="dialogoTaquillasActual" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmTaquillasActual">
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:outputLabel value="SEDE: #{gatReporteBean.objeto.nombre}" style="font-weight:bold; margin:6px;"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:panel id="pTaquillasActual" header="Historico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="pTablaTaquillasActual" var="taquilla" value="#{gatReporteBean.listaTaquillas}" >
+                                <p:column headerText="Taquilla">
+                                    <h:outputText value="#{taquilla.nombre}" />
+                                </p:column>
+                                <p:column headerText="Funcionario">
+                                    <h:outputText value="#{taquilla.usuarioId.nombre}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{taquilla.estadoStr}" />
+                                </p:column>
+                                <p:column headerText="Atenciones en Curso">
+                                    <h:outputText value="#{taquilla.gatAtencionHTML}" escape="false" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesHistorico" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoTaquillasActual').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <!-- Servicio - Estado actual -->
+            <p:dialog header="Servicio - Estado Actual" widgetVar="dialogoServiciosActual" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmServiciosActual">
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:outputLabel value="SEDE: #{gatReporteBean.objeto.nombre}" style="font-weight:bold; margin:6px;"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:panel id="pServiciosActual" header="Historico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="pTablaServiciosActual" var="reporte" value="#{gatReporteBean.listaReporteServicioActual}" >
+                                <p:column headerText="Servicio">
+                                    <h:outputText value="#{reporte.maeServicioValor}" />
+                                </p:column>
+                                <p:column headerText="Generados">
+                                    <h:outputText value="#{reporte.generados}" />
+                                </p:column>
+                                <p:column headerText="En Espera">
+                                    <h:outputText value="#{reporte.enEspera}" />
+                                </p:column>
+                                <p:column headerText="Atendidos">
+                                    <h:outputText value="#{reporte.atendidos}" />
+                                </p:column>
+                                <p:column headerText="Abandonados">
+                                    <h:outputText value="#{reporte.abandonados}" />
+                                </p:column>
+                                <p:column headerText="Cancelados">
+                                    <h:outputText value="#{reporte.cancelados}" />
+                                </p:column>
+                                <p:column headerText="Sobreatyendidos">
+                                    <h:outputText value="#{reporte.sobreatendidos}" />
+                                </p:column>
+                                <p:column headerText="Prom.Espera">
+                                    <h:outputText value="#{reporte.promedioEspera}" />
+                                </p:column>
+                                <p:column headerText="Prom.Atención">
+                                    <h:outputText value="#{reporte.promedioAtencion}" />
+                                </p:column>
+                                <p:column headerText="Traslados">
+                                    <h:outputText value="#{reporte.traslados}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesHistorico" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoServiciosActual').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            
+            <!-- Turnos - Histórico -->
+            <p:dialog header="Turnos - Histórico" widgetVar="dialogoTurnosHistorico" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmTurnosHistorico" title="dsdfd">
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:outputLabel value="SEDE: #{gatReporteBean.objeto.nombre}" style="font-weight:bold; margin:6px;"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:panel id="pFiltros" header="Filtros" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelConfiguracionConfigurar" columns="2"
+                                         columnClasses="ui-grid-col-4,ui-grid-col-8"
+                                         layout="grid" styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Fecha"  class="header-back" />
+                                <p:calendar id="hFecha" value="#{gatReporteBean.fecha}" showOn="button" locale="es" navigator="true" pattern="yyyy-MM-dd">                                    
+                                </p:calendar>
+                                <p:commandButton title="Ver Histórico" actionListener="#{gatReporteBean.turnosListar(gatReporteBean.objeto.id)}" icon="ui-icon-search"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pTurnosHistorico" header="Historico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="pTablaTurnosHistorico" var="atencion" value="#{gatReporteBean.listaAtenciones}" >
+                                <p:column headerText="Turno">
+                                    <h:outputText value="#{atencion.gatTiquete.numero}" />
+                                </p:column>
+                                <p:column headerText="Taquilla">
+                                    <h:outputText value="#{atencion.gatTaquilla.nombre}" />
+                                </p:column>
+                                <p:column headerText="Funcionario">
+                                    <h:outputText value="#{atencion.usuario.nombre}" />
+                                </p:column>
+                                <p:column headerText="Servicio">
+                                    <h:outputText value="#{atencion.gatTiquete.maeTipoServicioValor}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{atencion.estadoStr}" />
+                                </p:column>
+                                <p:column headerText="Tiempo">
+                                    <h:outputText value="#{atencion.tiempoStr}" />
+                                </p:column>
+                                <p:column headerText="F.H. Turno">
+                                    <h:outputText value="#{atencion.fechaHoraTiquete}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="F.H. Llamado">
+                                    <h:outputText value="#{atencion.fechaHoraCrea}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="F.H. Atención">
+                                    <h:outputText value="#{atencion.fechaHoraInicio}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="F.H. Finaliza">
+                                    <h:outputText value="#{atencion.fechaHoraFin}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesHistorico" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoTurnosHistorico').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <!-- Sede - Estado Actual -->
+            <p:dialog header="Sede - Estado Actual" widgetVar="dialogoReporteSede" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmReporteSede">
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:outputLabel value="SEDE: #{gatReporteBean.objeto.nombre}" style="font-weight:bold; margin:6px;"/>
+                            </f:facet>  
+                            <f:facet name="right">
+                                <p:commandButton title="Refrescar" ajax="false" actionListener="#{gatReporteBean.sedeActualListar(gatReporteBean.objeto.id)}" icon="ui-icon-refresh"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:splitter layout="vertical">
+                            <p:splitterPanel>
+                                <p:panel header="Información Sede y Taquillas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                                    <p:splitter>
+                                        <p:splitterPanel>
+                                            <p:panelGrid>
+                                                <p:row>
+                                                    <p:column class="ui-g-6" style="width: 100%;background-color: #f5f5f5">
+                                                        <p:outputLabel value="Información Sala" style="font-weight:bold"/>
+                                                    </p:column>                                                
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Cantidad Ticket Creados" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.tiquetesGenerados}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Prioritarios" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.tiquetesPrioritarios}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Usuarios en Atención" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.usuarioAtencion}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Usuarios en Espera" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.usuarioEspera}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Taquillas en Atención" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.taquillasAtencion}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Taquillas en Reposos" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.taquillasReposo}" />
+                                                    </p:column>
+                                                </p:row>
+                                                <p:row>
+                                                    <p:column class="ui-g-2" style="width: 25%">
+                                                        <p:outputLabel value="Tiempo Promedio" style="font-weight:bold"/>
+                                                    </p:column>
+                                                    <p:column class="ui-g-4">
+                                                        <p:outputLabel value="#{gatReporteBean.objetoReporteSede.promedioAtencion}" />
+                                                    </p:column>
+                                                </p:row>
+                                            </p:panelGrid>
+                                        </p:splitterPanel>
+                                        <p:splitterPanel styleClass="flex">
+                                            <p:dataTable var="taquilla" value="#{gatReporteBean.listaReportesTaquilla}" >
+                                                <p:column headerText="Taquilla">
+                                                    <h:outputText value="#{taquilla.nombreTaquilla}" />
+                                                </p:column>
+                                                <p:column headerText="Funcionario">
+                                                    <h:outputText value="#{taquilla.colaboradorTaquilla}" />
+                                                </p:column>
+                                                <p:column headerText="En Atención">
+                                                    <h:outputText value="#{taquilla.usuariosAtencion}" />
+                                                </p:column>
+                                                <p:column headerText="Atendidos">
+                                                    <h:outputText value="#{taquilla.atendidos}" />
+                                                </p:column>
+                                                <p:column headerText="Abandonos">
+                                                    <h:outputText value="#{taquilla.abandonos}" />
+                                                </p:column>
+                                            </p:dataTable>
+                                        </p:splitterPanel>
+                                    </p:splitter>
+                                </p:panel>
+                            </p:splitterPanel>
+                            <p:splitterPanel styleClass="flex align-items-center justify-content-center">
+                                <p:panel header="Graficas" style="margin-bottom:10px; width: 99%" collapsed="false" toggleable="true" >
+                                    <div class="card">
+                                        <p:barChart model="#{gatReporteBean.graficoBarraModelo}" style="width: 100%; height: 250px" />
+                                    </div>
+                                </p:panel>
+                            </p:splitterPanel>
+                        </p:splitter>
+
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesReporte" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoReporteSede').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>  
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+
+            </p:dialog>
+
+            <!-- Sede - Historico -->
+            <p:dialog header="Sede - Histórico" widgetVar="dialogoHistoricoSede" appendTo="@(body)" modal="true"  width="90%" dynamic="true">
+                <p:scrollPanel mode="native" style="height:600px">
+                    <h:form id="frmHistoricoSede">
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:outputLabel value="SEDE: #{gatReporteBean.objeto.nombre}" style="font-weight:bold; margin:6px;"/>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:panel id="pVariables" header="Variables Informes" style="margin-bottom:10px;" collapsed="false" toggleable="true">                            
+                            <p:panelGrid id="panelConfiguracionConfigurar" columns="2"
+                                         columnClasses="ui-grid-col-4,ui-grid-col-8"
+                                         layout="grid" styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <h:outputText value="Fecha Hora Inicio"  class="header-back" />
+                                <p:calendar id="hFechaHoraInicio" value="#{gatReporteBean.fechaInicio}" showOn="button" locale="es" navigator="true" pattern="yyyy-MM-dd HH:mm">
+                                    
+                                </p:calendar>
+                                <h:outputText value="Fecha Hora Fin"  class="header-back" />
+                                <p:calendar id="hFechaHoraFin" value="#{gatReporteBean.fechaFin}" showOn="button" locale="es" navigator="true" pattern="yyyy-MM-dd HH:mm">
+                                    
+                                </p:calendar>
+                                <p:commandButton title="Ver Histórico" actionListener="#{gatReporteBean.fechasListar(gatReporteBean.objeto.id)}" icon="ui-icon-search"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="pHistorico" header="Historico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="pTablaHistorico" var="historico" value="#{gatReporteBean.listaHistorico}" >
+                                <p:column headerText="Fecha">
+                                    <h:outputText value="#{historico.fecha}" />
+                                </p:column>
+                                <p:column headerText="Turnos Creados">
+                                    <h:outputText value="#{historico.turnosCreados}" />
+                                </p:column>
+                                <p:column headerText="Atendidos">
+                                    <h:outputText value="#{historico.turnosAtendidos}" />
+                                </p:column>
+                                <p:column headerText="Abandonados">
+                                    <h:outputText value="#{historico.turnosAbandonados}" />
+                                </p:column>
+                                <p:column headerText="SobreAtendidos">
+                                    <h:outputText value="#{historico.turnosSobreAtendidos}" />
+                                </p:column>
+                                <p:column headerText="Promedio Atención">
+                                    <h:outputText value="#{historico.promedioAtencion}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <!--Acciones-->
+                        <p:panelGrid id="panelAccionesHistorico" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoHistoricoSede').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+
+            </p:dialog>
+
+        </center>
+    </ui:define>
+</ui:composition>

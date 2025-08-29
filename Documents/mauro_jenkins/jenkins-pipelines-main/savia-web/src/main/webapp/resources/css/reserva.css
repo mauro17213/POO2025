@@ -1,0 +1,61 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 31/08/2022, 3:12:40 p. m.
+    Author     : idbohorquez
+*/
+
+.dialogos td {
+    font-size: 0.9em !important;
+}
+
+.dialogos th >span {
+    font-size: 0.84em !important;
+}
+
+.tblCustom th > span {
+  font-size: 0.9em !important;  
+}
+
+.tblCustom tr > td{
+    font-size: 0.84em !important;
+    text-align: center !important;
+}
+.listaDatos th {
+    width: 80px;
+}
+.listaDatos th > span {
+  font-size: 1em !important;  
+}
+
+.listaDatos tr > td{
+    font-size: 1em !important;
+    text-align: center !important;
+}
+
+.ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+    border: 1px solid #e5e2e2;
+
+}
+.ui-panelgrid .ui-panelgrid-footer {
+    text-align: center;
+    padding: 2px 5px;
+}
+
+
+.ui-panelgrid-cell:has(span.header-back) {
+    background: #f5f5f5 !important;
+    font-size: 0.97em !important;
+    font-weight:bold;
+}
+.ui-panelgrid-cell{
+    border: 1px solid #e5e2e2 !important;
+    margin-bottom: -1px !important;
+    margin-left: -1px !important;
+    display: flex;
+    align-items: center;
+}
+

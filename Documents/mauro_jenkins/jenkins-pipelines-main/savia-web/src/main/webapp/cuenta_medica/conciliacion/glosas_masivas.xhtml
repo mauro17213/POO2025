@@ -1,0 +1,1783 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR"> 
+        <style type="text/css">
+            .old {
+                background-color: #fca752 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .yellow{
+                background-color: #ffff00 !important;
+                background-image: none !important;
+                color: #000000 !important;
+            }
+            .green{
+                background-color: #009900 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .red{
+                background-color: #ff0000 !important;
+                background-image: none !important;
+                color: #ffffff !important;
+            }
+            .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                border: 1px solid #e5e2e2;
+            }
+            .red  .ui-row-editor{
+                display: none;
+            }
+            .ui-panelgrid .ui-panelgrid-footer {
+                text-align: center;
+                padding: 2px 5px;
+            }
+        </style>
+        <center>
+            <h:form id="frmGlosas">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{cmGlosaMasivaBean.modulo.descripcion}">#{cmGlosaMasivaBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>                        
+                        <p:outputLabel value="Radicación Desde"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{cmGlosaMasivaBean.paramConsulta.parametroConsulta1}" pattern="yyyy-MM-dd" maxdate="#{cmGlosaMasivaBean.fechaMaximaCalendario}" navigator="true"  yearRange="c-100:c" >
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>                        
+                        <p:outputLabel value="Radicación Hasta"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{cmGlosaMasivaBean.paramConsulta.parametroConsulta2}" pattern="yyyy-MM-dd" maxdate="#{cmGlosaMasivaBean.fechaMaximaCalendario}"  navigator="true"  yearRange="c-100:c" >
+                            <p:ajax event="dateSelect" update="tablaRegistros"/>
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton value="Gestionar" process="@form" action="#{cmGlosaMasivaBean.verGestionarGlosasMasivas( )}" rendered="#{cmGlosaMasivaBean.accionCrear}" icon="ui-icon-disk"/>  
+                        <p:commandButton  title="Marcar Facturas" actionListener="#{cmGlosaMasivaBean.guardarMarcadoFacturas()}" icon=" ui-icon-locked"/>
+                        <p:commandButton  title="DesMarcar Facturas" actionListener="#{cmGlosaMasivaBean.guardarDesMarcarFacturas()}" icon="ui-icon-key">
+                            <p:confirm header="Confirmación" message="Está seguro que desea desmarcar las facturas?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton value="Limpiar Selección Items"  actionListener="#{cmGlosaMasivaBean.limpiarVariablesSeleccionMasiva()}" icon="ui-icon-wrench"/>
+                        <p:commandButton rendered="#{cmGlosaMasivaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{cmGlosaMasivaBean.refrescar()}" icon="ui-icon-refresh"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{cmGlosaMasivaBean.lazyRegistro}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="30,50,100,200" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             style="font-size:12px;"
+                             styleClass="myTable" 
+                             scrollable="true"
+                             scrollWidth="140%"
+                             disabledSelection="#{cmGlosaMasivaBean.validarNoEsFacturaGlosable(obj)}"
+                             selection="#{cmGlosaMasivaBean.registrosFacturasSeleccionadas}"
+                             rowStyleClass="#{cmGlosaMasivaBean.asignarColorFila(obj)}"
+                             rowKey="#{obj.id}" reflow="true">
+
+                    <p:ajax event="toggleSelect" listener="#{cmGlosaMasivaBean.eventoCheckTodasFacturas}" />
+                    <p:ajax event="rowSelectCheckbox" listener="#{cmGlosaMasivaBean.eventoCheckFactura}"/>
+                    <p:ajax event="rowUnselectCheckbox" listener="#{cmGlosaMasivaBean.eventoUnCheckFactura}" />
+                    <p:ajax event="rowSelect" listener="#{cmGlosaMasivaBean.eventoCheckFactura}"  />
+                    <p:ajax event="rowUnselect" listener="#{cmGlosaMasivaBean.eventoUnCheckFactura}" /> 
+
+                    <p:column width="30"  selectionMode="multiple"  style="text-align: center;" exportable="false"/>
+
+                    <p:column width="50" style="text-align: center;" exportable="false">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>
+                        <p:commandButton rendered="#{cmGlosaMasivaBean.accionVer}" title="Ver Glosa" actionListener="#{cmGlosaMasivaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                    </p:column>
+
+                    <p:column headerText="Estado Factura" sortBy="#{obj.estadoFactura}" filterBy="#{obj.estadoFactura}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Radicado" itemValue="0"/>
+                                <f:selectItem itemLabel="Radicado - Espera SAP (M1)" itemValue="10"/>
+                                <f:selectItem itemLabel="En Auditoría" itemValue="1"/>
+                                <f:selectItem itemLabel="Auditada-Glosada" itemValue="2" />
+                                <f:selectItem itemLabel="Devuelta" itemValue="5" />
+                                <f:selectItem itemLabel="Devuelta - Espera SAP (DEV)" itemValue="6" />
+                                <f:selectItem itemLabel="Auditada - Espera SAP (M2)" itemValue="7" />
+                                <f:selectItem itemLabel="Auditada" itemValue="9" />
+                                <f:selectItem itemLabel="Conciliada - Espera SAP (M3)" itemValue="8" />
+                                <f:selectItem itemLabel="Conciliada" itemValue="4" />
+                            </p:selectOneMenu>
+                        </f:facet> 
+                        <h:outputText value="#{obj.estadoFacturaStr}" title="#{obj.estadoFacturaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo respuesta" filterBy="#{obj.tipoRespuesta}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin Responder" itemValue="0" />
+                                <f:selectItem itemLabel="Respondida" itemValue="1" />
+                                <f:selectItem itemLabel="Conciliada" itemValue="2" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoRespuestaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Tipo auditoría" filterBy="#{obj.tipoAuditoria}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Sin Auditoría" itemValue="0" />
+                                <f:selectItem itemLabel="Técnica" itemValue="6" />
+                                <f:selectItem itemLabel="Médica" itemValue="7" />
+                                <f:selectItem itemLabel="Para Pago" itemValue="8" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.tipoAuditoriaStr}"/>
+                    </p:column>
+
+                    <p:column headerText="Número radicado" sortBy="#{obj.numeroRadicado}" filterBy="#{obj.numeroRadicado}" style="text-align: center;" >
+                        <f:facet name="filter">
+                            <p:inputText label="Número Radicado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroRadicado}" title="#{obj.numeroRadicado}"/>
+                    </p:column>
+
+                    <p:column  headerText="NIT" sortBy="#{obj.nit}" filterBy="#{obj.nit}" style="text-align: center;" >
+                        <f:facet name="filter">
+                            <p:inputText label="NIT" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.nit}" title="#{obj.nit}"/>
+                    </p:column>
+
+                    <p:column headerText="IPS" sortBy="#{obj.ips}" filterBy="#{obj.ips}" width="120">
+                        <f:facet name="filter">
+                            <p:inputText label="IPS" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.ips}" title="#{obj.ips}"/>
+                    </p:column>
+
+                    <p:column headerText="Número facturado" sortBy="#{obj.numeroFacturado}" filterBy="#{obj.numeroFacturado}" style="text-align: center;" >
+                        <f:facet name="filter">
+                            <p:inputText label="Número Facturado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                        onchange();
+                                        return false;
+                                    }"  onchange="PF('tablaWidget').filter()" />
+                        </f:facet>
+                        <h:outputText value="#{obj.numeroFacturado}" title="#{obj.numeroFacturado}"/>
+                    </p:column>
+
+                    <p:column  headerText="Fecha radicación" sortBy="#{obj.fechaRadicacion}"  style="text-align: center;">
+                        <h:outputText value="#{obj.fechaRadicacion}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha inicio marcación" sortBy="#{obj.fechaMarcacion}" style="text-align: center;">
+                        <h:outputText value="#{obj.fechaMarcacion}"/>
+                    </p:column>
+
+                    <p:column headerText="Fecha vencimiento marcación" sortBy="#{obj.fechaVencimiento}"  style="text-align: center;">
+                        <h:outputText value="#{obj.fechaVencimiento}"/>
+                    </p:column>
+
+                    <p:column  headerText="Valor factura" sortBy="#{obj.valorFactura}" width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorFactura}" title="#{obj.valorFactura}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor inicial glosa" sortBy="#{obj.valorInicialGlosa}" width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorInicialGlosa}" title="#{obj.valorInicialGlosa}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}" width="100" style="text-align: center;">
+                        <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Multi Usuario" filterBy="#{obj.multiUsuario}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Si" itemValue="true" />
+                                <f:selectItem itemLabel="No" itemValue="false" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText  value="#{obj.multiUsuarioStr}" title="Doc : #{obj.documentoMonoUsuario} - #{obj.nombreMonoUsuario}"/>
+                    </p:column>
+
+                    <p:column headerText="Origen" filterBy="#{obj.origenFactura}">  
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 70%;" onchange="PF('tablaWidget').filter()">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="IntraSavia" itemValue="1" />
+                                <f:selectItem itemLabel="SomosMas" itemValue="2" />
+                                <f:selectItem itemLabel="Conexiones" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.getOrigenFacturaStr()}" title="#{obj.getOrigenFacturaStr()}"/>
+                    </p:column>
+
+                    <p:column headerText="Documento" rendered="#{cmGlosaMasivaBean.habilitarBusquedaMuliUsuario}">  
+                        <h:outputText value="#{obj.documentoMonoUsuario}" title="#{obj.documentoMonoUsuario}"/>
+                    </p:column>
+
+                    <p:column headerText="Nombre usuario" rendered="#{cmGlosaMasivaBean.habilitarBusquedaMuliUsuario}">
+                        <h:outputText value="#{obj.nombreMonoUsuario}" title="#{obj.nombreMonoUsuario}"/>
+                    </p:column>
+
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver Glosa" id="dialogoVer" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="90%" dynamic="true" style="max-height:90%;">
+                <p:scrollPanel id="scrollPanelVer" mode="native" style="height:500px">
+                    <h:form id="frmVer">
+                        <p:panel id="pVerFactura" toggleable="true" header="Factura" style="margin-bottom:10px;">                         
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(cmGlosaMasivaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelVerFactura" columns="4"
+                                         layout="grid">
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado factura"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>  
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>                              
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>                            
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor inicial glosa" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorInicialGlosa}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>                      
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold" ></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha inicial bloqueo" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.fechaMarcacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha final bloqueo" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.fechaVencimiento}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmGlosaMasivaBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pDetalles" header="Servicios" style="margin-bottom:10px; width: 100%" toggleable="true" >                               
+                            <p:dataTable var="obj" value="#{cmGlosaMasivaBean.lazyDetalles}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100,200" id="tablaRegistros" lazy="true"
+                                         widgetVar="tablaWidgetDetalles"
+                                         scrollable="true"
+                                         scrollHeight="250"
+                                         scrollWidth="130%"
+                                         style="font-size:12px;"
+                                         rowKey="#{obj.id}" >
+                                <p:column style="text-align: center;">                                 
+                                    <f:facet name="header">
+                                        <h:outputText value="Acciones"/>
+                                    </f:facet>    
+                                    <p:commandButton  title="Ver Auditoria Servicio" actionListener="#{cmGlosaMasivaBean.verServicioAuditado(obj.id)}" icon="ui-icon-search"/> 
+                                </p:column>  
+                                <p:column  headerText="Id descripción" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Estado" sortBy="#{obj.estado}">
+                                    <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Código servicio" sortBy="#{obj.maServicioCodigo}" filterBy="#{obj.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.maServicioCodigo}" title="#{obj.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{obj.maServicioValor}" filterBy="#{obj.maServicioValor}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombreServicioCorto}" title="#{obj.nombreServicioCorto}"/>
+                                    <p:commandButton rendered="#{obj.nombreServicioCorto.length() > 0 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(obj.maServicioValor)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>                                                             
+                                <p:column  headerText="Tipo documento" sortBy="#{obj.maeTipoDocumentoValor}">
+                                    <h:outputText value="#{obj.maeTipoDocumentoValor}" title="#{obj.maeTipoDocumentoValor}"/>
+                                </p:column> 
+                                <p:column  headerText="Documento afiliado" sortBy="#{obj.documento}" filterBy="#{obj.documento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{obj.nombreCompletoAfiliado}">
+                                    <h:outputText value="#{obj.nombreCompletoAfiliado}" title="#{obj.nombreCompletoAfiliado}"/>
+                                </p:column>
+                                <p:column  headerText="Radicado Glosa" sortBy="#{obj.radicadoGlosa}" filterBy="#{obj.radicadoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Radicado Glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.radicadoGlosa}" title="#{obj.radicadoGlosa}"/>
+                                </p:column>
+
+                                <p:column  headerText="Motivos Glosa" sortBy="#{obj.motivoGlosa}" filterBy="#{obj.motivoGlosa}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Motivos Glosa" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.motivoGlosaCorto}" title="#{obj.motivoGlosaCorto}"/>
+                                    <p:commandButton rendered="#{obj.motivoGlosaCorto.length() > 0 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(obj.motivoGlosa)}" icon="ui-icon-comment" title="Ver completo"/>    
+                                </p:column>
+                                <p:column  headerText="Valor copago" sortBy="#{obj.valorCopago}">
+                                    <h:outputText value="#{obj.valorCopago}" title="#{obj.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pendiente inicial" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}">
+                                    <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <h:outputText value="#{obj.observacionCorto}" />
+                                    <p:commandButton  rendered="#{obj.observacionCorto.length() > 1 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column> 
+                                <p:column  headerText="Aplica AC" width="40" sortBy="#{obj.aplicaAc}">
+                                    <h:outputText value="#{obj.aplicaAcStr}" title="#{obj.aplicaAcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica DC" width="40" sortBy="#{obj.aplicaDc}">
+                                    <h:outputText value="#{obj.aplicaDcStr}" title="#{obj.aplicaDcStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica PBS" width="30" sortBy="#{obj.aplicaPbs}" >
+                                    <h:outputText value="#{obj.aplicaPbsStr}" title="#{obj.aplicaPbsStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica diagnóstico" width="40" sortBy="#{obj.aplicaDx}">
+                                    <h:outputText value="#{obj.aplicaDxStr}" title="#{obj.aplicaDxStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica autorización" width="40" sortBy="#{obj.aplicaAutorizacion}">
+                                    <h:outputText value="#{obj.aplicaAutorizacionStr}" title="#{obj.aplicaAutorizacionStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica concepto" width="40" sortBy="#{obj.aplicaConcepto}">
+                                    <h:outputText value="#{obj.aplicaConceptoStr}" title="#{obj.aplicaConceptoStr}"/>
+                                </p:column>
+                                <p:column  headerText="Aplica glosa" width="40" sortBy="#{obj.aplicaGlosa}">
+                                    <h:outputText value="#{obj.aplicaGlosaStr}" title="#{obj.aplicaGlosaStr}"/>
+                                </p:column>
+                                <p:column  headerText="Valor glosa" style="width: 80px;">
+                                    <h:outputText value="#{obj.valorGlosa}" title="#{obj.valorGlosa}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Fecha prestación" sortBy="#{obj.fechaPrestacion}">
+                                    <h:outputText value="#{obj.fechaPrestacion}" title="#{obj.fechaPrestacion}"/>
+                                </p:column> 
+                            </p:dataTable>                             
+                        </p:panel>
+                        
+                        <p:panel id="panelVerAdjuntosFactura" header="Adjuntos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVerAdjuntosFactura" var="adjunto" value="#{cmGlosaMasivaBean.registrosAdjuntosFactura}" widgetVar="tablaWidgetAdjuntosFactura" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmGlosaMasivaBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea" style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        
+                         <p:panel id="pRespuesta" toggleable="true" header="Respuesta Glosas" style="margin-bottom:10px;">                               
+                             <p:dataTable var="obj" value="#{cmGlosaMasivaBean.lazyGlosaRespuesta}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                             emptyMessage="No se encontraron registros"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" id="tablaWidgetRespuestaGlosas" lazy="true"
+                                             widgetVar="tablaWidgetRespuestaGlosas"
+                                             scrollable="true"
+                                             scrollWidth="100%"
+                                             scrollHeight="250"
+                                             style="font-size:12px;"
+                                             rowKey="#{obj.id}">
+                                 <p:column width="80" style="text-align: center;">
+                                     <f:facet name="header">
+                                         <h:outputText value="Acciones"/>
+                                     </f:facet>
+                                     <p:commandButton title="Ver servicios glosados" actionListener="#{cmGlosaMasivaBean.verRespuestaDestallesGlosa(obj.id)}" icon="ui-icon-search"/>
+                                     <p:commandButton rendered="#{obj.tipoRespuesta == 1 and obj.visualizarPdf}" title="Generar reporte respuesta glosas" ajax="true" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-document">
+                                         <p:fileDownload value="#{cmGlosaMasivaBean.descargarReporteRespuestaGlosaMasiva(obj.id)}" />
+                                     </p:commandButton>
+                                 </p:column>
+                                 <p:column  headerText="Id respuesta glosa" sortBy="#{obj.id}">
+                                     <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                 </p:column>
+                                 <p:column  headerText="Id factura" sortBy="#{obj.cmFactura.id}">
+                                     <h:outputText value="#{obj.cmFactura.id}" title="#{obj.cmFactura.id}"/>
+                                 </p:column>
+                                 <p:column  headerText="Procesada en sap" style="text-align: center">
+                                     <h:outputText value="#{obj.esProcesadaExitosamenteSapStr()}" title="#{obj.esProcesadaExitosamenteSapStr()}" style="text-align: center"/>
+                                 </p:column>
+                                 <p:column  headerText="Tipo respuesta" sortBy="#{obj.tipoRespuesta}">
+                                     <h:outputText value="#{obj.tipoRespuestaStr}" title="#{obj.tipoRespuestaStr}"/>
+                                 </p:column>
+                                 <p:column  headerText="Id glosa masiva" sortBy="#{obj.cmGlosaMasiva.id}" style="text-align: center">
+                                     <h:outputText value="#{obj.cmGlosaMasiva.id}" title="#{obj.cmGlosaMasiva.id}"/>
+                                 </p:column>
+                                 <p:column  headerText="Valor cobro detalle" sortBy="#{obj.valorCobroDetalle}">
+                                     <h:outputText value="#{obj.valorCobroDetalle}" title="#{obj.valorCobroDetalle}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>
+                                 <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                     <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>
+                                 <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                     <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>                          
+                                 <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEps}">
+                                     <h:outputText value="#{obj.valorPagadoEps}" title="#{obj.valorPagadoEps}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>
+                                 <p:column  headerText="Valor pendiente" sortBy="#{obj.valorPendiente}">
+                                     <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>
+                                 <p:column  headerText="Valor aceptado IPS" sortBy="#{obj.valorAceptadoIps}">
+                                     <h:outputText value="#{obj.valorAceptadoIps}" title="#{obj.valorAceptadoIps}">
+                                         <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                     </h:outputText>
+                                 </p:column>
+                                 <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                     <h:outputText value="#{obj.observacionCorto}" />
+                                     <p:commandButton  rendered="#{obj.observacionCorto.length() > 1 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                 </p:column>
+                                 <p:column  headerText="Fecha hora creación" sortBy="#{obj.fechaHoraCrea}">
+                                     <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                                 </p:column>
+                            </p:dataTable>  
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Gestionar Glosas Masivas" id="dialogoGestionarGlosas" widgetVar="dialogoGestionarGlosas" appendTo="@(body)" modal="true"  width="100%" dynamic="true" class="modal-no-scroll">
+                <p:ajax event="close" listener="#{cmGlosaMasivaBean.eventoCerrarVentanaGestionarGlosas}" form="frmGestionarGlosas"/>
+                <p:scrollPanel mode="native" style="height:550px">
+                    <h:form id="frmGestionarGlosas"> 
+                        <p:panel id="panelFacturaParaAuditar" toggleable="true" header="Facturas Seleccionadas" style="margin-bottom:10px;">                            
+                            <p:dataTable var="factura" value="#{cmGlosaMasivaBean.registrosFacturasSeleccionadas}" 
+                                         paginator="true"
+                                         rows="50"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         emptyMessage="No se encontraron registros"
+                                         rowsPerPageTemplate="50,100,200,200" 
+                                         id="tablaRegistrosFacturas" lazy="false"
+                                         widgetVar="tablaWidgetFacturasSeleccionadas"
+                                         scrollable="true"
+                                         scrollWidth="100%"
+                                         scrollHeight="250"
+                                         editable="false"
+                                         rowStyleClass="#{factura.valorPendienteActual le 0 ? 'red' : null}"
+                                         style="font-size:12px;"
+                                         rowKey="#{factura.id}">
+
+                                <p:ajax event="rowEdit" listener="#{cmGlosaMasivaBean.eventoEditarFactura}" />
+
+                                <p:column  headerText="Id facura"  sortBy="#{factura.id}" filterBy="#{factura.id}">
+                                    <h:outputText value="#{factura.id}" title="#{factura.id}"/>
+                                </p:column>
+                                <p:column  headerText="Número Facturado"  sortBy="#{factura.numeroFacturado}" filterBy="#{factura.numeroFacturado}">
+                                    <h:outputText value="#{factura.numeroFacturado}" title="#{factura.numeroFacturado}"/>
+                                </p:column>
+                                <p:column  headerText="Prestador" sortBy="#{factura.cntPrestador.razonSocial}" filterBy="#{factura.cntPrestador.razonSocial}">
+                                    <h:outputText value="#{factura.cntPrestador.razonSocial}" title="#{factura.cntPrestador.razonSocial}"/>
+                                </p:column>
+                                <p:column  headerText="Nit" sortBy="#{factura.nit}" filterBy="#{factura.nit}">
+                                    <h:outputText value="#{factura.nit}" title="#{factura.nit}"/>
+                                </p:column>
+
+                                <p:column  headerText="IPS" sortBy="#{factura.ips}" filterBy="#{factura.ips}" >
+                                    <h:outputText value="#{factura.ips}" title="#{factura.ips}"/>
+                                </p:column>
+
+                                <p:column  headerText="Pbs" style="text-align: center;" >
+                                    <h:outputText value="#{factura.pbs ? 'Si' : 'No'}" title="#{factura.pbs ? 'Si' : 'No'}"/>
+                                </p:column>
+
+                                <p:column  headerText="Valor factura" sortBy="#{factura.valorFactura}">
+                                    <h:outputText value="#{factura.valorFactura}" title="#{factura.valorFactura}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column  headerText="Valor inicial glosa" sortBy="#{factura.valorInicialGlosa}">
+                                    <h:outputText value="#{factura.valorInicialGlosa}" title="#{factura.valorInicialGlosa}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{factura.valorPendienteActual}">
+                                    <h:outputText value="#{factura.valorPendienteActual}" title="#{factura.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>  
+
+                            </p:dataTable> 
+
+                        </p:panel>
+
+                       <p:panelGrid id="panelgNota" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                            <p:row>
+                                <p:column>
+                                   Nota 1 : Las facturas en rojo no serán tenidas en cuenta en la respuesta glosa masiva por poseer valor pendiente actual en cero.
+                                </p:column>
+                                <p:column>
+                                   Nota 2 : Los servicios o detalles con valor pendiente actual igual a cero no serán mostrados, ni tenidos en cuenta en la respuesta glosa.
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <p:panel  toggleable="true" id="pDetalles" header="Servicios" style="margin-bottom:10px; font-size:11px;">
+                            <p:commandButton value="Limpiar Selección Detalles"  process="@this" actionListener="#{cmGlosaMasivaBean.limpiarSeleccionDetalles()}" icon="ui-icon-wrench"/>
+                            <p:dataTable var="obj" value="#{cmGlosaMasivaBean.registrosDetallesMultifactura}" 
+                                         paginator="true"  
+                                         rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="30,50,100,200" 
+                                         lazy="false"
+                                         widgetVar="tablaWidgetDetalles"
+                                         scrollable="true"
+                                         scrollWidth="100%"
+                                         scrollHeight="250"
+                                         reflow="true"
+                                         id="tablaDetalles"
+                                         selection="#{cmGlosaMasivaBean.registrosDetallesSeleccionadoMasivos}"
+                                         editable="true"
+                                         rowKey="#{obj.id}" style="margin-top: 10px;">                        
+
+                                <p:ajax event="rowEdit" listener="#{cmGlosaMasivaBean.onRowEdit}" />
+
+                                <p:ajax event="toggleSelect" listener="#{cmGlosaMasivaBean.eventoCheckTodasDetalles}" />
+                                <p:ajax event="rowSelectCheckbox" listener="#{cmGlosaMasivaBean.eventoCheckDetalle}"/>
+                                <p:ajax event="rowUnselectCheckbox" listener="#{cmGlosaMasivaBean.eventoUnCheckDetalle}" />
+                                <p:ajax event="rowSelect" listener="#{cmGlosaMasivaBean.eventoCheckDetalle}"  />
+                                <p:ajax event="rowUnselect" listener="#{cmGlosaMasivaBean.eventoUnCheckDetalle}" /> 
+
+                                <p:column width="30"  selectionMode="multiple"  style="text-align: center;" exportable="false"/>
+
+                                <p:column style="text-align: center;" width="30">                                 
+                                    <f:facet name="header">
+                                        <h:outputText value="Acción"/>
+                                    </f:facet>    
+                                    <p:commandButton  title="Ver Auditoria Servicio" process="@this" actionListener="#{cmGlosaMasivaBean.verServicioAuditado(obj.id)}" icon="ui-icon-search"/> 
+                                </p:column> 
+
+                                <p:column  headerText="Número Facturado"  sortBy="#{obj.cmFacturas.numeroFacturado}" filterBy="#{obj.cmFacturas.numeroFacturado}">                         
+                                    <h:outputText value="#{obj.cmFacturas.numeroFacturado}" title="#{obj.cmFacturas.numeroFacturado}"/>   
+                                </p:column>
+
+                                <p:column  headerText="Estado" sortBy="#{obj.estado}">     
+                                    <h:outputText value="#{obj.estadoStr}" title="#{obj.estadoStr}"/>
+                                </p:column>
+
+                                <p:column  headerText="Estado Glosado IPS - EPS " sortBy="#{obj.estado}">     
+                                    <h:outputText class="yellow" value="#{obj.porcentajeAceptadoIPS > 0 or obj.porcentajePagadoEPS > 0 or (obj.observacionRespuestaDetalles != null or obj.observacionGlosa != null) ? 'En Proceso glosado IPS - EPS':''}" title="#{obj.estadoStr}"/>
+                                </p:column>                                        
+
+                                <p:column  headerText="Código servicio" sortBy="#{obj.maServicioCodigo}" filterBy="#{obj.maServicioCodigo}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.maServicioCodigo}" title="#{obj.maServicioCodigo}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre servicio" sortBy="#{obj.maServicioValor}" filterBy="#{obj.maServicioValor}">
+
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre servicio" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>     
+                                    <h:outputText value="#{obj.nombreServicioCorto}" title="#{obj.nombreServicioCorto}"/>
+                                    <p:commandButton rendered="#{obj.nombreServicioCorto.length() > 1 }" onmouseup="PF('dlgMsg').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmGlosaMasivaBean.actualizarPanelMostrarMensaje()}">
+                                        <f:setPropertyActionListener value="#{obj.maServicioValor}" target="#{cmGlosaMasivaBean.mensaje}" />
+                                    </p:commandButton>
+                                </p:column>
+
+                                <p:column  headerText="Documento afiliado" sortBy="#{obj.documento}" filterBy="#{obj.documento}">     
+                                    <f:facet name="filter">
+                                        <p:inputText label="Documento afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre afiliado" sortBy="#{obj.nombreCompletoAfiliado}" filterBy="#{obj.nombreCompletoAfiliado}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre afiliado" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+                                    <h:outputText value="#{obj.nombreCompletoAfiliado}" title="#{obj.nombreCompletoAfiliado}"/>
+                                </p:column>
+
+                                <p:column  headerText="Motivos glosa"  filterBy="#{obj.motivoGlosa}" filterMatchMode="contains">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetDetalles').filter()" id="motivoesEditarSelect" filter="true" >
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{cmGlosaMasivaBean.listaCmAuditoriaMotivoGlosa}" var="motivoEsp" itemValue="#{motivoEsp.maeMotivoEspecificoValor}" itemLabel="#{motivoEsp.maeMotivoEspecificoValor}" itemDescription="#{motivoEsp.maeMotivoEspecificoValor}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{obj.motivoGlosaCorto}" title="#{obj.motivoGlosa}"/>
+                                    <p:commandButton rendered="#{obj.motivoGlosaCorto.length() > 1 }" onmouseup="PF('dlgMsg').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmGlosaMasivaBean.actualizarPanelMostrarMensaje()}">
+                                        <f:setPropertyActionListener value="#{obj.motivoGlosa}" target="#{cmGlosaMasivaBean.mensaje}" />
+                                    </p:commandButton>                               
+                                </p:column>
+
+                                <p:column  headerText="Observación detalle">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Observación detalle" maxlength="64" style="width: 95%;" onkeypress="if (event.keyCode === 13) {
+                                                    onchange();
+                                                    return false;
+                                                }"  onchange="PF('tablaWidgetDetalles').filter()" />
+                                    </f:facet>
+
+                                    <h:outputText value="#{obj.observacionDetalleCorto}" title="#{obj.observacionDetalleCorto}"/>
+                                    <p:commandButton rendered="#{obj.observacionDetalleCorto.length() > 1 }" onmouseup="PF('dlgMsg').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmGlosaMasivaBean.actualizarPanelMostrarMensaje()}">
+                                        <f:setPropertyActionListener value="#{obj.observacion}" target="#{cmGlosaMasivaBean.mensaje}" />
+                                    </p:commandButton>
+
+                                </p:column>
+
+                                <p:column  headerText="Valor copago" sortBy="#{obj.valorCopago}">
+                                    <h:outputText value="#{obj.valorCopago}" title="#{obj.valorCopago}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>                          
+                                <p:column  headerText="Valor pendiente inicial" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pendiente actual" sortBy="#{obj.valorPendienteActual}">
+                                    <h:outputText value="#{obj.valorPendienteActual}" title="#{obj.valorPendienteActual}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorPagadoEPS}" title="#{obj.valorPagadoEPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorPagadoEPS}" style="width:100%" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />  
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado EPS" sortBy="#{obj.porcentajePagadoEPS}">
+                                    <p:cellEditor id="nombreCell">       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajePagadoEPS}" title="#{obj.porcentajePagadoEPS}">
+                                                <f:convertNumber maxFractionDigits="2"/>
+                                            </h:outputText>
+                                            <h:outputText rendered="#{obj.porcentajePagadoEPS>0}" value="%" title="#{obj.porcentajePagadoEPS}"> </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajePagadoEPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }" ></p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Valor aceptado IPS" sortBy="#{obj.valorAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.valorAceptadoIPS}" title="#{obj.valorAceptadoIPS}">
+                                                <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                            </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputText  value="#{obj.valorAceptadoIPS}" style="width:100%" 
+                                                          onkeypress="if (event.keyCode === 13) {
+                                                                      return false;
+                                                                  }"
+                                                          validatorMessage="Ingreso solo números positivos"
+                                                          converterMessage="Ingrese números positivos y decimales separados por punto, hasta 4 decimales Ej:12.9876">
+                                                <f:validateLongRange minimum="0"  />   
+                                            </p:inputText>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+
+                                <p:column  headerText="Porcentaje aceptado IPS" sortBy="#{obj.porcentajeAceptadoIPS}">
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.porcentajeAceptadoIPS}" title="#{obj.porcentajeAceptadoIPS}">
+                                                <f:convertNumber  maxFractionDigits="2"/>
+                                            </h:outputText>
+                                            <h:outputText rendered="#{obj.porcentajeAceptadoIPS>0}" value="%" title="#{obj.porcentajeAceptadoIPS}"> </h:outputText>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <p:inputNumber minValue="0" decimalPlaces="2" value="#{obj.porcentajeAceptadoIPS}" maxValue="100" symbol="%" symbolPosition="s" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"  >
+                                            </p:inputNumber>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column> 
+
+                                <p:column  headerText="Observación Respuesta" sortBy="#{obj.observacionGlosa}" style="text-align: center;" >
+                                    <p:cellEditor>       
+                                        <f:facet name="output">
+                                            <h:outputText value="#{obj.observacionGlosaCorto}" title="#{obj.observacionGlosaCorto}"/> 
+                                        </f:facet>
+                                        <f:facet name="input" >
+                                            <p:commandButton onmouseup="PF('dlgObservacionDetalle').show();" process="@this"  immediate="true"  icon="ui-icon-comment" title="Ver completo" actionListener="#{cmGlosaMasivaBean.actualizarPanelObservacion()}">
+                                                <f:setPropertyActionListener value="#{obj}" target="#{cmGlosaMasivaBean.detalleEditadoActual}" />
+                                            </p:commandButton>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column style="width:20px">
+                                    <p:rowEditor />
+                                </p:column>
+                            </p:dataTable>
+                            <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">  
+                                <p:remoteCommand immediate="true" name="abrirVentanaResponder" action="#{cmGlosaMasivaBean.verFormularioReponderGlosa( )}" />
+                                <p:commandButton type="button" value="Responder Glosas" onclick="abrirVentanaResponder()" process="@form"  immediate="true"/>
+                            </h:panelGroup>
+                        </p:panel>
+
+                        <p:panel id="pDatosRespuesta" toggleable="true" header="Calculo De Respuesta Detalles Seleccionados" style="margin-bottom:10px;">    
+                            <p:panelGrid id="panelFormularioCalculoRespuestas" columns="2" layout="grid" styleClass="showcase-text-align-center">                            
+
+                                <p:outputLabel value="Valor pagado EPS"   style="font-weight:bold"/>
+                                <p:inputNumber tabindex="1" id="valorPagadoEps" value="#{cmGlosaMasivaBean.cmGlosaMasiva.valorPagadoEps}" decimalPlaces="4" >  
+                                    <p:ajax event="blur" update="porcentajeEps" listener="#{cmGlosaMasivaBean.eventoTransformarValorEnPorcentaje( 1 )}" /> 
+                                </p:inputNumber>    
+
+                                <p:outputLabel value="Porcentaje pagado EPS" style="font-weight:bold"/>
+                                <p:inputNumber  id="porcentajeEps" value="#{cmGlosaMasivaBean.cmGlosaMasiva.porcentajePagadoEps}" maxValue="100" symbol="%" symbolPosition="s" >  
+                                    <p:ajax event="blur" update="valorPagadoEps" listener="#{cmGlosaMasivaBean.eventoTransformarPorcentajeEnValor( 1 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Valor aceptado IPS"   style="font-weight:bold"/>
+                                <p:inputNumber tabindex="2" id="valorAceptadoIps" value="#{cmGlosaMasivaBean.cmGlosaMasiva.valorAceptadoIps}" decimalPlaces="4" emptyValue="empty">  
+                                    <p:ajax event="blur" update="porcentajeIps" listener="#{cmGlosaMasivaBean.eventoTransformarValorEnPorcentaje( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Porcentaje aceptado IPS"  style="font-weight:bold" />
+                                <p:inputNumber id="porcentajeIps" value="#{cmGlosaMasivaBean.cmGlosaMasiva.porcentajeAceptadoIps}" maxValue="100" symbol="%" symbolPosition="s">  
+                                    <p:ajax event="blur" update="valorAceptadoIps" listener="#{cmGlosaMasivaBean.eventoTransformarPorcentajeEnValor( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Observación" for="observacionRespuesta"  style="font-weight:bold" />
+                                <h:inputTextarea id="observacionRespuesta" value="#{cmGlosaMasivaBean.cmGlosaMasiva.observacion}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                            </p:panelGrid>    
+
+                            <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                <p:commandButton value="Limpiar Datos"  actionListener="#{cmGlosaMasivaBean.limpiarFormularioAplicarPorcentajesMasivos( )}"  immediate="true"/>
+                                <p:commandButton value="Aplicar Porcentajes" process="@form" actionListener="#{cmGlosaMasivaBean.aplicarPorcentajeDetallesSeleccionados( )}" />
+                            </h:panelGroup>
+                        </p:panel>
+
+                        <p:panel toggleable="true" id="pEdicionAuditoria" header="Edición Auditoría" style="margin-bottom:10px;">
+                            <p:panelGrid id="panelEdicionAuditoria" columns="3" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Tipo Auditoría" for="tipoAuditoria" style="font-weight:bold" />
+                                <p:selectOneMenu   editable="fase" id="tipoAuditoria" value="#{cmGlosaMasivaBean.objeto.tipoAuditoria}" >
+                                    <f:selectItem itemLabel=" -- " itemValue="-1" noSelectionOption="false" />
+                                    <f:selectItem itemLabel="Sin Auditoría" itemValue="0" />
+                                    <f:selectItem itemLabel="Técnica" itemValue="6" />
+                                    <f:selectItem itemLabel="Médica" itemValue="7" />
+                                    <f:selectItem itemLabel="Para Pago" itemValue="8" />
+                                    <p:ajax update="pEdicionAuditoria" />
+                                </p:selectOneMenu>
+
+                                <p:commandButton process="@this" update="panelEdicionAuditoria" value="Cambiar Auditoría" actionListener="#{cmGlosaMasivaBean.guardarTipoAuditoria( cmGlosaMasivaBean.objeto )}" immediate="true" />
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionarGlosas').hide()"  actionListener="#{cmGlosaMasivaBean.cerrarVentanaResponderGlosa( )}" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <p:dialog header="Ver Detalles Glosa" id="dialogoVerGlosaRespuestaDetalles" widgetVar="dialogoVerGlosaRespuestaDetalles" appendTo="@(body)" modal="true"  width="90%" dynamic="true"  style="max-height:90%;"   >
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerGlosaRespuesas">
+                        <p:panel id="pVerGlosaRespuesas" toggleable="true" header="Glosa Factura" style="margin-bottom:10px;">
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(cmGlosaMasivaBean.cmGlosaRespuesta.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelVerGlosaRespuesas" columns="4" layout="grid">
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Id factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.cmGlosaRespuesta.cmFactura.id}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Id respuesta factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.cmGlosaRespuesta.id}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pagado EPS" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.cmGlosaRespuesta.valorPagadoEps}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor aceptado IPS" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.cmGlosaRespuesta.valorAceptadoIps}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <p:panel id="pGlosaRespuestaDetalles" toggleable="true" header="Detalles de glosa" style="margin-bottom:10px;">                               
+                            <p:dataTable var="obj" value="#{cmGlosaMasivaBean.lazyGlosaRespuestaDetalle}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                                         widgetVar="tablaWidgetGlosaRespuestaDetalles"
+                                         scrollable="true"
+                                         scrollHeight="400"
+                                         scrollWidth="100%"
+                                         rowKey="#{obj.id}" >
+                                <p:column  headerText="Id" sortBy="#{obj.id}">
+                                    <h:outputText value="#{obj.id}" title="#{obj.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id glosa respuesta" sortBy="#{obj.cmGlosaRespuesta.id}">
+                                    <h:outputText value="#{obj.cmGlosaRespuesta.id}" title="#{obj.cmGlosaRespuesta.id}"/>
+                                </p:column>
+                                <p:column  headerText="Id detalle servicio" sortBy="#{obj.cmDetalle.id}">
+                                    <h:outputText value="#{obj.cmDetalle.id}" title="#{obj.cmDetalle.id}"/>
+                                </p:column>
+                                <p:column  headerText="Tipo Respuesta" sortBy="#{obj.cmGlosaRespuesta.tipoRespuestaStr}">
+                                    <h:outputText value="#{obj.cmGlosaRespuesta.tipoRespuestaStr}" title="#{obj.cmGlosaRespuesta.tipoRespuestaStr}"/>
+                                </p:column>
+                                <p:column  headerText="Documento" sortBy="#{obj.documento}">
+                                    <h:outputText value="#{obj.documento}" title="#{obj.documento}"/>
+                                </p:column>
+
+                                <p:column  headerText="Valor cobro detalle" sortBy="#{obj.valorCobroDetalle}">
+                                    <h:outputText value="#{obj.valorCobroDetalle}" title="#{obj.valorCobroDetalle}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor facturado" sortBy="#{obj.valorFacturado}">
+                                    <h:outputText value="#{obj.valorFacturado}" title="#{obj.valorFacturado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>     
+                                <p:column  headerText="Valor pagado" sortBy="#{obj.valorPagado}">
+                                    <h:outputText value="#{obj.valorPagado}" title="#{obj.valorPagado}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor pagado EPS" sortBy="#{obj.valorPagadoEps}">
+                                    <h:outputText value="#{obj.valorPagadoEps}" title="#{obj.valorPagadoEps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado EPS" sortBy="#{obj.porcentajePagadoEps}">
+                                    <h:outputText value="#{obj.porcentajePagadoEps}" title="#{obj.porcentajePagadoEps}">
+                                    </h:outputText>
+                                    <h:outputText rendered="#{obj.porcentajePagadoEps>0}" value="%" title="#{obj.porcentajePagadoEps}"> </h:outputText>
+                                </p:column>        
+                                <p:column  headerText="Valor pendiente" sortBy="#{obj.valorPendiente}">
+                                    <h:outputText value="#{obj.valorPendiente}" title="#{obj.valorPendiente}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Valor aceptado Ips" sortBy="#{obj.valorAceptadoIps}">
+                                    <h:outputText value="#{obj.valorAceptadoIps}" title="#{obj.valorAceptadoIps}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>
+                                </p:column>
+                                <p:column  headerText="Porcentaje pagado IPS" sortBy="#{obj.porcentajeAceptadoIps}">
+                                    <h:outputText value="#{obj.porcentajeAceptadoIps}" title="#{obj.porcentajeAceptadoIps}">
+                                    </h:outputText>
+                                    <h:outputText rendered="#{obj.porcentajeAceptadoIps>0}" value="%" title="#{obj.porcentajeAceptadoIps}"></h:outputText> 
+                                </p:column>  
+                                <p:column  headerText="Fecha creación" sortBy="#{obj.fechaHoraCrea}">
+                                    <h:outputText value="#{obj.fechaHoraCrea}" title="#{obj.fechaHoraCrea}"/>
+                                </p:column>
+                                <p:column  headerText="Observación" sortBy="#{obj.observacion}">
+                                    <h:outputText value="#{obj.observacionCorto}" />
+                                    <p:commandButton rendered="#{obj.observacionCorto.length() > 1 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(obj.observacion)}" icon="ui-icon-comment" title="Ver completo"/>                                
+                                </p:column>
+                            </p:dataTable>                             
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerGlosaRespuestaDetalles').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel> 
+            </p:dialog>
+
+            <p:dialog header="Descripción" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:100px">
+                    <h:form id="frmObservacion" style="padding: 10px;">          
+                        <h:outputText id="mensaje" value="#{cmGlosaMasivaBean.mensaje}" />
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Registrar Respuesta" widgetVar="dialogoRegistrarGlosa" appendTo="@(body)" modal="true"  width="50%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:250px">
+                    <h:form id="frmReponderGlosa" style="padding: 10px;">   
+                        <p:panelGrid id="panelRegistrar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                            <p:outputLabel value="Estado" for="estadoRespuesta"  style="font-weight:bold"/>
+                            <p:selectOneMenu id="estadoRespuesta" value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.tipoEstadoRespuesta}"  editable="false" style="width: 64px;" required="true" requiredMessage="Estado : Este campo es obligatorio." >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Respuesta" itemValue="1" />
+                            </p:selectOneMenu>
+
+                            <p:outputLabel value="Observación" for="observacionRespuesta" style="font-weight:bold" />
+                            <h:inputTextarea id="observacionRespuesta" value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.observacion}" required="false" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">   
+                                            <p:commandButton value="Registrar Respuesta"  actionListener="#{cmGlosaMasivaBean.guardarResponderGlosa( )}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dialogoRegistrarGlosa').hide()" immediate="true" onkeypress="if (event.keyCode === 13) {
+                                                        return false;
+                                                    }"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Observación" widgetVar="dlgObservacionDetalle" minHeight="200" appendTo="@(body)" modal="true"  width="90%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:200px">
+                    <h:form id="frmObservacionDetalle" style="padding: 10px;">          
+                        <p:inputTextarea style="width: 100%;" value="#{cmGlosaMasivaBean.detalleEditadoActual.observacionGlosa}"/>
+                        <h:outputText rendered="#{cmGlosaMasivaBean.detalleEditadoActual.existeObservacionHistorica}" value="Observaciones Realizadas: " title="Observaciones Realizadas"/>
+                        <p:inputTextarea rendered="#{cmGlosaMasivaBean.detalleEditadoActual.existeObservacionHistorica}" disabled="true" style="width: 100%;" value="#{cmGlosaMasivaBean.detalleEditadoActual.observacionRespuestaDetalles}"/>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Aceptar" actionListener="#{cmGlosaMasivaBean.registrarObservacion( )}" />
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgObservacionDetalle').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog> 
+
+            <p:dialog widgetVar="dialogoVerAuditoriaServicio" header="Auditoría de servicio" appendTo="@(body)" responsive="true" modal="true" width="100%">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmVerAuditoriaServicio">
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                        <p:panel id="panelVerFacturaItem" header="Factura" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Ver Factura"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton  class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(cmGlosaMasivaBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosFactura" columns="4"
+                                         layout="grid" >
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Estado Factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.estadoFacturaStr}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número radicado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.numeroRadicado}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Número factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.numeroFacturado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha radicación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.fechaRadicacion}"/>
+                                    </p:column>
+                                </p:row>       
+                                
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación"  style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.fechaPrestacion}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Modalidad contrato" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.maeTipoContratoValor}"/>
+                                    </p:column>
+                                </p:row>
+                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor factura" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorFactura}" title="#{cmGlosaMasivaBean.objeto.valorFactura}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor copago" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorCopago}" title="#{cmGlosaMasivaBean.objeto.valorCopago}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                                  
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor bruto" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.objeto.valorBruto}" title="#{cmGlosaMasivaBean.objeto.valorBruto}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.maeRegimenValor}"/>
+                                    </p:column>
+                                </p:row>
+                        
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Responsable del pago" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.responsablePago}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Regional" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.objeto.regional}"/>
+                                    </p:column>
+                                </p:row>
+                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Pbs" style="font-weight:bold"></p:outputLabel>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText style="color:red;font-weight:bold;" value="#{cmGlosaMasivaBean.objeto.pbs?'Si':'No'}"/>
+                                    </p:column>
+                                </p:row>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelVerServicio" header="Servicio" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Servicio"></h:outputLabel>
+                            </f:facet>
+                            <p:outputPanel class="frmAuditoria" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(cmGlosaMasivaBean.detalleServicioActual.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid id="panelDatosServicio" columns="4"
+                                         layout="grid">
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Tipo documento" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.maeTipoDocumentoValor}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Documento" style="font-weight:bold" />
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.documento}"/>
+                                    </p:column>
+                                </p:row>
+
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre completo" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.nombreCompletoAfiliado}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Consecutivo item" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.consecutivoItem}"/>
+                                    </p:column>
+                                </p:row>
+                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Código servicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.maServicioCodigo}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Nombre servicio" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.maServicioValor}"/>
+                                    </p:column>
+                                </p:row>
+                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor facturado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.detalleServicioActual.valorFacturado}" title="#{cmGlosaMasivaBean.detalleServicioActual.valorFacturado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pagado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.detalleServicioActual.valorPagado}" title="#{cmGlosaMasivaBean.detalleServicioActual.valorPagado}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                              
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.detalleServicioActual.valorPendiente}" title="#{cmGlosaMasivaBean.detalleServicioActual.valorPendiente}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Valor pendiente actual" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <h:outputText value="#{cmGlosaMasivaBean.detalleServicioActual.valorPendienteActual}" title="#{cmGlosaMasivaBean.detalleServicioActual.valorPendienteActual}">
+                                            <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                        </h:outputText>
+                                    </p:column>
+                                </p:row>
+                                                                                             
+                                <p:row>
+                                    <p:column styleClass="ui-widget-header ui-g-3">
+                                        <p:outputLabel value="Fecha prestación" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column styleClass=" ui-g-3" >
+                                        <p:outputLabel value="#{cmGlosaMasivaBean.detalleServicioActual.fechaPrestacion}"/>
+                                    </p:column>
+                                </p:row>
+                                
+                                
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel id="panelGestionGlosaItem" header="Conceptos Contables" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="concepto" value="#{cmGlosaMasivaBean.registrosConceptoContable}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaConceptos" lazy="false"
+                                         widgetVar="tablaWidgetConceptos"
+                                         style="font-size:11px;"
+                                         rowKey="#{concepto.id}" >
+                                <p:column  headerText="Concepto Contable" sortBy="#{concepto.maestroConceptos.id}">
+                                    <h:outputText value="#{concepto.maestroConceptos.nombre}" title="#{concepto.maestroConceptos.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Centro Costo">
+                                    <h:outputText value="#{concepto.maestroCentroCosto.nombre}" title="#{concepto.maestroCentroCosto.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Ubicación" sortBy="#{concepto.municipioAfiliado}">
+                                    <h:outputText value="#{concepto.municipioAfiliado}" title="#{concepto.municipioAfiliado}"/>
+                                </p:column>
+                                <p:column  headerText="Porcentaje" sortBy="#{concepto.porcentaje}">
+                                    <h:outputText value="#{concepto.porcentaje}" title="#{concepto.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>   
+                                <p:column  headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(concepto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                </p:column>                              
+                            </p:dataTable>
+                        </p:panel>
+                        <p:panel id="panelDiagnostico" header="Diagnóstico" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <f:facet name="header">
+                                <h:outputLabel value="Diagnóstico"></h:outputLabel>
+                            </f:facet>
+                            <p:panel id="pDiagnosticoCrear" header="Diagnósticos Opcionales" style="margin-bottom:10px;" collapsed="false" toggleable="true">        
+                                <p:dataTable var="diagnostico" value="#{cmGlosaMasivaBean.registrosAuditoriaDiagnostico}" paginator="false" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                             emptyMessage="No se encontraron registros"
+                                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                             rowsPerPageTemplate="5,10,30,50,100" id="tablaDiagnosticosCrear" lazy="false"
+                                             widgetVar="tablaWidgetListaDiagnosticos"
+                                             style="font-size:11px;"
+                                             rowKey="#{diagnostico.id}" >
+                                    <p:column headerText="Código">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoCodigo}" />
+                                    </p:column>
+                                    <p:column headerText="Nombre">
+                                        <h:outputText value="#{diagnostico.maDiagnosticoValor}" />
+                                    </p:column>
+                                    <p:column headerText="Es principal">
+                                        <h:outputText value="#{diagnostico.principalStr}" />
+                                    </p:column>
+                                    <p:column headerText="Auditoría" style="text-align: center;">
+                                        <p:commandButton class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(diagnostico.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                        </p:panel>
+
+                        <p:panel id="panelVerMotivos" header="Motivos" style="margin-bottom:10px;" collapsed="false" toggleable="true">  
+                            <p:dataTable var="motivo" value="#{cmGlosaMasivaBean.registrosAuditoriaMotivoGlosa}" paginator="false" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaMotivos" lazy="false"
+                                         widgetVar="tablaWidgetMotivos"
+                                         style="font-size:11px;"
+                                         rowKey="#{motivo.id}" >     
+                                <p:column  headerText="Motivo glosa" sortBy="#{motivo.maestroMotivo.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivo.nombre}" title="#{motivo.maestroMotivo.nombre}"/>
+                                </p:column>
+                                <p:column  headerText="Motivo especifico" sortBy="#{motivo.maestroMotivoEspecifico.nombre}">
+                                    <h:outputText value="#{motivo.maestroMotivoEspecifico.nombre}" title="#{motivo.maestroMotivoEspecifico.nombre}"/>
+                                </p:column>
+
+                                <p:column  headerText="Tipología" sortBy="#{motivo.tipologia}">
+                                    <h:outputText value="#{motivo.tipologiaStr}" title="#{motivo.tipologiaStr}"/>
+                                </p:column>  
+
+                                <p:column  headerText="Porcentaje" sortBy="#{motivo.porcentaje}">
+                                    <h:outputText value="#{motivo.porcentaje}" title="#{motivo.porcentaje}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="%" type="currency" maxFractionDigits="2"/>
+                                    </h:outputText>
+                                </p:column>  
+
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{motivo.observacionCorto}" title="#{motivo.observacionCorto}"/>
+                                    <p:commandButton rendered="#{motivo.observacionCorto.length() > 0 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(motivo.observacion)}" icon="ui-icon-comment" title="Ver completo"/> 
+                                </p:column>
+
+                                <p:column headerText="Auditoría" style="text-align: center;">
+                                    <p:commandButton class="btnAuditoria" action="#{cmGlosaMasivaBean.getAuditoria(motivo.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />                               
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>                        
+
+                        <p:panel id="panelVerAutorizaciones" header="Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="autorizacion" value="#{cmGlosaMasivaBean.registrosAuditoriaAutorizacion}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaAutorizaciones" lazy="false"
+                                         widgetVar="tablaWidgetAutorizacion"
+                                         style="font-size:11px;"
+                                         rowKey="#{autorizacion.id}" >
+
+                                <p:column  headerText="Código servicio" sortBy="#{autorizacion.codigoServicio}">
+                                    <h:outputText value="#{autorizacion.codigoServicio}" title="#{autorizacion.codigoServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Número autorización" sortBy="#{autorizacion.numeroAutorizacion}">
+                                    <h:outputText value="#{autorizacion.numeroAutorizacion}" title="#{autorizacion.numeroAutorizacion}"/>
+                                </p:column>
+                                <p:column  headerText="Nombre del servicio" sortBy="#{autorizacion.nombreServicio}">
+                                    <h:outputText value="#{autorizacion.nombreServicio}" title="#{autorizacion.nombreServicio}"/>
+                                </p:column>
+                                <p:column  headerText="Id anexo 4" sortBy="#{autorizacion.anexo4.id}">
+                                    <h:outputText value="#{autorizacion.anexo4.id}" title="#{autorizacion.anexo4.id}"/>
+                                </p:column>
+                                <p:column  headerText="Prestador" sortBy="#{autorizacion.razonSocialPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.razonSocialPrestador}" title="#{autorizacion.razonSocialPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Nit Prestador" sortBy="#{autorizacion.nitPrestador}" style="text-align: center">
+                                    <h:outputText value="#{autorizacion.nitPrestador}" title="#{autorizacion.nitPrestador}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Autorización" sortBy="#{autorizacion.fechaAutorizacion}">
+                                    <h:outputText value="#{autorizacion.fechaAutorizacion}" title="#{autorizacion.fechaAutorizacion}"/>
+                                </p:column>                                                          
+                            </p:dataTable>
+                        </p:panel>
+                        
+                        <p:panel id="panelVerContratos" header="Descuento Capita" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable var="descuentoC" value="#{cmGlosaMasivaBean.registrosDescuentoCapita}" paginator="true" rows="#{cmGlosaMasivaBean.tamanoPagina}" 
+                                         emptyMessage="No se encontraron registros"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" id="tablaCapitaDescuento" lazy="false"
+                                         widgetVar="tablaWidgetCapitaDescuento"
+                                         style="font-size:11px;"
+                                         rowKey="#{descuentoC.id}" >
+
+                                <p:column  headerText="Número contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.contrato}" title="#{descuentoC.contrato}"/>
+                                </p:column>
+
+                                <p:column  headerText="Nit" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+
+                                <p:column  headerText="Razón social">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.razonSocial}" title="#{descuentoC.cntContrato.cntPrestador.razonSocial}"/>
+                                </p:column>
+
+                                <p:column  headerText="Representante legal">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}" title="#{descuentoC.cntContrato.cntPrestador.nombreRepresentanteLegal}"/>
+                                </p:column>
+
+                                <p:column  headerText="Número documento prestador">
+                                    <h:outputText value="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}" title="#{descuentoC.cntContrato.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column  headerText="Estado contrato" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.cntContrato.maeEstadoContratoValor}" title="#{descuentoC.cntContrato.maeEstadoContratoValor}"/>
+                                </p:column>
+                                <p:column  headerText="Marcación" style="text-align: center">
+                                    <h:outputText value="#{descuentoC.marcacionStr}" title="#{descuentoC.cntContrato.diasLimitePago}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Inicio">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaInicio}" title="#{descuentoC.cntContrato.fechaInicio}"/>
+                                </p:column>
+                                <p:column  headerText="Fecha Fin">
+                                    <h:outputText value="#{descuentoC.cntContrato.fechaFin}" title="#{descuentoC.cntContrato.fechaFin}"/>
+                                </p:column>
+                                <p:column  headerText="Observación">
+                                    <h:outputText value="#{descuentoC.observacionCorto}" />
+                                    <p:commandButton rendered="#{descuentoC.observacionCorto.length() > 1 }" actionListener="#{cmGlosaMasivaBean.mostrarMensaje(descuentoC.observacion)}" icon="ui-icon-comment" title="Ver completo"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        
+                        <p:panel widgetVar="panelVerAdjuntosCmDetalles" id="panelVerAdjuntosCmDetalles" header="Adjuntos Detalle" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdjuntosCmDetalles" var="adjunto" value="#{cmGlosaMasivaBean.registrosAuditoriaAdjutoCmDetalle}" widgetVar="tablaWidgetAdjuntosCmDetalles" scrollable="true" emptyMessage="No se encontraron registros">
+                                <p:column headerText="Acciones" style="text-align: center;">
+                                    <p:commandButton rendered="#{adjunto.id != null}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{cmGlosaMasivaBean.descargarAdjunto(adjunto)}" />
+                                    </p:commandButton>  
+                                </p:column>
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.archivoNombre}"/>
+                                </p:column>
+                                <p:column headerText="Tipo"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.tipoStr}"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{adjunto.usuarioCrea}"/>
+                                </p:column>
+                                <p:column headerText="F.H. Crea"  style="text-align: center;">
+                                    <h:outputText value="#{adjunto.fechaHoraCrea}">
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+
+                            </p:dataTable>
+
+                        </p:panel>
+
+
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoVerAuditoriaServicio').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog widgetVar="dialogoAplicarValoresServicio" header="Aplicar valores de servicio" appendTo="@(body)" responsive="true" modal="true" width="100%">
+                <p:scrollPanel mode="native" style="height:500px">
+                    <h:form id="frmAplicaValoresGlosas">
+                        <p:panel  toggleable="true" id="pDetallesSumatoria" header="Sumatoria Valores Servicios" style="margin-bottom:10px;">                               
+                            <p:panelGrid id="panelDetallesSumatoria" columns="2" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:outputLabel value="Valor suma facturado"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorFacturadoPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma pendiente actual"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma pagado EPS"  style="font-weight:bold"/>
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor suma aceptado IPS" style="font-weight:bold" />
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsPrecalculado}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$ " type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <p:panel  toggleable="true" id="pDatosRespuesta" header="Aplicación Valor Masivo" style="margin-bottom:10px;">                          
+                            <p:panelGrid id="panelFormularioCalculoRespuestas" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid" >                            
+
+                                <p:outputLabel value="Sumatoria pagado EPS items seleccionados "   style="font-weight:bold"/>
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsSeleccionados}" 
+                                              title="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEpsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria aceptado IPS items seleccionados"   style="font-weight:bold"/>
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsSeleccionados}" 
+                                              title="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIpsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria valor pagado items seleccionados"  style="font-weight:bold" />
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoItemsSeleccionados}" 
+                                              title="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoItemsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Sumatoria pendientes actuales items seleccionados" style="font-weight:bold" />
+                                <h:outputText value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualItemsSeleccionados}" 
+                                              title="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPendienteActualItemsSeleccionados}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                </h:outputText>
+
+                                <p:outputLabel value="Valor pagado EPS" style="font-weight:bold" />
+                                <p:inputNumber tabindex="1"  id="valorPagadoEps" minValue="0"  value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorPagadoEps}" decimalPlaces="4" >  
+                                    <p:ajax event="blur" update="porcentajeEps"  listener="#{cmGlosaMasivaBean.conversionPorcentaje( 1 )}" /> 
+                                </p:inputNumber>    
+
+                                <p:outputLabel value="Porcentaje pagado EPS" style="font-weight:bold" />
+                                <p:inputNumber  id="porcentajeEps" minValue="0" decimalPlaces="2" value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.porcentajePagadoEps}" maxValue="100" symbol="%" symbolPosition="s" >  
+                                    <p:ajax event="blur" update="valorPagadoEps" listener="#{cmGlosaMasivaBean.conversionValor( 1 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Valor aceptado IPS" style="font-weight:bold" />
+                                <p:inputNumber tabindex="2" id="valorAceptadoIps" minValue="0"  value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.valorAceptadoIps}" decimalPlaces="4" emptyValue="empty" >  
+                                    <p:ajax event="blur"  update="porcentajeIps" listener="#{cmGlosaMasivaBean.conversionPorcentaje( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Porcentaje aceptado IPS" style="font-weight:bold" />
+                                <p:inputNumber id="porcentajeIps" minValue="0" decimalPlaces="2" value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.porcentajeAceptadoIps}" maxValue="100" symbol="%" symbolPosition="s">  
+                                    <p:ajax event="blur" update="valorAceptadoIps"  listener="#{cmGlosaMasivaBean.conversionValor( 2 )}" /> 
+                                </p:inputNumber> 
+
+                                <p:outputLabel value="Observación" for="observacionRespuesta" style="font-weight:bold" />
+                                <h:inputTextarea id="observacionRespuesta" value="#{cmGlosaMasivaBean.objeto.cmGlosaRespuestaDetalle.observacionMasiva}" required="true" requiredMessage="Observación : Este campo es obligatorio." style="width: 100%;"/>
+
+                                <h:panelGroup style="display:block; text-align:center; margin-top: 10px;">
+                                    <p:commandButton value="Guardar Porcentajes"  actionListener="#{cmGlosaMasivaBean.guardarPorcentaje( )}" process="@form" update="@form" resetValues="true"/>
+                                    <p:commandButton value="Limpiar Datos"  actionListener="#{cmGlosaMasivaBean.refrescarLimpiarFormularioCalculoMasivo( )}"  immediate="true"/>
+                                    <p:commandButton value="Cerrar" type="button" onclick="PF('dialogoAplicarValoresServicio').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </h:panelGroup>
+
+                            </p:panelGrid>
+                        </p:panel> 
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+
+            <body onunload="finalizar();"> 
+            <h:form id="exit">
+                <p:remoteCommand  id="finalizar" name="finalizar" action="#{cmGlosaMasivaBean.clearViewScopedBeans()}"/>
+            </h:form>
+            </body>    
+        </center>
+    </ui:define>
+</ui:composition>

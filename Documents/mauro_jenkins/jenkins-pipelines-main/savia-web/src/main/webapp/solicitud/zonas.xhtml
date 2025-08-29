@@ -1,0 +1,332 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+            </style>
+            <h:form id="frmZonas">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{gsZonaBean.modulo.descripcion}">#{gsZonaBean.modulo.nombre}</span>
+                    </f:facet>
+                    <f:facet name="right">
+                        <p:commandButton rendered="#{gsZonaBean.accionListar}" title="Refrescar" ajax="false" actionListener="#{gsZonaBean.refrescar}" icon="ui-icon-refresh"/>
+                        <p:commandButton rendered="#{gsZonaBean.accionCrear}" title="Crear" actionListener="#{gsZonaBean.crear}" icon="ui-icon-document"/>
+                    </f:facet>
+                </p:toolbar>
+                <p:dataTable var="obj" value="#{gsZonaBean.lazyRegistros}" paginator="true" rows="#{gsZonaBean.tamanoPagina}" 
+                             emptyMessage="No se encontraron registros"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100" id="tablaRegistros" lazy="true"
+                             widgetVar="tablaWidget"
+                             scrollable="true"
+                             scrollWidth="100%"
+                             rowKey="#{obj.id}" reflow="true">
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>    
+                        <p:commandButton rendered="#{gsZonaBean.accionVer}" title="Ver" actionListener="#{gsZonaBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{gsZonaBean.accionEditar}" title="Editar" actionListener="#{gsZonaBean.editar(obj.id)}" icon="ui-icon-pencil"/>
+                        <p:commandButton rendered="#{gsZonaBean.accionBorrar}" title="Borrar" action="#{gsZonaBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{gsZonaBean.accionAdicional1}" title="Usuarios" actionListener="#{gsZonaBean.listarUsuarios(obj.id)}" icon="ui-icon-person"/>
+                    </p:column>
+                    <p:column headerText="Nombre" sortBy="#{obj.nombre}" filterBy="#{obj.nombre}">
+                        <f:facet name="filter">
+                            <p:inputText label="Nombre" maxlength="64" style="width: 95%;" onchange="PF('tablaWidget').filter()"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.nombre}"/>
+                    </p:column>
+                    <p:column headerText="Descripción" >
+                        <h:outputText title="#{obj.descripcion}" value="#{obj.descripcion}"/>
+                    </p:column>                    
+                    <p:column headerText="Ubicación" filterBy="#{obj.ubicacion.id}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu onchange="PF('tablaWidget').filter()" style="width: 80%;" filter="true">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{gsZonaBean.ubicaciones}" var="muni" itemValue="#{muni.id}" itemLabel="#{muni.nombre} - #{muni.ubicacionPadre.nombre}" itemDescription="#{muni.nombre}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{gsZonaBean.obtenerMunicipioDepartamento(obj.ubicacion.id)}"/>
+                    </p:column>
+                </p:dataTable>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <p:dialog header="Ver" widgetVar="dialogoVer" appendTo="@(body)" modal="true"  width="70%" dynamic="true">
+                <h:form id="frmVer">
+                    <p:panelGrid id="panelVer" >
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Nombre" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:outputLabel value="#{gsZonaBean.objeto.nombre}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:outputLabel value="#{gsZonaBean.objeto.descripcion}"/>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Ubicacion" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:outputLabel value="#{gsZonaBean.getUbicacionRecursiva(gsZonaBean.objeto.ubicacion.id)}"/>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Crear" widgetVar="dialogoCrear" appendTo="@(body)" modal="true" width="70%" dynamic="true">
+                <h:form id="frmCrear">
+                    <p:panelGrid id="panelCrear" >
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Nombre" style="font-weight:bold" for="nombre"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:inputText id="nombre" label="Nombre" value="#{gsZonaBean.objeto.nombre}" maxlength="64" style="width: 80%;" required="true">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row> 	
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Descripción" style="font-weight:bold" for="descripcion"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:inputTextarea id="descripcion" label="Descripción" style="width: 90%" value="#{gsZonaBean.objeto.descripcion}" cols="50" maxlength="512"/>
+                            </p:column>
+                        </p:row>
+                        <p:row> 	
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Ubicación" style="font-weight:bold" for="ubicacion"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:autoComplete id="ubicacion" dropdown="false" value="#{gsZonaBean.objeto.ubicacion}" completeMethod="#{gsZonaBean.completarUbicacion}"
+                                                var="ubica" itemLabel="#{gsZonaBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterGsZona" forceSelection="true" size="60"> 
+                                </p:autoComplete>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="guardarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarRemote" action ="#{gsZonaBean.guardar}" update="panelCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Editar" widgetVar="dialogoEditar" appendTo="@(body)" modal="true" width="70%" dynamic="true">
+                <h:form id="frmEditar">
+                    <p:panelGrid id="panelEditar" >
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Nombre" style="font-weight:bold" for="nombre"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:inputText id="nombre" label="Nombre" value="#{gsZonaBean.objeto.nombre}" maxlength="64" style="width: 80%;" required="true">
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row> 	
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Descripción" style="font-weight:bold" for="descripcion"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:inputTextarea id="descripcion" label="Descripción" value="#{gsZonaBean.objeto.descripcion}" cols="50" maxlength="512" style="width: 90%"/>
+                            </p:column>
+                        </p:row>
+                        <p:row> 	
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Ubicación" style="font-weight:bold" for="ubicacion"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:autoComplete id="ubicacion" dropdown="false" value="#{gsZonaBean.objeto.ubicacion}" completeMethod="#{gsZonaBean.completarUbicacion}"
+                                                var="ubica" itemLabel="#{gsZonaBean.getUbicacionRecursiva(ubica.id)}" itemValue="#{ubica}" converter="ubicacionConverterGsZona" forceSelection="true" size="60"> 
+                                </p:autoComplete>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" type="button" onclick="modificarRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarRemote" action="#{gsZonaBean.modificar}" update="panelEditar" />
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Zona Usuarios" widgetVar="dialogoZonaUsuarios" appendTo="@(body)" position="center" width="90%" modal="true" style="max-height: 80%;">
+                <p:scrollPanel mode="native" style="height:400px">
+                    <h:form id="frmZonaUsuarios">
+                        <p:panelGrid style="width:100%;margin:10px 0px;height:20%" columns="1" >
+                            <p:toolbar>
+                                <f:facet name="left" >
+                                    <span title="#{gsZonaBean.objeto.descripcion}">Zona Usuario: #{gsZonaBean.objeto.nombre}</span>
+                                </f:facet>
+                                <f:facet name="right">
+                                    <p:commandButton rendered="#{gsZonaBean.accionAdicional1}" title="Crear" actionListener="#{gsZonaBean.crearUsuario}" icon="ui-icon-document"/>
+                                </f:facet>
+                            </p:toolbar>
+                        </p:panelGrid>
+                        <p:dataTable id="tablaRegistros" widgetVar="tablaWidgetZonaUsuarios" var="usuario" value="#{gsZonaBean.objeto.listaGsZonaUsuarios}" rowKey="#{usuario.id}"
+                                     rows="#{gsZonaBean.tamanoPagina}" reflow="true"
+                                     emptyMessage="No se encontraron registros">
+                            <p:column headerText="Usuario" filterBy="#{usuario.usuario.usuario}">
+                                <h:outputText value="#{usuario.usuario.usuario}"/>
+                            </p:column>
+                            <p:column headerText="Nombre Usuario" filterBy="#{usuario.usuario.nombre}">
+                                <h:outputText value="#{usuario.usuario.nombre}"/>
+                            </p:column>
+                            <p:column headerText="Activo">
+                                <h:outputText value="#{usuario.activoStr}"/>
+                            </p:column>
+                            <p:column headerText="Gestiones">
+                                <h:outputText value="#{usuario.gestionesStr}"/>
+                            </p:column>
+                            <p:column style="text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="Acciones"/>
+                                </f:facet>    
+                                <p:commandButton rendered="#{gsZonaBean.accionAdicional1}" title="Editar" actionListener="#{gsZonaBean.editarUsuario(usuario.id)}" icon="ui-icon-pencil"/>
+                                <p:commandButton rendered="#{gsZonaBean.accionAdicional1}" title="Borrar" action="#{gsZonaBean.borrarUsuario(usuario.id)}" icon="ui-icon-trash">
+                                    <p:confirm header="Confirmación" message="Está seguro que desea eliminar?" icon="ui-icon-alert" />
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+
+            <p:dialog header="Crear Usuario" widgetVar="dialogoZonaUsuarioCrear" appendTo="@(body)" position="center" width="50%" modal="true" >
+                <h:form id="frmZonaUsuarioCrear">
+                    <p:panelGrid id="panelZonaUsuarioCrear">
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Usuario" style="font-weight:bold" for="usuario"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:autoComplete id="usuario" dropdown="true" value="#{gsZonaBean.zonaUsuario.usuario}" completeMethod="#{gsZonaBean.completarUsuario}"
+                                                var="usu" itemLabel="#{usu.usuarioNombre}" itemValue="#{usu}" converter="usuarioConverterGsZona" forceSelection="true"   required="true"> 
+                                </p:autoComplete>
+                            </p:column>
+                        </p:row>
+                        <p:row> 
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Activo" style="font-weight:bold" for="activo" />
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:selectBooleanButton id="activo" value="#{gsZonaBean.zonaUsuario.activo}" onLabel="SI" offLabel="NO" onIcon="ui-icon-check" offIcon="ui-icon-closethick" rendered="true"/>
+                            </p:column>
+                        </p:row>
+                        <p:row> 
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Gestiones" style="font-weight:bold" />
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:selectBooleanButton value="#{gsZonaBean.zonaUsuario.gestion01}" onLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(1)}" offLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(1)}" onIcon="ui-icon-check" offIcon="ui-icon-closethick"/>
+                                <p:selectBooleanButton value="#{gsZonaBean.zonaUsuario.gestion10}" onLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(10)}" offLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(10)}" onIcon="ui-icon-check" offIcon="ui-icon-closethick"/>
+                            </p:column>
+                        </p:row>
+
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Guardar" type="button" onclick="guardarZonaUsuarioRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="guardarZonaUsuarioRemote" action ="#{gsZonaBean.guardarUsuario}" update="panelZonaUsuarioCrear"/>
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoZonaUsuarioCrear').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+
+            <p:dialog header="Editar Usuario" widgetVar="dialogoZonaUsuarioEditar" appendTo="@(body)" modal="true" width="50%">
+                <h:form id="frmZonaUsuarioEditar">
+                    <p:panelGrid id="panelZonaUsuarioEditar" columns="2" layout="grid" styleClass="showcase-text-align-center">
+                        <p:row>
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Usuario" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:outputLabel value="#{gsZonaBean.zonaUsuario.usuario.usuario} (#{gsZonaBean.zonaUsuario.usuario.nombre})" style="font-weight:bold"/>
+                            </p:column>
+                        </p:row>
+                        <p:row> 
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Activo" style="font-weight:bold" for="activo" />
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:selectBooleanButton id="activo" value="#{gsZonaBean.zonaUsuario.activo}" onLabel="SI" offLabel="NO" onIcon="ui-icon-check" offIcon="ui-icon-closethick" required="true"/>
+                            </p:column>
+                        </p:row>
+                        <p:row> 
+                            <p:column class="ui-g-4">
+                                <p:outputLabel value="Gestiones" style="font-weight:bold" />
+                            </p:column>
+                            <p:column class="ui-g-8">
+                                <p:selectBooleanButton value="#{gsZonaBean.zonaUsuario.gestion01}" onLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(1)}" offLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(1)}" onIcon="ui-icon-check" offIcon="ui-icon-closethick"/>
+                                <p:selectBooleanButton value="#{gsZonaBean.zonaUsuario.gestion10}" onLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(10)}" offLabel="#{gsZonaBean.zonaUsuario.getGestionNombre(10)}" onIcon="ui-icon-check" offIcon="ui-icon-closethick"/>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="4" style="text-align: center">
+                                    <p:commandButton value="Modificar" type="button" onclick="modificarUsuarioRemote()" validateClient="true"/>
+                                    <p:remoteCommand name="modificarUsuarioRemote" action="#{gsZonaBean.modificarUsuario}" update="panelZonaUsuarioEditar" />
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoZonaUsuarioEditar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+        </center>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,1826 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<ui:composition template="/home.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <ui:define name="bodyJR">
+        <h:outputStylesheet name="css/solicitudes.css"/>
+        <h:outputStylesheet name="primeicons/primeicons.css" library="primefaces" />
+        <h:outputScript name="js/pdfAutorizaciones.js"/>
+        <center>
+            <style>
+                .ui-panelgrid .ui-grid-responsive .ui-panelgrid-cell {
+                    border: 1px solid #e5e2e2;
+                }
+                .ui-panelgrid .ui-panelgrid-footer {
+                    text-align: center;
+                    padding: 2px 5px;
+                }
+                li.ui-datalist-item {
+                    margin-left: -24px;
+                }
+                .ui-calendar {
+                    width: 60%
+                }
+                td {
+                    border: 1px solid #e5e2e2
+                }
+                table#frmEntrega\:panelInformacionEntrega {
+                    width: 100%;
+                }
+                td.ui-panelgrid-cell.ui-widget-header.ui-g-12 {
+                    display: flex;
+                    justify-content: space-around;
+                }
+                div#frmEntrega\:fechaEntregaGestionar_panel {
+                    min-width: 200px!important;
+                }
+                .ui-datepicker {
+                    min-width: 200px!important;
+                }
+            </style>
+            <!-- Ventana Inicial -->
+            <h:form id="frmBar" prependId="false">
+                <p:toolbar>
+                    <f:facet name="left" >
+                        <span title="#{auAutorizacionBean.modulo.descripcion}">#{auAutorizacionBean.modulo.nombre}</span>
+                        <p:spacer width="30"/>
+                        <p:outputLabel value="Fecha de autorización " rendered="#{auAutorizacionBean.conexion.empresa.administradora}"/>                        
+                        <p:outputLabel value="Desde" rendered="#{auAutorizacionBean.conexion.empresa.administradora}"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fInicial" value="#{auAutorizacionBean.fechaInicio}" rendered="#{auAutorizacionBean.conexion.empresa.administradora}" style="width: 115px;" pattern="yyyy-MM-dd"  yearRange="c-100:c" type="localDate" navigator="true"  maxdate="#{auAutorizacionBean.fechaMaximaCalendario}">
+                            <p:ajax event="dateSelect" />
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                        <p:spacer width="70"/>                        
+                        <p:outputLabel value="Hasta" rendered="#{auAutorizacionBean.conexion.empresa.administradora}"/>
+                        <p:spacer width="5"/>
+                        <p:calendar id="fFinal" value="#{auAutorizacionBean.fechaFin}" rendered="#{auAutorizacionBean.conexion.empresa.administradora}" style="width: 115px;" pattern="yyyy-MM-dd"  yearRange="c-100:c"  type="localDate" navigator="true" maxdate="#{auAutorizacionBean.fechaMaximaCalendario}">
+                            <p:ajax event="dateSelect" />
+                            <f:convertDateTime pattern="yyyy-MM-dd" type="both" timeZone="America/Bogota"/>
+                        </p:calendar>
+                        <p:spacer width="10"/>
+                    </f:facet>
+                    <f:facet name="right">
+                        <!--<p:commandButton rendered="{auAutorizacionBean.accionListar}" title="Refrescar" ajax="true" actionListener="{auAutorizacionBean.listar}" icon="ui-icon-refresh"/>-->
+                        <p:commandButton rendered="#{auAutorizacionBean.accionListar}" title="Refrescar" ajax="true" onclick="PF('tablaWidget').filter()" icon="ui-icon-refresh"/>
+                        <p:inputText id="intReportePdf" value="#{auAutorizacionBean.reporteTicketString}" style="display: none;"/>
+                    </f:facet>
+                </p:toolbar>
+            </h:form>
+            <h:form id="frmAutorizaciones">
+                <p:dataTable id="tablaRegistros" widgetVar="tablaWidget" var="obj" value="#{auAutorizacionBean.lazyAuAnexo4}" rowKey="#{obj.id}"
+                             rows="#{auAutorizacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                             currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                             paginatorTemplate="{CurrentPageReport} {PageLinks} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="5,10,30,50,100"
+                             style="font-size:11px;"
+                             scrollable="true"
+                             scrollWidth="150%"
+                             emptyMessage="No se encontraron registros">
+                    <p:column style="text-align: center;">
+                        <f:facet name="header">
+                            <h:outputText value="Acciones"/>
+                        </f:facet>   
+                        <!--boton oculto para que no se ejecute Ver cuando se da enter en filtros-->
+                        <p:commandButton id="dummy" process="@none" global="false" style="display:none;"/> 
+                        <p:commandButton rendered="#{auAutorizacionBean.accionVer}" title="Ver" actionListener="#{auAutorizacionBean.ver(obj.id)}" icon="ui-icon-search"/>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional10 and auAutorizacionBean.validarEstadoPreautorizacion(obj.estado)}" title="Autorizar Preautorización" action="#{auAutorizacionBean.autorizarPreautorizacion(obj.id)}" icon="ui-icon-check">
+                            <p:confirm header="Confirmación" message="Está seguro que desea autorizar este Registro?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional2 and !auAutorizacionBean.validarEstadoAnulado(obj.estado) and !obj.tieneEntrega}" title="Anular" action="#{auAutorizacionBean.verAnular(obj.id)}" icon="ui-icon-cancel">
+                            <p:confirm header="Confirmación" message="Está seguro que desea anular este Registro?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional3 and auAutorizacionBean.validarFecha(obj) and auAutorizacionBean.validarImprimir(obj.estado) and auAutorizacionBean.validarContrato(obj)}" title="Imprimir" onclick="PrimeFaces.monitorDownload(start, stop);"  icon="ui-icon-document" ajax="true">
+                            <p:fileDownload value="#{auAutorizacionBean.generarReporteAnexo4(obj.id)}" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional7 and obj.impresionesRealizadas > 0}" title="Ver historico de impresiones" actionListener="#{auAutorizacionBean.verImpresiones(obj)}" icon="ui-icon-folder-open" ajax="true"/>
+                        <p:commandButton rendered="false" title="Borrar" action="#{auAutorizacionBean.borrar(obj.id)}" icon="ui-icon-trash">
+                            <p:confirm header="Confirmación" message="Está seguro que desea eliminar este registro?" icon="ui-icon-alert" />
+                        </p:commandButton> 
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional4 and !auAutorizacionBean.validarEstadoAnulado(obj.estado) and auAutorizacionBean.validarFecha(obj) and obj.impresionesRealizadas == obj.impresionesAutorizadas}" title="Incrementar Impresión" action="#{auAutorizacionBean.incrementarImpresion(obj.id)}" icon="ui-icon-plus">
+                            <p:confirm header="Confirmación" message="Está seguro que desea aumentar en 1 la cantidad de impresiones?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional5 and !obj.entregada and !auAutorizacionBean.validarEstadoAnulado(obj.estado) and auAutorizacionBean.validarFecha(obj) and !auAutorizacionBean.validarEstadoPreautorizacion(obj.estado) and auAutorizacionBean.validarContrato(obj)}" 
+                                         title="Control y registro de entregas" action="#{auAutorizacionBean.gestionarEntrega(obj.id)}" icon="ui-icon-cart"/>
+                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional11 and obj.aplicaCopago and obj.impresionesRealizadas == 0 and auAutorizacionBean.validarCopago(obj.estado)}" 
+                                         title="Editar Copago" action="#{auAutorizacionBean.abrirModificarCopago(obj.id)}" icon="ui-icon-suitcase"/>
+                        <p:commandButton actionListener="#{auAutorizacionBean.verHistoricos(obj.id)}" icon="ui-icon-folder-collapsed" title="Ver Bitacoras"/>
+                    </p:column>
+                    <p:column headerText="Origen"> <!-- filterBy="#{obj.tipoAnexo}"-->
+                        <!--<f:facet name="filter">
+                            <p:selectOneMenu  >
+                                <f:selectItem itemLabel="  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Anexo2" itemValue="2" />
+                                <f:selectItem itemLabel="Anexo3" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>-->       
+                        <h:outputText value="#{obj.origen}"/>
+                        <i class="pi pi-circle-on" style="color: #{auAutorizacionBean.obtenerColorImpresion(obj)}" title="#{auAutorizacionBean.obtenerNombreImpresion(obj)}"/>
+                    </p:column>
+                    <p:column headerText="Medio"> <!--filterBy="#{obj.medioAutorizacion}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}"-->
+                        <!--<f:facet name="filter">
+                            <p:selectOneMenu rendered="#{auAutorizacionBean.esAdministradora()}">
+                                <f:selectItem itemLabel="  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Automática" itemValue="1" />
+                                <f:selectItem itemLabel="Manual" itemValue="2" />
+                                <f:selectItem itemLabel="Cotización" itemValue="3" />
+                            </p:selectOneMenu>
+                        </f:facet>-->
+                        <h:outputText value="#{obj.medioAutorizacionStr}"/>
+                    </p:column>
+                    <p:column headerText="Solicitud" filterBy="#{obj.solicitud}">
+                        <f:facet name="filter">
+                            <p:inputText label="Solicitud" maxlength="128" style="width: 95%;"/>
+                        </f:facet>
+                        <h:outputText rendered="#{obj.auAnexo2Id eq null}" value="#{obj.auAnexo3Id.id}"/>
+                        <h:outputText rendered="#{obj.auAnexo3Id eq null}" value="#{obj.auAnexo2Id.id}"/>
+                    </p:column>
+                    <p:column headerText="Autorización" filterBy="#{obj.id}">
+                        <f:facet name="filter">
+                            <p:inputText label="Autorización" maxlength="128" style="width: 95%;"/>
+                        </f:facet>
+                        <h:outputText value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Estado" filterBy="#{obj.estado}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu >
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="Autorizada" itemValue="0" />
+                                <f:selectItem itemLabel="Autorizada Automático" itemValue="1" />
+                                <f:selectItem itemLabel="Anulada" itemValue="2" />
+                                <f:selectItem itemLabel="Preautorizado" itemValue="3" />
+                                <f:selectItem itemLabel="Autorizada Preautorización" itemValue="4" />
+                                <f:selectItem itemLabel="Anulada Preautorización" itemValue="5" />
+                                <f:selectItem itemLabel="Autorizada Pago Anticipado" itemValue="6" />
+                                <f:selectItem itemLabel="Anulada Pago Anticipado" itemValue="7" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.estadoStr}"/>
+                    </p:column>      
+                    <p:column headerText="Impresiones">
+                        <h:outputText value="#{obj.impresionesRealizadas} de #{obj.impresionesAutorizadas}"/>
+                    </p:column>
+                    <p:column headerText="Tipo/doc" filterBy="#{obj.asegAfiliadoId.maeTipoDocumento}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu style="width: 88%;" >
+                                <f:selectItem itemLabel="  " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{auAutorizacionBean.hashTipoDocumento.entrySet()}" 
+                                               itemValue="#{tipoDocumento.key}"
+                                               itemLabel="#{auAutorizacionBean.getMapMaestroValue(auAutorizacionBean.hashTipoDocumento, tipoDocumento.key).nombre}" 
+                                               var="tipoDocumento"> 
+                                </f:selectItems>
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliadoId.maeTipoDocumentoValor}"/>
+                    </p:column>
+                    <p:column headerText="Documento" filterBy="#{obj.asegAfiliadoId.numeroDocumento}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}">
+                        <f:facet name="filter">
+                            <p:inputText label="Documento" maxlength="128" style="width: 95%;"/>
+                        </f:facet>
+                        <p:outputLabel value="#{obj.asegAfiliadoId.numeroDocumento}"/>
+                    </p:column>
+                    <p:column headerText="Afiliado"> <!--filterBy="#{obj.asegAfiliadoId.nombreCompleto}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}"-->
+                        <!--<f:facet name="filter">
+                            <p:inputText label="Afiliado" maxlength="128" style="width: 95%;" rendered="#{auAutorizacionBean.esAdministradora()}"/>
+                        </f:facet>-->
+                        <p:outputLabel value="#{obj.asegAfiliadoId.nombreCompleto}"/>
+                    </p:column>
+                    <p:column headerText="Posfechada" filterBy="#{obj.posfechada}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}" >
+                        <f:facet name="filter">
+                            <p:selectOneMenu rendered="#{auAutorizacionBean.esAdministradora()}">
+                                <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="SI" itemValue="1" />
+                                <f:selectItem itemLabel="NO" itemValue="0" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{obj.posfechadaStr}"/>
+                    </p:column>
+                    <p:column headerText="Sede Prestador" filterBy="#{obj.cntPrestadorSedeId.nombreSede}">
+                        <f:facet name="filter">
+                            <p:inputText label="Sede Prestador" maxlength="256" style="width: 95%;"/>
+                        </f:facet>
+                        <p:outputLabel value="#{obj.cntPrestadorSedeId.nombreSede}"/>
+                    </p:column>
+                    <p:column headerText="Items" width="80" filterBy="#{obj.auAnexo4ItemsList}" filterStyle="#{auAutorizacionBean.estiloAdminnistradora()}">
+                        <f:facet name="filter">
+                            <p:inputText label="Código" maxlength="64" style="width: 80%;" rendered="#{auAutorizacionBean.esAdministradora()}"/>
+                        </f:facet>
+                        <p:dataList value="#{obj.auAnexo4ItemsList}" var="itemListar" type="ordered" emptyMessage="">
+                            <span title="#{itemListar.maTecnologiaValor}">#{itemListar.maTecnologiaCodigo}</span>
+                        </p:dataList>
+                    </p:column>
+                    <p:column headerText="Fecha Autorización">                        
+                        <h:outputText value="#{obj.fechaAutorizacion}">
+                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Usuario Autoriza">
+                        <p:outputLabel value="#{obj.usuarioCrea}"/>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                </p:confirmDialog>
+            </h:form>
+            <!-- Ver Anexo4 -->
+            <p:dialog id="dialogoVerId" widgetVar="dialogoVer" appendTo="@(body)" position="center" dynamic="true" width="95%" modal="true" style="max-height:90%;">
+                <header style="font-size: 30px;">
+                    <b>#{auAutorizacionBean.headerDialogVer}</b>
+                </header>
+                <h:form id="frmAuditoriaVer" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{auAutorizacionBean.objeto.asegAfiliadoId.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{auAutorizacionBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height: 400px" >
+                    <h:form id="frmVer">
+                        <!-- Informacion Anulacion -->
+                        <p:panelGrid id="panelInformacionVer" style="width:100%;margin:10px 0px" rendered="#{auAutorizacionBean.validarEstadoAnulado(auAutorizacionBean.objeto.estado)}"
+                                     columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Información"/>                                
+                            <p:outputLabel id="informacionVer" value="#{auAutorizacionBean.obtenerTextoAnulado()}" style="color: red;font-weight: bold;"/>
+
+                            <p:outputLabel value="Comentario"/>
+                            <p:inputTextarea value="#{auAutorizacionBean.objeto.estadoJustificacion}" style="color: red;font-weight: bold;width: 100%" readonly="true"/>
+
+
+                        </p:panelGrid>
+                        <!-- Autorizacion -->
+                        <p:panel id="pVer" header="Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel id="panelBotonesSolicitudesVer" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{auAutorizacionBean.getAuditoria(auAutorizacionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid style="width:95%;" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Autorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Origen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.origen}"/>
+
+                                <p:outputLabel value="Consecutivo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.consecutivo}"/>
+
+                                <p:outputLabel value="N° Solicitud" style="font-weight:bold"/>
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo3Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo2Id.id}"/>
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo2Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo3Id.id}"/>
+
+                                <p:outputLabel value="Cantidad de Entregas" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cantidadEntregas}" />
+
+                                <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Días Vigencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.diasVigencia}"/>
+
+                                <p:outputLabel value="Posfechada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.posfechada)}"/>
+
+                                <p:outputLabel value="FechaAutorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaAutorizacion}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Impresiones" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.impresionesRealizadas} de #{auAutorizacionBean.objeto.impresionesAutorizadas}"/>
+
+                                <p:outputLabel value="Ámbito" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maeAmbitoAtencionValor}"/>
+
+                                <p:outputLabel value="Contrato Anticipado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerString(auAutorizacionBean.objeto.contratoAnticipado)}"/>
+
+                                <p:outputLabel value="Observación Contrato" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.contratoAnticipadoObservacionCorto}"/>
+                                
+                                <p:commandButton style="width: 34px"
+                                                 rendered="#{auAutorizacionBean.objeto.contratoAnticipadoObservacionCorto.length() > 0 }" actionListener="#{auAutorizacionBean.mostrarMensaje(auAutorizacionBean.objeto.contratoAnticipadoObservacion)}" icon="ui-icon-comment"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Informacion Prestador -->
+                        <p:panel id="pIpsVer" header="Información Prestador (Autorizado)" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelipsVer" style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorTipoDocumento}"/>
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorNumeroDocumento}"/>
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel id="razonSocialAuditar" value="#{auAutorizacionBean.objeto.prestadorNombre}" />
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel id="departamentoIpsAuditar" value="#{auAutorizacionBean.objeto.prestadorDepartamento}" />
+
+                                <p:outputLabel value="Sede Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cntPrestadorSedeId.nombreSede}" />
+
+                                <p:outputLabel value="Teléfono 1" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.telefono1Prestador}" />
+
+                                <p:outputLabel value="Correo Electrónico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.correoElectronicoPrestador}" />
+
+                                <p:outputLabel value="Teléfono 2" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.telefono2Prestador}" />
+
+                                <p:outputLabel value="Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorMunicipio}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorDireccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Datos del paciente -->
+                        <p:panel id="pVerAfiliado" header="Datos del paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:95%;" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.nombreCompleto}" />
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.numeroDocumento}" />
+
+                                <p:outputLabel value="Contrato" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cntContratoId.contrato}" />
+
+                                <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maeRegimenValor}" />
+
+                                <p:outputLabel value="Especialidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maEspecialidadValor}" />
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeTipoDocumentoCodigo}" />
+
+                                <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.afiliadoFechaNacimiento}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.afiliadoDireccion}" />
+
+                                <p:outputLabel value="Género" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeGeneroValor}" />
+
+                                <p:outputLabel value="Nivel Sisbén" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.nivelSisben}" />
+
+                                <p:outputLabel value="Servicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maServicioHabilitadoValor}" />
+
+                                <p:outputLabel value="Diagnostico Principal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.diagnosticoPrincipal}" />
+
+                                <p:outputLabel value="Incapacidad Prolongada" style="font-weight:bold"/>
+                                <p:outputLabel rendered="#{!auAutorizacionBean.objeto.asegAfiliadoId.incapacidadProlongada}" value="#{auAutorizacionBean.objeto.asegAfiliadoId.incapacidadProlongadaStr}" />
+                                <p:outputLabel rendered="#{auAutorizacionBean.objeto.asegAfiliadoId.incapacidadProlongada}" style="color: red;font-weight: bold;width: 100%" value="#{auAutorizacionBean.objeto.asegAfiliadoId.incapacidadProlongadaStr}" />
+                                
+                                <p:outputLabel value="Dirección Alternativa" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.direccionAlternativa}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Modalidad y finalidad de tecnologia-->
+                        <p:panel header="Información de tecnología" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Modalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel  value="${auAutorizacionBean.objeto.maeModalidadTecnologiaValor}" />
+
+                                <p:outputLabel value="Finalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="${auAutorizacionBean.objeto.maeFinalidadTecnologiaValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel> 
+                        <!-- Servicios -->
+                        <p:panel id="pVerServicios" header="Tecnologias" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" var="tecnologiasVer" value="#{auAutorizacionBean.listaAuAnexo4Items}" 
+                                         widgetVar="tablaProcedimientosVer" resizableColumns="true" emptyMessage="No se encontraron procedimientos" style="text-align: center" reflow="true">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{auAutorizacionBean.obtenerTipoTencnologia(tecnologiasVer.tipoTecnologia)}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.cantidadAutorizada}" />
+                                </p:column>
+                                <p:column headerText="Valor">
+                                    <h:outputText value="#{tecnologiasVer.costoServicio}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>                                    
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton actionListener="#{auAutorizacionBean.verBitacoras(tecnologiasVer)}" icon="ui-icon-folder-collapsed" title="Ver Bitacoras"/>
+                                    <p:commandButton rendered="#{tecnologiasVer.auAnexo3ItemId ne null and auAutorizacionBean.objeto.medioAutorizacion eq 3}" actionListener="#{auAutorizacionBean.consultarAdjuntos(tecnologiasVer.auAnexo3ItemId.id)}" icon="ui-icon-copy" title="Ver adjuntos de cotización"/>
+                                </p:column>				
+                            </p:dataTable>  
+                        </p:panel>
+                        <!-- Pagos Compartidos -->
+                        <p:panel id="pPagosVer" header="Pagos Compartidos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelPagosVer" style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Cuota Moderadora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCuotaModeradora)}"/>
+
+                                <p:outputLabel value="Cuota Recuperación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCuotaRecuperacion)}"/>
+
+                                <p:outputLabel value="Copago" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCopago)}"/>
+                                
+                                <p:outputLabel value="Tope Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.topeAplicadoStr}"/>
+
+                                <p:outputLabel value="Valor" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.obtenerValor()}">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Porcentaje %" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.porcentajeRecuperacion}"/>
+
+                                <p:outputLabel value="nombre Autorizador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.usuarioCrea}"/>
+
+                                <p:outputLabel value="Cargo" style="font-weight:bold"/>
+                                <p:outputLabel value="AUTORIZADOR SAVIA SALUD"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Justificacion Clinica -->
+                        <p:panel rendered="#{auAutorizacionBean.objeto.auAnexo2Id eq null and auAutorizacionBean.objeto.auAnexo3Id.fuenteOrigen == 2}" id="pJustificacionVer" header="Justificacion Clinica" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelJustificacionVer" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:inputTextarea rows="5" cols="155" value="#{auAutorizacionBean.objeto.auAnexo3Id.justificacionClinica}" readonly="true" style="width:100%;"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Soportes Fisicos -->
+                        <p:panel id="pSoporteAnexoVer" header="Soportes Fisicos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSoporteAnexo" var="soportesAnexoVer" value="#{auAutorizacionBean.objeto.listaAdjuntos}" widgetVar="tablaSoporteAnexoVer" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Archivos adjuntos">
+                                    <h:outputText value="#{soportesAnexoVer.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{soportesAnexoVer.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{auAutorizacionBean.descargarAdjuntoSolicitudAnexo(soportesAnexoVer)}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!-- Notas Auditor -->
+                        <p:panel id="pObservacionVer" header="Notas Del Auditor" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacionVer" columns="1" layout="grid" styleClass="showcase-text-align-center">
+                                <p:inputTextarea rows="5" cols="155" value="#{auAutorizacionBean.objeto.observacion}" readonly="true" style="width: 99%;"/>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Acciones -->
+                        <p:panelGrid style="width:100%;">
+                            <f:facet name="footer">   
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVer').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>                        
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>                    
+            </p:dialog>
+            <!-- Anular -->
+            <p:dialog header="Anular Autorización" widgetVar="dialogoAnularAutorizacion" appendTo="@(body)" modal="true" style="width: 90%;height: 90%;" dynamic="true">
+                <h:form id="frmAnularAutorizacion">
+                    <p:panelGrid id="panelAnularAutorizacion" style="height:auto;" columns="2"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-10"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Motivo" for="motivoAnularAutorizacion"/> 
+                            </p:column>
+                            <p:column class="ui-g-10">
+                                <p:selectOneMenu id="motivoAnularAutorizacion" label="Motivo" value="#{auAutorizacionBean.idMotivo}" required="true" requiredMessage="Motivo anulacion: Este campo es obligatorio." style="width:50%">                                    
+                                    <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />    
+                                    <f:selectItems value="#{auAutorizacionBean.listaMotivosA4}" var="motivo" itemValue="#{motivo.id}" itemLabel="#{motivo.nombre}" itemDescription="#{motivo.descripcion}"/>                                   
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Comentario" for="comentarioAnularAutorizacion"/>
+                            </p:column>
+                            <p:column class="ui-g-10" style="display:grid">
+                                <p:inputTextarea id="comentarioAnularAutorizacion" rows="5" cols="100" value="#{auAutorizacionBean.objeto.estadoJustificacion}" counter="display1AnularAutorizacion" maxlength="200" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                                <h:outputText id="display1AnularAutorizacion" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid style="width:100%;" columns="1">
+                        <f:facet name="footer">   
+                            <p:row>
+                                <p:column style="text-align: center">
+                                    <p:commandButton value="Anular" actionListener="#{auAutorizacionBean.anular()}"/>                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoAnularAutorizacion').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>                        
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+            <!-- Control entregas -->
+            <p:dialog header="Control y registro de entregas" widgetVar="dialogoGestionar" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native" >
+                    <h:form id="frmGestionar">
+                        <!-- Informacion -->
+                        <p:panel id="pInformacionGestionar" header="Información Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:95%;" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Autorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Origen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.origen}"/>
+
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo3Id eq null}" value="Anexo 2" style="font-weight:bold"/>
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo2Id eq null}" value="Anexo 3" style="font-weight:bold"/>
+
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo3Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo2Id.id}"/>
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo2Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo3Id.id}"/>
+
+                                <p:outputLabel value="Cantidad de Entregas" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cantidadEntregas}" />
+
+                                <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaFin}"/>
+
+                                <p:outputLabel value="Días Vigencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.diasVigencia}">
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Posfechada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.posfechada)}"/>
+
+                                <p:outputLabel value="FechaAutorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaAutorizacion}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Impresiones" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.impresionesRealizadas} de #{auAutorizacionBean.objeto.impresionesAutorizadas}">
+                                </p:outputLabel>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Items -->
+                        <p:panel id="pTecnologiasGestionar" header="Tecnologias" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasGestionar" var="tecnologiasGestionar" value="#{auAutorizacionBean.listaAuAnexo4Items}" 
+                                         widgetVar="tablaTecnologiasGestionar" resizableColumns="true" emptyMessage="No se encontraron procedimientos" style="text-align: center" reflow="true">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{tecnologiasGestionar.obtenerTipoTecnologia()}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasGestionar.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasGestionar.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasGestionar.cantidadAutorizada}" />
+                                </p:column>
+                                <p:column headerText="Tipo Entrega">
+                                    <h:outputText value="#{tecnologiasGestionar.estadoEntrega}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton rendered="#{auAutorizacionBean.accionAdicional8 and !tecnologiasGestionar.entregada and !tecnologiasGestionar.estadoEntrega.equalsIgnoreCase('no prestado')}" title="Entregar" immediate="true" actionListener="#{auAutorizacionBean.abrirVentanaEntrega(tecnologiasGestionar)}" icon="ui-icon-clipboard"/>
+                                    <p:commandButton rendered="#{tecnologiasGestionar.auAnexo4EntregasList.size() > 0 and auAutorizacionBean.accionAdicional5}" title="Ver Entregas" immediate="true" actionListener="#{auAutorizacionBean.verEntregas(tecnologiasGestionar.id)}" icon="ui-icon-folder-open"/>
+                                    <p:commandButton rendered="#{auAutorizacionBean.accionAdicional6 and !tecnologiasGestionar.entregada and !tecnologiasGestionar.estadoEntrega.equalsIgnoreCase('no prestado') and !tecnologiasGestionar.estadoEntrega.equalsIgnoreCase('parcial')}" title="No Prestado" immediate="true" actionListener="#{auAutorizacionBean.ventanaNoPrestado(tecnologiasGestionar)}" icon="ui-icon-cancel"/>
+                                </p:column>
+                            </p:dataTable>  
+                        </p:panel>
+                        <!-- Acciones -->
+                        <p:panelGrid id="panelAccionesGestionar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" class="ui-g-12" style="text-align: center;">                                      
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoGestionar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Entregar -->
+            <p:dialog header="Entregar" widgetVar="dialogoEntregar" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmEntrega">
+                        <!-- Informacion Basica -->
+                        <p:panel id="pInformacionEntrega" header="Información Solicitud" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelInformacionEntrega">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre Afiliado" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4Id.asegAfiliadoId.nombreCompleto}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4Id.asegAfiliadoId.maeTipoDocumentoValor}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4Id.asegAfiliadoId.numeroDocumento}" />
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Autorización" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4Id.id}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Autorización" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4Id.fechaAutorizacion}">
+                                            <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                                        </p:outputLabel>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Tipo Prescripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.obtenerTipoTencnologia(auAutorizacionBean.objetoEntrega.auAnexo4ItemId.tipoTecnologia)}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Código" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4ItemId.maTecnologiaCodigo}"/>
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Descripción" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4ItemId.maTecnologiaValor}" />
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Cantidad Autorizada" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.auAnexo4ItemId.cantidadAutorizada}"/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Datos entrega-->
+                        <p:panel id="pDatosEntrega" header="Información Entrega" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelDatosEntrega" style="width:95%;">
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Reclama Afiliado" for="reclamaAfiliadoGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectBooleanButton id="reclamaAfiliadoGestionar" offLabel="No" onLabel="Si" onIcon="pi pi-check" offIcon="pi pi-times" value="#{auAutorizacionBean.objetoEntrega.reclamaAfiliado}">
+                                            <p:ajax event="change" update="nombreReclamaGestionar telefonoReclamaGestionar celularReclamaGestionar"/>
+                                        </p:selectBooleanButton> 
+                                    </p:column>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Cantidad Pendiente" for="cantidadPendienteGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputNumber id="cantidadPendienteGestionar" value="#{auAutorizacionBean.objetoEntrega.cantidadPendiente}" readonly="true" emptyValue="empty" maxValue="#{auAutorizacionBean.objetoEntrega.cantidadAutorizada}"/>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Cantidad Entregada" for="cantidadEntregadaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:inputNumber id="cantidadEntregadaGestionar" value="#{auAutorizacionBean.objetoEntrega.cantidadEntregada}" minValue="0" maxValue="#{auAutorizacionBean.objetoEntrega.cantidadAutorizada}" required="true" requiredMessage="Cantidad Entregada: Este campo es obligatorio" emptyValue="empty" >
+                                            <p:ajax event="change" listener="#{auAutorizacionBean.calcularPendiente()}" update="causaEntregaGestionar"/>
+                                        </p:inputNumber>
+                                    </p:column>                                                                 
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Nombre Quién Reclama" for="nombreReclamaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputText id="nombreReclamaGestionar" value="#{auAutorizacionBean.objetoEntrega.nombreReclama}" maxlength="128" required="true" requiredMessage="Nombre Quién Reclama: Este campo es obligatorio" disabled="#{auAutorizacionBean.validarBloqueoNombreEntrega()}"/>
+                                    </p:column>
+
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Teléfono" for="telefonoReclamaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputMask id="telefonoReclamaGestionar" value="#{auAutorizacionBean.objetoEntrega.telefonoReclama}" mask="(999) 999-9999" validateMask="true" disabled="#{auAutorizacionBean.objetoEntrega.reclamaAfiliado}"/>
+                                    </p:column> 
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Celular" for="celularReclamaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:inputMask id="celularReclamaGestionar" value="#{auAutorizacionBean.objetoEntrega.celularReclama}" mask="(999) 999-9999" validateMask="true" required="true" requiredMessage="Celuar: Este campo es obligatorio" disabled="#{auAutorizacionBean.objetoEntrega.reclamaAfiliado}"/>
+                                    </p:column> 
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Causa No Entrega" for="causaEntregaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-4">
+                                        <p:selectOneMenu id="causaEntregaGestionar" label="Causa No entrega" value="#{auAutorizacionBean.objetoEntrega.maeCausaNoEntregaId}"  required="true" requiredMessage="Causa No Entrega: Este campo es obligatorio." style="width:400px;" disabled="#{auAutorizacionBean.objetoEntrega.cantidadEntregada == auAutorizacionBean.objetoEntrega.cantidadAutorizada}">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auAutorizacionBean.listaCausaNoEntrega}" var="causa" itemValue="#{causa.id}" itemLabel="#{causa.nombre}" itemDescription="#{causa.descripcion}" />
+                                            <p:ajax event="change" listener="#{auAutorizacionBean.agregarHistoricoCausaNoEntrega()}"/>
+                                        </p:selectOneMenu>
+                                    </p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column class="ui-g-2">
+                                        <p:outputLabel value="Fecha Prestación" for="fechaEntregaGestionar" style="font-weight:bold"/>
+                                    </p:column>
+                                    <p:column class="ui-g-10">
+                                        <p:datePicker id="fechaEntregaGestionar" style="min-width:200px"
+                                                      value="#{auAutorizacionBean.objetoEntrega.fechaHoraEntrega}" 
+                                                      showTime="true" mindate="#{auAutorizacionBean.obtenerFechaMes()}" maxdate="#{auAutorizacionBean.obtenerFechaActual()}" 
+                                                      pattern="yyyy-MM-dd HH:mm"
+                                                      required="true" requiredMessage="Fecha Prestación: Este campo es obligatorio."/>
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Acciones -->
+                        <p:panelGrid id="panelAccionesEntregar" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center;">
+                                        <p:commandButton rendered="#{auAutorizacionBean.accionAdicional8}" value="Aceptar" actionListener="#{auAutorizacionBean.entregar()}"/>                                    
+                                        <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoEntregar').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Entregas -->
+            <p:dialog header="Entregas" widgetVar="dialogoEntregas" appendTo="@(body)" modal="true" width="90%">
+                <p:scrollPanel mode="native" style="height:220px">
+                    <h:form id="frmVerEntregas">
+                        <p:panel id="pEntregas" header="Lista Entregas" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaVerEntregas" var="entregasVer" value="#{auAutorizacionBean.objetoItem.auAnexo4EntregasList}" lazy="false" widgetVar="tablaVerEntregas"  resizableColumns="true" emptyMessage="No se encontraron entregas" style="text-align: center">
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton rendered="#{auAutorizacionBean.accionAdicional5}" title="Ver" immediate="true" actionListener="#{auAutorizacionBean.verEntrega(entregasVer.id)}" icon="ui-icon-search"/>
+                                    <p:commandButton rendered="#{auAutorizacionBean.accionAdicional9 and auAutorizacionBean.consultarCantidadAnuladas(entregasVer.auAnexo4ItemId.id) and !entregasVer.anulada and !entregasVer.obtenerTipoEntrega().equalsIgnoreCase('no prestado')}" title="Anular" immediate="true" actionListener="#{auAutorizacionBean.verAnularEntrega(entregasVer.id)}" icon="ui-icon-closethick"/>
+                                    <!--<p:commandButton rendered="{auAutorizacionBean.accionAdicional10}" title="Borrar" immediate="true" actionListener="{auAutorizacionBean.borrarEntrega(entregasVer.id)}" icon="ui-icon-trash">-->
+                                    <!--                                        <p:confirm header="Confirmación" message="Está seguro que desea borrar la entrega?" icon="ui-icon-alert" />-->
+                                    <!--</p:commandButton>-->
+                                </p:column>
+                                <p:column headerText="Anexo 4">
+                                    <h:outputText value="#{entregasVer.auAnexo4Id.id}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{entregasVer.auAnexo4ItemId.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Tipo Prescripción">
+                                    <h:outputText value="#{entregasVer.auAnexo4ItemId.obtenerTipoTecnologia()}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora Prestación">
+                                    <h:outputText value="#{entregasVer.obtenerFechaEntrega()}" />
+                                </p:column>
+                                <p:column headerText="Tipo Entrega">
+                                    <h:outputText value="#{entregasVer.obtenerTipoEntrega()}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{entregasVer.cantidadEntregada} de #{entregasVer.cantidadAutorizada}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                            <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" style="left:25%"/>
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" style="left:25%"/>
+                        </p:confirmDialog>
+                    </h:form>                        
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Entrega -->
+            <p:dialog header="Entrega" widgetVar="dialogoEntrega" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <h:form class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{auAutorizacionBean.getAuditoria(auAutorizacionBean.objetoEntrega.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                </h:form>
+                <h:form id="frmVerEntrega">
+                    <!-- Datos entrega-->
+                    <p:panel id="pInformacionEntrega" header="Información Entrega" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelInformacionEntrega" style="width:95%;" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Reclama Afiliado" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objetoEntrega.reclamaAfiliado)}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Tipo Entrega" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.obtenerTipoEntrega()}" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Cantidad Autorizada" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadAutorizada}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Cantidad Entregada"  style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadEntregada}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Cantidad Pendiente" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadPendiente}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre Quién Reclama" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.nombreReclama}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.telefonoReclama}"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Celular" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel id="celularReclamaGestionar" value="#{auAutorizacionBean.objetoEntrega.celularReclama}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Causa No Entrega" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.maeCausaNoEntregaValor}" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Entrega" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.obtenerFechaEntrega()}" />
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fuente Origen Entrega" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.fuenteOrigenStr}" />
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{auAutorizacionBean.objetoEntrega.anulada}">
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Observación" style="font-weight:bold" rendered="#{auAutorizacionBean.objetoEntrega.anulada}"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:inputTextarea autoResize="true" value="#{auAutorizacionBean.objetoEntrega.anulaObservacion}" readonly="true"/>
+                                </p:column>
+                            </p:row>
+                             <p:row >
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Observación No Prestado" style="font-weight:bold" />
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <p:inputTextarea autoResize="true" value="#{auAutorizacionBean.objetoEntrega.noPrestadoObservacion}" readonly="true"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </p:dialog>
+            <!-- Anular Entrega -->
+            <p:dialog header="Anular Entrega" widgetVar="dialogoAnularEntrega" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <h:form id="frmAnularEntrega">
+                    <!-- Datos entrega-->
+                    <p:panel id="pInformacionAnularEntrega" header="Información Entrega" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelInformacionAnularEntrega" style="width:95%;" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Reclama Afiliado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objetoEntrega.reclamaAfiliado)}" />
+
+                            <p:outputLabel value="Tipo Entrega" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.obtenerTipoEntrega()}" />
+
+                            <p:outputLabel value="Cantidad Autorizada" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadAutorizada}"/>
+
+                            <p:outputLabel value="Cantidad Entregada"  style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadEntregada}" />
+
+                            <p:outputLabel value="Cantidad Pendiente" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.cantidadPendiente}"/>
+
+                            <p:outputLabel value="Nombre Quién Reclama" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.nombreReclama}" />
+
+                            <p:outputLabel value="Teléfono" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.telefonoReclama}"/>
+
+                            <p:outputLabel value="Celular" style="font-weight:bold"/>
+                            <p:outputLabel id="celularReclamaGestionar" value="#{auAutorizacionBean.objetoEntrega.celularReclama}"/>
+
+                            <p:outputLabel value="Causa No Entrega" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.maeCausaNoEntregaValor}" />
+
+                            <p:outputLabel value="Fecha Entrega" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objetoEntrega.obtenerFechaEntrega()}" />
+
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Justificacion Anulacion -->
+                    <p:panel id="pInformacionAnular" header="Justificación Anulación" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid id="panelInformacionAnular" style="width:95%;">
+                            <p:row>
+                                <p:column class="ui-g-12" style="display:grid">
+                                    <p:inputTextarea rows="5" cols="155" value="#{auAutorizacionBean.objetoEntrega.anulaObservacion}" counter="display1Anular" maxlength="1024" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Justificación : Este campo es obligatorio"/>
+                                    <br/>
+                                    <h:outputText id="display1Anular" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Acciones -->
+                    <p:panelGrid id="panelAccionesAnularEntregar" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="6" style="text-align: center;">
+                                    <p:commandButton rendered="#{auAutorizacionBean.accionAdicional9}" value="Anular" actionListener="#{auAutorizacionBean.anularEntrega()}"/>                                    
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoAnularEntrega').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Ver Reportes -->
+            <p:dialog header="Reportes" widgetVar="dialogoReportes" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmReportes">
+                        <div align="right"> 
+                            <p:commandButton title="Refrescar Reportes" ajax="true" actionListener="#{auAutorizacionBean.refrescarReportes()}" icon="ui-icon-refresh"/>
+                            <p:commandButton title="Solicitar Reporte" ajax="true" actionListener="#{auAutorizacionBean.ventanaCrearReporte()}" icon="ui-icon-play"/>
+                        </div>
+                        <p:panel id="pReportes" header="Lista Reportes" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaReportes" var="reporteLista" value="#{auAutorizacionBean.listaReportes}" widgetVar="tablaReporteLista" resizableColumns="true" emptyMessage="No se encontraron reportes" style="text-align: center">
+                                <p:column headerText="Progreso" style="align-content: center">
+                                    <h:outputText value="#{reporteLista.cantidadProcesada} de #{reporteLista.cantidadTotal}"/>
+                                </p:column>
+                                <p:column headerText="Fecha Inicio">
+                                    <h:outputText value="#{reporteLista.fechaInicio}" />
+                                </p:column>
+                                <p:column headerText="Fecha Fin">
+                                    <h:outputText value="#{reporteLista.fechaFin}" />
+                                </p:column>
+                                <p:column headerText="Estado">
+                                    <h:outputText value="#{reporteLista.obtenerEstadoReporte()}" title="#{reporteLista.descripcion}" />
+                                </p:column>
+                                <p:column headerText="Usuario Solicita">
+                                    <h:outputText value="#{reporteLista.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Prestador">
+                                    <h:outputText value="#{auAutorizacionBean.prestadorReporteExcel}" />
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton rendered="#{reporteLista.estado == 1 and reporteLista.cantidadTotal > 0}" title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{auAutorizacionBean.descargarReporteAnexo4(reporteLista)}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>
+                    </h:form>                        
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Ver Impresiones -->
+            <p:dialog header="Historial Impresiones" widgetVar="dialogoHistorialImpresiones" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native" >
+                    <h:form id="frmHistorialImpresiones">
+                        <p:panel id="pEntregas" header="Historial Impresiones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaHistorialImpresiones" var="impresionHistorial" value="#{auAutorizacionBean.listaImpresiones}" widgetVar="tablaHistorialImpresiones" resizableColumns="true" emptyMessage="No se encontraron entregas" style="text-align: center">
+                                <p:column headerText="Anexo 4">
+                                    <h:outputText value="#{impresionHistorial.auAnexo4Id.id}" />
+                                </p:column>
+                                <p:column headerText="Tipo Impresión">
+                                    <h:outputText value="#{auAutorizacionBean.obtenerTipoImpresion(impresionHistorial.tipoImpresion)}" />
+                                </p:column>
+                                <p:column headerText="Origen Impresión">
+                                    <h:outputText value="#{impresionHistorial.obtenerOrigen()}" />
+                                </p:column>r                                
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{impresionHistorial.fechaHoraCrea}" />
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{impresionHistorial.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Terminal">
+                                    <h:outputText value="#{impresionHistorial.terminalCrea}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:panel>                        
+                    </h:form>                        
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Crear Reporte -->
+            <p:dialog header="Solicitar Reporte" widgetVar="dialogoSolicitarReporte" appendTo="@(body)" modal="true" width="90%" height="auto" dynamic="true" class="modal-no-scroll">
+                <h:form id="frmSolicitarReporte">
+                    <p:panel id="pFiltrosReporte" header="Filtros" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                        <p:panelGrid style="width:95%;" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Inicial" for="fechaInicial" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:datePicker id="fechaInicial" style="width: 60%" value="#{auAutorizacionBean.objetoReporte.fechaInicio}" maxdate="#{auAutorizacionBean.obtenerFechaActual()}" pattern="yyyy-MM-dd"/>
+                                </p:column>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Fecha Final" for="fechaFinal" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-4">
+                                    <p:datePicker id="fechaFinal" style="width: 60%" value="#{auAutorizacionBean.objetoReporte.fechaFin}" pattern="yyyy-MM-dd"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column class="ui-g-2">
+                                    <p:outputLabel value="Nombre Sede" for="ips" style="font-weight:bold"/>
+                                </p:column>
+                                <p:column class="ui-g-10">
+                                    <h:panelGroup id="ips">   
+                                        <p:outputLabel  rendered="#{auAutorizacionBean.objetoReporte.sede != null}" value="#{auAutorizacionBean.objetoReporte.sede.nombreSede}" style="font-weight:bold"/>
+                                    </h:panelGroup>
+                                    <p:commandButton immediate="true" style="width: 34px" action="#{auAutorizacionBean.consultarIps()}" icon="ui-icon-home" title="Agregar IPS"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <!-- Acciones -->
+                    <p:panelGrid id="panelAccionesCrearReporte" style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="2" style="text-align: center;">
+                                    <p:commandButton value="Aceptar" actionListener="#{auAutorizacionBean.generarReporte()}"/>                                    
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoSolicitarReporte').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>
+            </p:dialog>
+            <!-- Filtro Ips Reporte -->
+            <p:dialog header="Consultar Ips" widgetVar="dialogoIpsLista" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native" style="max-height: 400px;">
+                    <h:form id="frmIpsLista">
+                        <div align="right">
+                            <p:commandButton title="Refrescar" actionListener="#{auAutorizacionBean.refrescarIps()}" oncomplete="PF('tablaWidgetIps').filter()" icon="ui-icon-refresh"/>
+                        </div>
+                        <p:panelGrid id="panelIpsLista" style="height:auto;" columns="4"
+                                     columnClasses="ui-grid-col-12"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:dataTable id="tablaRegistrosIps" widgetVar="tablaWidgetIps" var="objPrestador" value="#{auAutorizacionBean.lazyIps}" rowKey="#{objPrestador.id}"
+                                         rows="#{auAutorizacionBean.tamanoPagina}" paginator="true" lazy="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         emptyMessage= "No se encontraron registros" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{auAutorizacionBean.onRowSelectIps}"/>
+                                <p:column headerText="Código Habilitación" filterBy="#{objPrestador.codigoHabilitacionSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Código Habilitación" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.codigoHabilitacionSede}"/>
+                                </p:column>
+                                <p:column headerText="Tipo Documento" filterBy="#{objPrestador.cntPrestador.maeTipoDocumentoId}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auAutorizacionBean.listaTipoDocumento}" var="tipoDoc" itemValue="#{tipoDoc.id}" itemLabel="#{tipoDoc.descripcion}" itemDescription="#{tipoDoc.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.maeTipoDocumentoValor}"/>
+                                </p:column>
+                                <p:column headerText="Numero Documento" filterBy="#{objPrestador.cntPrestador.numeroDocumento}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Numero Documetno" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.numeroDocumento}"/>
+                                </p:column>
+                                <p:column headerText="Razón Social" filterBy="#{objPrestador.cntPrestador.razonSocial}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Razón Social" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.cntPrestador.razonSocial}"/>
+                                </p:column>                                    
+                                <p:column headerText="Nombre Sede" filterBy="#{objPrestador.nombreSede}">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Nombre Sede" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.nombreSede}"/>
+                                </p:column>
+                                <p:column headerText="Departamento">
+                                    <h:outputText value="#{auAutorizacionBean.obtenerDepartamento(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Municipio" filterBy="#{objPrestador.ubicacion.id}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaWidgetIps').filter()">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItems value="#{auAutorizacionBean.listaCiudades}" var="tipoUbi" itemValue="#{tipoUbi.id}" itemLabel="#{tipoUbi.descripcion}" itemDescription="#{tipoUbi.descripcion}" />
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{auAutorizacionBean.obtenerMunicipio(objPrestador.ubicacionId)}"/>
+                                </p:column>
+                                <p:column headerText="Dirección">
+                                    <f:facet name="filter">
+                                        <p:inputText label="Dirección" maxlength="128" style="width: 95%;" onchange="PF('tablaWidgetIps').filter()"/>
+                                    </f:facet>
+                                    <h:outputText value="#{objPrestador.direccion}"/>
+                                </p:column>
+                            </p:dataTable>
+
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Listar Bitacora -->
+            <p:dialog header="Bitacora" widgetVar="dialogoVerBitacoras" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVerBitacoras">
+                        <p:panel id="pTablaBitacora" header="Lista Bitacora" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaBitacora" var="bitacora" value="#{auAutorizacionBean.listaBitacoras}"
+                                         widgetVar="tablaBitacora" resizableColumns="true" emptyMessage="No se encontraron registros" 
+                                         paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         rows="5" >                             
+                                <p:column headerText="Tipo"  filterBy="#{bitacora.tipo}">
+                                    <f:facet name="filter">
+                                        <p:selectOneMenu onchange="PF('tablaBitacora').filter()" style="width: 80%;">
+                                            <f:selectItem itemLabel=" -- " itemValue="#{null}" noSelectionOption="true" />
+                                            <f:selectItem itemLabel="Solicitud Devolución" itemValue="1"/>
+                                            <f:selectItem itemLabel="Respuesta Devolución" itemValue="2"/>
+                                            <f:selectItem itemLabel="Solicitud Cotización" itemValue="3"/>
+                                            <f:selectItem itemLabel="Respuesta Cotización" itemValue="4"/>
+                                            <f:selectItem itemLabel="Derivación" itemValue="5"/>
+                                            <f:selectItem itemLabel="Rechazo Item" itemValue="6"/>
+                                            <f:selectItem itemLabel="Cambio Estado" itemValue="8"/>
+                                            <f:selectItem itemLabel="Comentario" itemValue="11"/>
+                                        </p:selectOneMenu>
+                                    </f:facet>
+                                    <h:outputText value="#{bitacora.getStrTipo()}" />
+                                </p:column>
+                                <p:column headerText="Descripcion">
+                                    <h:outputText value="#{bitacora.observacionCorto()} " />
+                                    <p:commandButton actionListener="#{auAutorizacionBean.mostrarMensaje(bitacora.descripcion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario ">
+                                    <h:outputText value="#{bitacora.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{bitacora.fechaHoraCrea}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm:ss" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelDevoluciones" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerBitacoras').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Listar Historicos -->
+            <p:dialog header="Bitacora" widgetVar="dialogoVerHistoricos" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVerHistoricos">
+                        <p:panel id="pTablaHistoricos" header="Lista Bitacora" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaHistoricos" var="bitacoraH" value="#{auAutorizacionBean.objeto.auAnexo4HistoricosList}" 
+                                         widgetVar="tablaBitacora" resizableColumns="true" emptyMessage="No se encontraron registros"
+                                         paginator="true" reflow="true"
+                                         currentPageReportTemplate="Registros del {startRecord} al {endRecord} de {totalRecords}, Página {currentPage} de {totalPages}"
+                                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                         rowsPerPageTemplate="5,10,30,50,100" 
+                                         rows="5" sortBy="#{bitacora.fechaHoraCrea}"
+                                         >                             
+                                <p:column headerText="Causa"  >                                    
+                                    <h:outputText value="#{bitacoraH.maeCausaValor}" />
+                                </p:column>
+                                <p:column headerText="Estado"  >                                    
+                                    <h:outputText value="#{bitacoraH.estadoStr}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{bitacoraH.observacionCorto()} " />
+                                    <p:commandButton actionListener="#{auAutorizacionBean.mostrarMensaje(bitacoraH.observacionAutorizacion)}" icon="ui-icon-comment"/>
+                                </p:column>
+                                <p:column headerText="Usuario">
+                                    <h:outputText value="#{bitacoraH.usuarioCrea}" />
+                                </p:column>
+                                <p:column headerText="Fecha Hora">
+                                    <h:outputText value="#{bitacoraH.fechaHoraCrea}" >
+                                        <f:convertDateTime type="date" pattern="yyyy-MM-dd HH:mm" timeZone="America/Bogota"/>
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelB" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerHistoricos').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- Listar adjuntos de cotizacion item -->
+            <p:dialog header="Adjuntos" widgetVar="dialogoVerAdjuntosItem" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll">
+                <p:scrollPanel mode="native">
+                    <h:form id="frmVerAdjuntosItem">
+                        <p:panel id="pTablaBitacora" header="Lista Adjuntos Cotizaciones" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdjuntos" var="adjunto" value="#{auAutorizacionBean.listaAdjuntosCotizacion}" widgetVar="tablaAdjuntos" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Archivos adjuntos">
+                                    <h:outputText value="#{adjunto.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{adjunto.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{auAutorizacionBean.descargarAdjuntoSolicitudAnexo(adjunto)}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panel id="pTablaAnticiposBitacora" header="Lista Adjuntos Anticipos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaAdjuntosAnticipos" var="adjunto" value="#{auAutorizacionBean.antAnticipoAdjuntosList}" lazy="false" widgetVar="tablaAdjuntosAnticipos" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{adjunto.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{adjunto.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{auAutorizacionBean.descargarAdjuntoSolicitudAnticipo(adjunto)}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <p:panelGrid id="panelDevoluciones" style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column colspan="6" style="text-align: center">                                        
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoVerAdjuntosItem').hide()" immediate="true" style="margin-left: 5px;"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>
+            </p:dialog>
+            <!--editar copago-->
+            <p:dialog id="dialogoEditarCopago" widgetVar="dialogoEditarCopago" appendTo="@(body)" modal="true" width="90%" dynamic="true" class="modal-no-scroll" style="max-height: 90%;">
+                <header style="font-size: 30px;">
+                    <b>Editar Copago</b>
+                </header>
+                <h:form id="frmAuditoriaCopago" class="frmAuditoria" style="margin-top: -15px; text-align: right;">
+                    <p:outputLabel id="labelDatosAuditoria" value="#{auAutorizacionBean.objeto.asegAfiliadoId.datosAuditoria} "/>
+                    <p:commandButton id="auditoria" class="btnAuditoria" action="#{auAutorizacionBean.mostrarAfiliadoGeneral()}" icon="ui-icon-person" title="Afiliado" />
+                </h:form>
+                <p:scrollPanel mode="native" style="height: 400px" >
+                    <h:form id="frmEditarCopago">
+                        <!-- Informacion Anulacion -->
+                        <p:panelGrid id="panelInformacionCopago" style="width:100%;margin:10px 0px" rendered="#{auAutorizacionBean.validarEstadoAnulado(auAutorizacionBean.objeto.estado)}" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Información" style="font-weight:bold"/>
+                            <p:outputLabel id="informacionCopago" value="#{auAutorizacionBean.obtenerTextoAnulado()}" style="color: red;font-weight: bold;"/>
+
+                            <p:outputLabel value="Comentario" style="font-weight:bold"/>
+                            <p:inputTextarea value="#{auAutorizacionBean.objeto.estadoJustificacion}" style="color: red;font-weight: bold;width: 100%" readonly="true"/>
+
+                        </p:panelGrid>
+                        <!-- Autorizacion -->
+                        <p:panel id="pCopago" header="Autorización" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:outputPanel id="panelBotonesSolicitudesVer" style="margin-top: -5px; text-align: right;">
+                                <p:commandButton class="btnAuditoria" action="#{auAutorizacionBean.getAuditoria(auAutorizacionBean.objeto.auditoriaStrHTML)}" icon="ui-icon-comment" title="Auditoría" />
+                            </p:outputPanel>
+                            <p:panelGrid style="width:95%;" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Autorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.id}"/>
+
+                                <p:outputLabel value="Origen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.origen}"/>
+
+                                <p:outputLabel value="Consecutivo" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.consecutivo}"/>
+
+                                <p:outputLabel value="N° Solicitud" style="font-weight:bold"/>
+
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo3Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo2Id.id}"/>
+                                <p:outputLabel rendered= "#{auAutorizacionBean.objeto.auAnexo2Id eq null}" value="#{auAutorizacionBean.objeto.auAnexo3Id.id}"/>
+
+                                <p:outputLabel value="Cantidad de Entregas" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cantidadEntregas}" />
+
+                                <p:outputLabel value="Fecha Inicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaInicio}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Fecha Fin" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaFin}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Días Vigencia" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.diasVigencia}"/>
+
+                                <p:outputLabel value="Posfechada" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.posfechada)}"/>
+
+                                <p:outputLabel value="FechaAutorización" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.fechaAutorizacion}">
+                                    <f:convertDateTime type="date" pattern="yyyy-MM-dd" timeZone="America/Bogota"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="Impresiones" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.impresionesRealizadas} de #{auAutorizacionBean.objeto.impresionesAutorizadas}"/>
+
+                                <p:outputLabel value="Ámbito" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maeAmbitoAtencionValor}"/>
+
+                                <p:outputLabel value="Contrato Anticipado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerString(auAutorizacionBean.objeto.contratoAnticipado)}"/>
+
+                                <p:outputLabel value="Observación Contrato" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.contratoAnticipadoObservacionCorto}"/>
+                                <p:commandButton rendered="#{auAutorizacionBean.objeto.contratoAnticipadoObservacionCorto.length() > 0 }" actionListener="#{auAutorizacionBean.mostrarMensaje(auAutorizacionBean.objeto.contratoAnticipadoObservacion)}" icon="ui-icon-comment"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Informacion Prestador -->
+                        <p:panel id="pIpsCopago" header="Información Prestador (Autorizado)" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelipsVer" style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorTipoDocumento}"/>
+
+                                <p:outputLabel value="Número Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorNumeroDocumento}"/>
+
+                                <p:outputLabel value="Razón Social" style="font-weight:bold"/>
+                                <p:outputLabel id="razonSocialAuditar" value="#{auAutorizacionBean.objeto.prestadorNombre}" />
+
+                                <p:outputLabel value="Departamento" style="font-weight:bold"/>
+                                <p:outputLabel id="departamentoIpsAuditar" value="#{auAutorizacionBean.objeto.prestadorDepartamento}" />
+
+                                <p:outputLabel value="Sede Prestador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cntPrestadorSedeId.nombreSede}" />
+
+                                <p:outputLabel value="Teléfono 1" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.telefono1Prestador}" />
+
+                                <p:outputLabel value="Correo Electrónico" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.correoElectronicoPrestador}" />
+
+                                <p:outputLabel value="Teléfono 2" style="font-weight:bold"/>
+
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.telefono2Prestador}" />
+
+                                <p:outputLabel value="Municipio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorMunicipio}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.prestadorDireccion}"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Datos del paciente -->
+                        <p:panel id="pCopagoAfiliado" header="Datos del paciente" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:95%;" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.nombreCompleto}" />
+
+                                <p:outputLabel value="Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.numeroDocumento}" />
+
+                                <p:outputLabel value="Contrato" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.cntContratoId.contrato}" />
+
+                                <p:outputLabel value="Régimen" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maeRegimenValor}" />
+
+                                <p:outputLabel value="Especialidad" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maEspecialidadValor}" />
+
+                                <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeTipoDocumentoCodigo}" />
+
+                                <p:outputLabel value="Fecha Nacimiento" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.afiliadoFechaNacimiento}" />
+
+                                <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.afiliadoDireccion}" />
+
+                                <p:outputLabel value="Género" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeGeneroValor}" />
+
+                                <p:outputLabel value="Nivel Sisbén" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.nivelSisben}" />
+
+                                <p:outputLabel value="Servicio" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.maServicioHabilitadoValor}" />
+
+                                <p:outputLabel value="Diagnostico Principal" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.diagnosticoPrincipal}" />
+
+                                <p:outputLabel value="Direccion Alternativa" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.direccionAlternativa}" />
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!--Modalidad y finalidad de tecnologia-->
+                        <p:panel header="Información de tecnología" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Modalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel  value="${auAutorizacionBean.objeto.maeModalidadTecnologiaValor}" />
+
+                                <p:outputLabel value="Finalidad de Tecnología" style="font-weight:bold"/>
+                                <p:outputLabel value="${auAutorizacionBean.objeto.maeFinalidadTecnologiaValor}"/>
+
+                            </p:panelGrid>
+                        </p:panel> 
+                        <!-- Servicios -->
+                        <p:panel id="pCopagoServicios" header="Tecnologias" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaTecnologiasVer" var="tecnologiasVer" value="#{auAutorizacionBean.listaAuAnexo4Items}" 
+                                         widgetVar="tablaProcedimientosVer" resizableColumns="true" emptyMessage="No se encontraron procedimientos" style="text-align: center" reflow="true">
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{auAutorizacionBean.obtenerTipoTencnologia(tecnologiasVer.tipoTecnologia)}" />
+                                </p:column>
+                                <p:column headerText="Código">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaCodigo}" />
+                                </p:column>
+                                <p:column headerText="Descripción">
+                                    <h:outputText value="#{tecnologiasVer.maTecnologiaValor}" />
+                                </p:column>
+                                <p:column headerText="Cantidad">
+                                    <h:outputText value="#{tecnologiasVer.cantidadAutorizada}" />
+                                </p:column>
+                                <p:column headerText="Valor">
+                                    <h:outputText value="#{tecnologiasVer.costoServicio}">
+                                        <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="4"/>
+                                    </h:outputText>                                    
+                                </p:column>
+                                <p:column headerText="Acciones">
+                                    <p:commandButton actionListener="#{auAutorizacionBean.verBitacoras(tecnologiasVer)}" icon="ui-icon-folder-collapsed" title="Ver Bitacoras" immediate="true"/>
+                                    <p:commandButton rendered="#{tecnologiasVer.auAnexo3ItemId ne null and auAutorizacionBean.objeto.medioAutorizacion eq 3}" actionListener="#{auAutorizacionBean.consultarAdjuntos(tecnologiasVer.auAnexo3ItemId.id)}" icon="ui-icon-copy" title="Ver adjuntos de cotización"/>
+                                </p:column>				
+                            </p:dataTable>  
+                        </p:panel>
+                        <!-- Pagos Compartidos -->
+                        <p:panel id="pPagosCopago" header="Pagos Compartidos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelPagosCopago" style="width:100%;margin:10px 0px" columns="4"
+                                         columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                         layout="grid"
+                                         styleClass="ui-panelgrid-blank ui-fluid">
+
+                                <p:outputLabel value="Cuota Moderadora" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCuotaModeradora)}"/>
+
+                                <p:outputLabel value="Cuota Recuperación" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCuotaRecuperacion)}"/>
+
+                                <p:outputLabel value="Copago" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.obtenerBoolean(auAutorizacionBean.objeto.aplicaCopago)}"/>
+                                
+                                <p:outputLabel value="Tope Afiliado" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.topeAplicadoStr}"/>
+
+                                <p:outputLabel value="Valor" style="font-weight:bold"/>
+                                <p:inputNumber id="valorCopago" value="#{auAutorizacionBean.objeto.valorCopago}" symbol="$" 
+                                               minValue="0" decimalPlaces="0" required="true" requiredMessage="Valor: Este campo es obligatorio"/>
+
+
+                                <p:outputLabel value="Porcentaje %" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.porcentajeRecuperacion}"/>
+
+                                <p:outputLabel value="Valor Historico Copago" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.valorTotalHistorico}" style="color:red">
+                                    <f:convertNumber locale="es_CO" currencySymbol="$" type="currency" maxFractionDigits="0"/>
+                                </p:outputLabel>
+
+                                <p:outputLabel value="nombre Autorizador" style="font-weight:bold"/>
+                                <p:outputLabel value="#{auAutorizacionBean.objeto.usuarioCrea}"/>
+
+                                <p:outputLabel value="Cargo" style="font-weight:bold"/>
+                                <p:outputLabel value="AUTORIZADOR SAVIA SALUD"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Justificacion Clinica -->
+                        <p:panel rendered="#{auAutorizacionBean.objeto.auAnexo2Id eq null and auAutorizacionBean.objeto.auAnexo3Id.fuenteOrigen == 2}" id="pJustificacionVer" header="Justificacion Clinica" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelJustificacionCopago" columns="1">
+                                <p:inputTextarea rows="5" cols="155" value="#{auAutorizacionBean.objeto.auAnexo3Id.justificacionClinica}" readonly="true" style="width: 98%"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+
+                        <!-- Soportes Fisicos -->
+                        <p:panel id="pSoporteAnexoCopago" header="Soportes Fisicos" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:dataTable id="tablaSoporteAnexo" var="soportesAnexoVer" value="#{auAutorizacionBean.objeto.listaAdjuntos}" widgetVar="tablaSoporteAnexoVer" resizableColumns="true" emptyMessage="No se encontraron registros" >
+                                <p:column headerText="Archivos adjuntos">
+                                    <h:outputText value="#{soportesAnexoVer.nombre}" />
+                                </p:column>
+                                <p:column headerText="Tipo documento">
+                                    <h:outputText value="#{soportesAnexoVer.maeTipoArchivoValor}" />
+                                </p:column>
+                                <p:column headerText="Acciones" style="text-align: center">
+                                    <p:commandButton title="Descargar" ajax="false" onclick="PrimeFaces.monitorDownload(start, stop);" icon="ui-icon-arrowthickstop-1-s">
+                                        <p:fileDownload value="#{auAutorizacionBean.descargarAdjuntoSolicitudAnexo(soportesAnexoVer)}" />
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:panel>
+                        <!-- Notas Auditor -->
+                        <p:panel id="pObservacionCopago" header="Notas Del Auditor" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacionCopago" columns="1" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:inputTextarea rows="5" cols="155" value="#{auAutorizacionBean.objeto.observacion}" readonly="true" style="width: 99%"/>
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Observacion copago -->
+                        <p:panel id="pObservacionCopagoM" header="Observación copago" style="margin-bottom:10px;" collapsed="false" toggleable="true">
+                            <p:panelGrid id="panelObservacionCopagoM" columns="1" layout="grid" styleClass="showcase-text-align-center">
+
+                                <p:row>
+                                    <p:column class="ui-g-12" style="display:grid">
+                                        <p:inputTextarea id="txtObservacionE" style="width: 99%" rows="5" cols="140" value="#{auAutorizacionBean.observacionGenerica}" 
+                                                         counter="display1Editar" maxlength="512" counterTemplate="{0} caracteres faltantes." 
+                                                         autoResize="true" required="true" requiredMessage="Observación copago: Este campo es obligatorio">
+                                        </p:inputTextarea>
+                                        <h:outputText id="display1Editar" />
+                                    </p:column>
+                                </p:row>
+
+
+                            </p:panelGrid>
+                        </p:panel>
+                        <!-- Acciones -->
+                        <p:panelGrid style="width:100%;">
+                            <f:facet name="footer">   
+                                <p:row>
+                                    <p:column colspan="4" style="text-align: center">
+                                        <p:commandButton value="Modificar" type="button" onclick="modificarCopagoRemote()" validateClient="true"/>
+                                        <p:remoteCommand name="modificarCopagoRemote" action ="#{auAutorizacionBean.modificarCopago()}" />
+                                        <p:commandButton value="Salir" type="button" onclick="PF('dialogoEditarCopago').hide()" immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>                        
+                        </p:panelGrid>
+                    </h:form>
+                </p:scrollPanel>                    
+            </p:dialog>
+            <p:dialog header="No Prestado" widgetVar="dialogoNoPrestado" appendTo="@(body)" modal="true" style="max-width: 90%;max-height: 90%;" dynamic="true">
+                <h:form id="frmNoPrestadoItem">
+                    <p:panelGrid id="panelContratoAprobar" style="height:200px; overflow-y: scroll;" columns="4"
+                                 columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank ui-fluid">
+                        <p:row>
+                            <p:column class="ui-g-2">
+                                <p:outputLabel value="Observacion" for="NoPrestado" style="font-weight:bold"/>
+                            </p:column>
+                            <p:column class="ui-g-10" style="display: grid">
+                                <p:inputTextarea id="NoPrestado" rows="5" cols="100" value="#{auAutorizacionBean.objetoItem.entregaObservacion}" counter="display1NoPrestar" maxlength="1000" counterTemplate="{0} caracteres faltantes." autoResize="true" required="true" requiredMessage="Comentario: Este campo es obligatorio"/>
+                                <br/>
+                                <h:outputText id="display1NoPrestar" style="margin-top: -10px"/>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid style="width:100%;margin:10px 0px">
+                        <f:facet name="footer">
+                            <p:row>
+                                <p:column colspan="6" style="text-align: center">                                        
+                                    <p:commandButton value="No Prestar" actionListener="#{auAutorizacionBean.noPrestado(auAutorizacionBean.objetoItem)}"/>                                       
+                                    <p:commandButton value="Cancelar" type="button" onclick="PF('dialogoNoPrestado').hide()" immediate="true" style="margin-left: 5px;"/>
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                    </p:panelGrid>
+                </h:form>                
+            </p:dialog>
+            <!-- descripciones afiliado genericas -->
+            <p:dialog header="Afiliado" widgetVar="dlgInfoAfiliado" class="modal-no-scroll" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:280px">
+                    <h:form id="frmAfiliadoGeneral">
+                        <p:panelGrid id="panelAfiliadoGeneral" style="width:100%;margin:10px 0px" columns="4"
+                                     columnClasses="ui-grid-col-2,ui-grid-col-4,ui-grid-col-2,ui-grid-col-4"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank ui-fluid">
+
+                            <p:outputLabel value="Estado" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeEstadoAfiliacionValor}" />
+
+                            <p:outputLabel value="Nombres" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.nombres}" />
+
+                            <p:outputLabel value="Apellidos" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.apellidos}" />
+
+                            <p:outputLabel value="Tipo Documento" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeTipoDocumentoCodigo}" />
+
+                            <p:outputLabel value="Documento" style="font-weight:bold" />
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.numeroDocumento}" />
+
+                            <p:outputLabel value="Correo" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.email}" />
+
+                            <p:outputLabel value="Dirección" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.direccionResidencia}" />
+
+                            <p:outputLabel value="Ubicación" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.obtenerMunicipio(auAutorizacionBean.objeto.asegAfiliadoId.residenciaUbicacion.id)}" />
+
+                            <p:outputLabel value="Regimen" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.maeRegimenValor}" />
+
+                            <p:outputLabel value="Contrato" style="font-weight:bold"/>
+                            <p:outputLabel value="#{auAutorizacionBean.objeto.asegAfiliadoId.idAfiliado}" />
+
+                        </p:panelGrid>
+                        <p:panel header="Contactos Aseguramiento" toggleable="true" style="height:auto;">
+                            <p:scrollPanel mode="native">
+                                <p:dataTable id="tablaContactosGeneralAseg" var="contacto" value="#{auAutorizacionBean.objeto.asegAfiliadoId.listaAsegAfiliadoContacto}" widgetVar="tablaContactosGestionarAseg" scrollable="true" emptyMessage="No se encontraron registros">
+                                    <p:column headerText="Número Contacto">
+                                        <h:outputText value="#{contacto.numeroContacto}"/>
+                                    </p:column>
+                                    <p:column headerText="Tipo">
+                                        <h:outputText value="#{contacto.maeTipoContactoValor}"/>
+                                    </p:column>
+                                    <p:column headerText="Observación">
+                                        <h:outputText value="#{contacto.observacion}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:scrollPanel>
+                        </p:panel>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgInfoAfiliado').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+            <!-- descripciones genericas -->
+            <p:dialog header="Observación" widgetVar="dlgMsg" minHeight="50" appendTo="@(body)" modal="true"  width="80%" dynamic="true">           
+                <p:scrollPanel mode="native" style="height:130px">
+                    <h:form id="frmObservacion">
+                        <p:panelGrid id="panelObservacion" style="width:100%;margin:10px 0px">
+                            <p:row>
+                                <p:column class="ui-g-12">
+                                    <p:inputTextarea  value="#{auAutorizacionBean.observacionGenerica}" readonly="true" style="width: 100%"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid  style="width:100%;margin:10px 0px">
+                            <f:facet name="footer">
+                                <p:row>
+                                    <p:column style="text-align: center">
+                                        <h:panelGroup style="display:block; text-align:center;">
+                                            <p:commandButton value="Salir" type="button" onclick="PF('dlgMsg').hide()" immediate="true"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </h:form> 
+                </p:scrollPanel>
+            </p:dialog>
+        </center>
+        <h:form id="exit">
+            <p:remoteCommand  id="limpiarRender" name="limpiarRender" action="#{auAutorizacionBean.salir()}"/>
+        </h:form>
+    </ui:define>
+</ui:composition>

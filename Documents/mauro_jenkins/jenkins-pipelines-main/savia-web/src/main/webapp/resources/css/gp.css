@@ -1,0 +1,245 @@
+.txtInputArea {
+    width:100%;
+    height:93px!important;
+}
+.tblAdjuntos {
+    width:100%;
+}
+
+.modalCrudMediano {
+    max-width:1000px;
+    min-width:950px;
+}
+
+.tblModal{
+    padding-left: 0px;
+    padding-right: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    overflow: hidden;
+}
+
+.filtroSelectCheckBox {
+    width: 100%;
+    height: 22px;
+    background: white;
+    text-align:left;
+}
+
+.txtInputText{
+    width:97%;
+}
+
+.ui-fileupload-files {
+    margin: 0px!important;
+}
+
+.alerta-tarea{
+    max-width: 12px;
+    left: 50%;
+    float: left;
+    margin-right: 1px;
+    position: absolute;
+    top: 65%;
+    margin-left: -10px;
+}
+
+td {
+    position:relative;
+}
+
+.tblTareas td {
+    height:58px;
+}
+
+.centered-align {
+    text-align:center;
+}
+.left-align {
+    text-align:left;
+}
+
+.tblTareas table { 
+    table-layout:auto;
+}
+
+.mw100 {
+    max-width:100px;
+}
+
+.tblTareas th {
+    width: 8%;
+    padding-left: 0px!important;
+    margin-left: 0px!important;
+    margin-right:0px!important;
+    padding-right:0px!important;
+}
+
+.ui-selectonemenu {
+    padding-right: 0.5em!important;
+    width:94%;
+}
+
+.w50 {
+    width:50%;
+}
+.w100 {
+    width:100%;
+}
+.w25 {
+    width:25%;
+}
+.w75 {
+    width:75%;
+}
+
+.radio-button-tareas {
+    width: 18px;
+    background: #f5f5f5;
+    text-align: center;
+    width: 100%;
+    font-size: 13px!important;
+}
+
+.modalTareas {
+    width:85%!important;
+    max-width:1080px;
+}
+
+.ui-radiobutton .ui-radiobutton-box {
+    margin-left: -5px;
+}
+
+.tblTareasModal{
+    table-layout:auto;
+}
+
+.lblRadio .ui-radiobutton{
+    margin:0px!important;
+}
+
+.txtCalendar input {
+    min-width:98%;
+}
+
+.tblFixed table{
+    table-layout:fixed;
+}
+
+.imgAsignado img{
+    max-width: 98px;
+    margin-left: 14px;
+    margin-top: 12px;
+    border: 1px solid #0c4471;
+}
+
+.imgAsignado {
+    float:left;
+}
+
+.datosAsignado {
+    display: inline;
+    margin-top: 12px;
+    float: left;
+    margin-left: 7px;
+    width: 27%;
+    line-height: 15px;
+}
+
+.fwb {
+    font-weight: bold;
+    color: #0c4470;
+}
+
+.lblDatos {
+    display:block;
+}
+
+.flechader {
+    float: left;
+    margin-top: 35px;
+}
+
+.flechader img {
+    max-width: 49px;
+}
+
+.ui-selectcheckboxmenu-multiple-container.ui-inputfield {
+    padding: 0 22px 0 0;
+    border: 0;
+    max-height: 88px;
+    min-height: 88px;
+    overflow-y: scroll;
+    width:100%;
+}
+
+.multi-select {
+    width:96%;
+}
+
+.ui-inputswitch {
+    font-size:10px;
+}
+
+.ui-inputswitch .ui-inputswitch-on {
+    background: #0f446f;
+    color: white;
+}
+.ui-dialog.ui-widget-content .ui-dialog-content {
+    padding-bottom: 0px;
+}
+
+.ui-selectonemenu-panel .ui-selectonemenu-filter-container .ui-icon {
+    right: 4px;
+}
+
+.ui-autocomplete {
+    width: 100%;
+    padding: 0px;
+}
+
+.ui-autocomplete-input.ui-autocomplete-dd-input {
+    padding-right: 0px;
+    max-width: 100px;
+}
+.ui-inputfield {
+    width: 100%;
+}
+
+.ui-selectonemenu-panel .ui-selectonemenu-filter {
+    width: 96%;
+    padding-right: 0px;
+}
+
+.ui-selectonemenu-panel .ui-selectonemenu-filter-container .ui-icon {
+    right: 5%;
+}
+
+.header-boton {
+    position:relative;
+}
+
+.autocomplete-limpiar {
+    position: absolute;
+    z-index: 9999;
+    background: transparent;
+    border: none!important;
+    padding: 0px;
+    margin: 0px;
+    text-shadow: none;
+    box-shadow: none;
+    top: 21px;
+    right:0px;
+}
+
+.autoCompletar {
+    width:89%;
+}
+
+.ui-selectcheckboxmenu-header .ui-selectcheckboxmenu-filter-container {
+    width: 83%;
+}
+
+.ui-selectcheckboxmenu-header .ui-inputfield {
+    padding: 1px 5px 1px 2px;
+}
