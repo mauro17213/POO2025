@@ -1,0 +1,117 @@
+package com.saviasaludeps.savia.ejb.entidades;
+
+import java.util.Date;
+import javax.annotation.Generated;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
+
+@Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
+@StaticMetamodel(AsegAfiliadoCertificados.class)
+public abstract class AsegAfiliadoCertificados_ {
+
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> nombreArchivo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> tipo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaInicioVigencia;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeGrupoPoblacionalValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeNivelValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeRegimenId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeTipoDocumentoCodigo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, AsegAfiliados> asegAfiliadosId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> origenGeneracion;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> usuarioCrea;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> terminalCrea;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> id;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> numeroDocumento;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeGrupoPoblacionalId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeRegimenDescripcion;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> semanaAfiliacion;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeEstadoAfiliacionId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> primerApellido;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeGrupoPoblacionalCodigo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeNivelId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> diasVigencia;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeSubgrupoSisbenValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeEstadoAfiliacionValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeNivelCodigo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> residenciaUbicacionId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeSubgrupoSisbenCodigo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeSubgrupoSisbenId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeTipoDocumentoValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> correoElectronico;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> segundoNombre;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaNacimiento;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> ruta;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaAfiliacion;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> segundoApellido;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> celularAfiliado;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> afiliacionUbicacionValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> residenciaUbicacionValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> afiliacionUbicacionId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaHoraCrea;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> primerNombre;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaFinVigencia;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> cntPrestadorSedesValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeRegimenValor;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> telefonoAfiliado;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> cntPrestadorSedesId;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> direccionAfiliado;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> idAfiliado;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> modeloLiquidacion;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, String> maeEstadoAfiliacionCodigo;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Date> fechaRetiro;
+	public static volatile SingularAttribute<AsegAfiliadoCertificados, Integer> maeTipoDocumentoId;
+
+	public static final String NOMBRE_ARCHIVO = "nombreArchivo";
+	public static final String TIPO = "tipo";
+	public static final String FECHA_INICIO_VIGENCIA = "fechaInicioVigencia";
+	public static final String MAE_GRUPO_POBLACIONAL_VALOR = "maeGrupoPoblacionalValor";
+	public static final String MAE_NIVEL_VALOR = "maeNivelValor";
+	public static final String MAE_REGIMEN_ID = "maeRegimenId";
+	public static final String MAE_TIPO_DOCUMENTO_CODIGO = "maeTipoDocumentoCodigo";
+	public static final String ASEG_AFILIADOS_ID = "asegAfiliadosId";
+	public static final String ORIGEN_GENERACION = "origenGeneracion";
+	public static final String USUARIO_CREA = "usuarioCrea";
+	public static final String TERMINAL_CREA = "terminalCrea";
+	public static final String ID = "id";
+	public static final String NUMERO_DOCUMENTO = "numeroDocumento";
+	public static final String MAE_GRUPO_POBLACIONAL_ID = "maeGrupoPoblacionalId";
+	public static final String MAE_REGIMEN_DESCRIPCION = "maeRegimenDescripcion";
+	public static final String SEMANA_AFILIACION = "semanaAfiliacion";
+	public static final String MAE_ESTADO_AFILIACION_ID = "maeEstadoAfiliacionId";
+	public static final String PRIMER_APELLIDO = "primerApellido";
+	public static final String MAE_GRUPO_POBLACIONAL_CODIGO = "maeGrupoPoblacionalCodigo";
+	public static final String MAE_NIVEL_ID = "maeNivelId";
+	public static final String DIAS_VIGENCIA = "diasVigencia";
+	public static final String MAE_SUBGRUPO_SISBEN_VALOR = "maeSubgrupoSisbenValor";
+	public static final String MAE_ESTADO_AFILIACION_VALOR = "maeEstadoAfiliacionValor";
+	public static final String MAE_NIVEL_CODIGO = "maeNivelCodigo";
+	public static final String RESIDENCIA_UBICACION_ID = "residenciaUbicacionId";
+	public static final String MAE_SUBGRUPO_SISBEN_CODIGO = "maeSubgrupoSisbenCodigo";
+	public static final String MAE_SUBGRUPO_SISBEN_ID = "maeSubgrupoSisbenId";
+	public static final String MAE_TIPO_DOCUMENTO_VALOR = "maeTipoDocumentoValor";
+	public static final String CORREO_ELECTRONICO = "correoElectronico";
+	public static final String SEGUNDO_NOMBRE = "segundoNombre";
+	public static final String FECHA_NACIMIENTO = "fechaNacimiento";
+	public static final String RUTA = "ruta";
+	public static final String FECHA_AFILIACION = "fechaAfiliacion";
+	public static final String SEGUNDO_APELLIDO = "segundoApellido";
+	public static final String CELULAR_AFILIADO = "celularAfiliado";
+	public static final String AFILIACION_UBICACION_VALOR = "afiliacionUbicacionValor";
+	public static final String RESIDENCIA_UBICACION_VALOR = "residenciaUbicacionValor";
+	public static final String AFILIACION_UBICACION_ID = "afiliacionUbicacionId";
+	public static final String FECHA_HORA_CREA = "fechaHoraCrea";
+	public static final String PRIMER_NOMBRE = "primerNombre";
+	public static final String FECHA_FIN_VIGENCIA = "fechaFinVigencia";
+	public static final String CNT_PRESTADOR_SEDES_VALOR = "cntPrestadorSedesValor";
+	public static final String MAE_REGIMEN_VALOR = "maeRegimenValor";
+	public static final String TELEFONO_AFILIADO = "telefonoAfiliado";
+	public static final String CNT_PRESTADOR_SEDES_ID = "cntPrestadorSedesId";
+	public static final String DIRECCION_AFILIADO = "direccionAfiliado";
+	public static final String ID_AFILIADO = "idAfiliado";
+	public static final String MODELO_LIQUIDACION = "modeloLiquidacion";
+	public static final String MAE_ESTADO_AFILIACION_CODIGO = "maeEstadoAfiliacionCodigo";
+	public static final String FECHA_RETIRO = "fechaRetiro";
+	public static final String MAE_TIPO_DOCUMENTO_ID = "maeTipoDocumentoId";
+
+}
+
