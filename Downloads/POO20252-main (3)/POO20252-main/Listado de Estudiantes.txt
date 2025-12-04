@@ -1,0 +1,19 @@
+Nombre				| Codigo	| Experiencia en Programacion
+
+Leonardo Montes 		| 170000000000  | Si
+Alejandro Piedrahita		| 67007  	| Si
+Alejandro Piedrahita (2)        | 67007         | Vamos aprendiendo
+Cristian Betancourth Hoyos      | 36965         | No
+Luis Enrique Ortiz Garcia       | 4135		| un poquito
+Isabella Muñoz Osorio		| 36722		| No 
+Santiago Mauricio Burgos        | 66757         | No
+Maria Camila Henao              | 64748         | No
+Juan Diego Quintero Naranjo     | 66236         | No
+Isabella Garcia Gutierrez       |67268          | No 
+daniel jimenez londoño          |54944          |NO
+Julian Vargas Zapata            | 53236         | No
+Luisa Fernanda Rendon           | 59412		| Si
+Mariana Molina Nieto		| 51164 	| No
+Mauricio Cardona Forero         | 65755         | NO
+Daniela Ballesteros Herrera     | 65298         | NO
+Sergio Andrés Ruiz Hernández    | 55411         | No
