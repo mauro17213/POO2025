@@ -211,16 +211,18 @@ input {
     caret-color: #ffe0a6;
 }
 
-#modalRegistro {
-    display: none;
+#modalRegistro,
+#modalOlvidar {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    width: 100%;
+    height: 100%;
+    display: none;
     justify-content: center;
     align-items: center;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 999;
 }
 
 #modalRegistro .modal-content {
@@ -229,4 +231,52 @@ input {
     border-radius: 10px;
     width: 300px;
     text-align: center;
+}
+
+.opciones-registro-grid {
+    margin-top: 12px;
+    color: #ddd;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 columnas */
+    column-gap: 20px;
+    row-gap: 6px;
+    font-size: 13px;
+}
+
+
+/* El título ocupa todo el ancho (las 2 columnas) */
+
+.opciones-titulo {
+    grid-column: 1 / 5;
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
+    letter-spacing: 6px;
+    /* ← separación entre letras */
+    font-size: 18px;
+    /* ← AQUÍ aumentas el tamaño */
+    margin-bottom: 2px;
+    /* ← espacio con las opciones */
+    margin-top: -30px;
+    /* ← AQUÍ lo subes */
+    font-weight: 600;
+    color: #ffa807;
+}
+
+
+/* Cada opción: radio + texto alineados en fila */
+
+.opcion-registro {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+
+/* Color del radio (en navegadores modernos) */
+
+.opcion-registro input[type="radio"] {
+    accent-color: gold;
 }
