@@ -1,12 +1,21 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
+const nodemailer = require("nodemailer");
+require("dotenv").config(); // 👈 lee el .env
 
 const port = 4000;
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+console.log("EMAIL_USER en runtime:", process.env.EMAIL_USER || "NO CARGA");
+console.log(
+    "Largo de EMAIL_PASS:",
+    process.env.EMAIL_PASS ? process.env.EMAIL_PASS.length : "NO CARGA"
+);
+
 
 // 1️⃣ UNA sola base de datos con dos tablas
 const bd = new sqlite3.Database("usuarios.db", (e) => {
@@ -35,14 +44,7 @@ bd.run(
         }
     }
 );
-// 💌 Transporter de correo con Gmail
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+
 // Tabla para recuperación de contraseña
 bd.run(
     `
@@ -61,6 +63,18 @@ bd.run(
         }
     }
 );
+
+// 💌 Transporter de correo con Outlook
+const transporter = nodemailer.createTransport({
+    host: "smtp.office365.com", // servidor SMTP de Outlook/Hotmail
+    port: 587,
+    secure: false, // TLS por STARTTLS, no SSL directo
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
 
 app.get("/", (req, res) => {
     res.send("Servidor funcionando correctamente ✅");
@@ -126,6 +140,7 @@ app.post("/login", (req, res) => {
     });
 });
 
+// 4️⃣ GENERAR TOKEN Y ENVIARLO POR CORREO
 app.post("/generar-token", (req, res) => {
     const { email } = req.body;
 
@@ -147,9 +162,8 @@ app.post("/generar-token", (req, res) => {
             return res.json({ mensaje: "no tengo credenciales en la tabla" });
         }
 
-        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        const token = Math.floor(1000 + Math.random() * 900000).toString();
         const expiro = Date.now() + 15 * 60 * 1000;
-
 
         const sqlInsert = `
       INSERT INTO usuariosRecupera (email, token, expiro)
@@ -164,8 +178,33 @@ app.post("/generar-token", (req, res) => {
 
             console.log("🔐 Se creó token", token, "para", email);
 
-            return res.json({
-                mensaje: "Se creó el token y se guardó en la base de datos con email, token y tiempo de expiración",
+            // 💌 Enviar correo con el token
+            const mailOptions = {
+                from: `"Soporte" <${process.env.EMAIL_USER}>`,
+                to: email,
+                subject: "Recuperación de contraseña",
+                text: `Tu código de recuperación es: ${token}. Tiene una vigencia de 15 minutos.`,
+                html: `
+                  <p>Hola,</p>
+                  <p>Tu código de recuperación es:</p>
+                  <h2>${token}</h2>
+                  <p>Este código es válido por 15 minutos.</p>
+                `,
+            };
+
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    console.error("Error al enviar correo:", err);
+                    return res.json({
+                        mensaje: "Se generó el token, pero hubo un error al enviar el correo",
+                    });
+                }
+
+                console.log("📧 Correo enviado:", info.response);
+
+                return res.json({
+                    mensaje: "Se creó el token y se envió al correo registrado",
+                });
             });
         });
     });
@@ -246,8 +285,8 @@ app.post("/cambiar-contrasena", (req, res) => {
             }
 
             console.log("🔁 Se actualizó la contraseña de:", email);
-            return res.json({ mensaje: "contraseña" });
-
+            // 👇 aquí te dejo un mensaje más claro para tu frontend
+            return res.json({ mensaje: "se actualizó la contraseña" });
         });
     });
 });
